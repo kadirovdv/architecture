@@ -1,0 +1,69 @@
+<div class="position-relative min-h-80 w-100 p-2 overflow-hidden">
+  <div class="position-absolute bottom-0 right-0 pe-4 pb-3">
+    <button
+      class="btn btn-primary btn-lg"
+      [disabled]="isNewSection"
+      (click)="isNewSection = true"
+    >
+      Add
+    </button>
+  </div>
+  <div class="row mb-3 custom-border-bottom pb-2">
+    <div class="col-1">#</div>
+    <div class="col">Name</div>
+    <div class="col-3">Author</div>
+    <div class="col-2">Actions</div>
+  </div>
+  <div
+    *ngIf="loader; else content"
+    class="d-flex justify-content-center align-items-center min-h-80"
+  >
+    <app-loader></app-loader>
+  </div>
+  <ng-template #content>
+    <div class="row mb-2" *ngFor="let section of sections; let i = index">
+      <div class="col-1">{{ i + 1 }}</div>
+      <div class="col" *ngIf="sectionIdToEdit !== section.id">
+        {{ section.name }}
+      </div>
+      <div class="col ps-0" *ngIf="sectionIdToEdit === section.id">
+        <input type="text" class="form-control" [(ngModel)]="sectionName" />
+      </div>
+      <div class="col-3">You</div>
+      <div class="col-2" *ngIf="sectionIdToEdit !== section.id">
+        <button
+          class="btn btn-warning me-2"
+          (click)="editSection(section.id, section.name)"
+        >
+          <i class="bi bi-pencil-square text-white"></i>
+        </button>
+        <button class="btn btn-danger" (click)="deleteSection(section.id)">
+          <i class="bi bi-trash text-white"></i>
+        </button>
+      </div>
+      <div class="col-2" *ngIf="sectionIdToEdit === section.id">
+        <button class="btn btn-success me-2" (click)="save()">
+          <i class="bi bi-floppy-fill text-white"></i>
+        </button>
+        <button class="btn btn-warning" (click)="cancel()">
+          <i class="bi bi-x-square-fill text-white"></i>
+        </button>
+      </div>
+    </div>
+    <div class="row" *ngIf="isNewSection">
+      <div class="col-1">#</div>
+      <div class="col">
+        <input type="text" class="form-control" [(ngModel)]="sectionName" />
+      </div>
+      <div class="col-3">You</div>
+      <div class="col-2">
+          <button class="btn btn-success me-2" (click)="save()">
+            <i class="bi bi-floppy-fill text-white"></i>
+          </button>
+          <button class="btn btn-warning" (click)="cancel()">
+            <i class="bi bi-x-square-fill text-white"></i>
+          </button>
+        </div>
+    </div>
+  </ng-template>
+</div>

@@ -1,0 +1,30 @@
+<div class="container">
+  <div
+    class="w-100 min-h-screen d-flex justify-content-center align-items-center"
+  >
+    <div class="card" style="max-width: 380px; width: 300px">
+      <div class="card-body">
+        <div class="mb-4">
+          <label for="exampleInputEmail1" class="form-label"
+            >Ikkilmachi parol</label
+          >
+          <div class="d-flex">
+            <input
+              *ngFor="let input of digits; let i = index"
+              type="email"
+              (keyup)="onKeyUp($event, i)"
+              class="form-control otp-input me-2"
+              id="exampleInputEmail1"
+              [(ngModel)]="otp[i]"
+              aria-describedby="emailHelp"
+              [placeholder]="i + 1"
+              maxlength="1"
+            />
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary w-100 mb-1">Kirish</button>
+        <button type="button" class="btn btn-warning w-100" routerLink="/auth/login">Orqaga</button>
+      </div>
+    </div>
+  </div>
+</div>

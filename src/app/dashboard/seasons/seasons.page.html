@@ -1,0 +1,70 @@
+<div class="position-relative min-h-80 w-100 p-2 overflow-hidden">
+    <div class="position-absolute bottom-0 right-0 pe-4 pb-3">
+      <button
+        class="btn btn-primary btn-lg"
+        [disabled]="isNewSeason"
+        (click)="isNewSeason = true"
+      >
+        Add
+      </button>
+    </div>
+    <div class="row mb-3 custom-border-bottom pb-2">
+      <div class="col-1">#</div>
+      <div class="col">Name</div>
+      <div class="col-3">Author</div>
+      <div class="col-2">Actions</div>
+    </div>
+    <div
+      *ngIf="loader; else content"
+      class="d-flex justify-content-center align-items-center min-h-80"
+    >
+      <app-loader></app-loader>
+    </div>
+    <ng-template #content>
+      <div class="row mb-2" *ngFor="let season of seasons; let i = index">
+        <div class="col-1">{{ i + 1 }}</div>
+        <div class="col" *ngIf="seasonIdToEdit !== season.id">
+          {{ season.name }}
+        </div>
+        <div class="col ps-0" *ngIf="seasonIdToEdit === season.id">
+          <input type="text" class="form-control" [(ngModel)]="seasonName" />
+        </div>
+        <div class="col-3">You</div>
+        <div class="col-2" *ngIf="seasonIdToEdit !== season.id">
+          <button
+            class="btn btn-warning me-2"
+            (click)="editSeason(season.id, season.name)"
+          >
+            <i class="bi bi-pencil-square text-white"></i>
+          </button>
+          <button class="btn btn-danger" (click)="deleteSeason(season.id)">
+            <i class="bi bi-trash text-white"></i>
+          </button>
+        </div>
+        <div class="col-2" *ngIf="seasonIdToEdit === season.id">
+          <button class="btn btn-success me-2" (click)="save()">
+            <i class="bi bi-floppy-fill text-white"></i>
+          </button>
+          <button class="btn btn-warning" (click)="cancel()">
+            <i class="bi bi-x-square-fill text-white"></i>
+          </button>
+        </div>
+      </div>
+      <div class="row" *ngIf="isNewSeason">
+        <div class="col-1">#</div>
+        <div class="col">
+          <input type="text" class="form-control" [(ngModel)]="seasonName" />
+        </div>
+        <div class="col-3">You</div>
+        <div class="col-2">
+            <button class="btn btn-success me-2" (click)="save()">
+              <i class="bi bi-floppy-fill text-white"></i>
+            </button>
+            <button class="btn btn-warning" (click)="cancel()">
+              <i class="bi bi-x-square-fill text-white"></i>
+            </button>
+          </div>
+      </div>
+    </ng-template>
+  </div>
+  

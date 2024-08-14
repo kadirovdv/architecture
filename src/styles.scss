@@ -1,1 +1,29 @@
 /* You can add global styles to this file, and also import other style files */
+
+ul {
+  padding-left: 0px !important;
+}
+
+li {
+  list-style: none !important;
+}
+
+.min-h-screen {
+  min-height: 100vh;
+}
+
+.min-h-80 {
+  min-height: 80vh;
+}
+
+.right-0 {
+  right: 0px;
+}
+
+.left-0 {
+  left: 0px;
+}
+
+.custom-border-bottom {
+  border-bottom: 1px solid #dfdfdf;
+}
