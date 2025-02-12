@@ -150,6 +150,13 @@ ng-select .ng-dropdown-panel.ng-select-bottom {
 }
 
 @media screen and (max-width: 500px) {
+  ng-select {
+    width: 100%;
+    max-width: 100%;
+  }
+  ng-select .ng-select-container {
+    max-width: 100%;
+  }
   .mySwiper {
     padding-top: 50px !important;
     .swiper-pagination {
@@ -158,6 +165,25 @@ ng-select .ng-dropdown-panel.ng-select-bottom {
     .swiper-slide {
       font-size: 20px !important;
       line-height: normal !important;
+    }
+  }
+
+  .swiper .swiper-pagination-bullet {
+    min-width: 24px;
+    margin: 0px 45px !important;
+  }
+
+  .swiper .swiper-pagination-bullet {
+   
+  
+    &:first-child,
+    &:nth-child(2),
+    &:nth-child(3) {
+      position: relative;
+      background: #898381;
+      &::before {
+        left: -90.5px;
+      }
     }
   }
 }

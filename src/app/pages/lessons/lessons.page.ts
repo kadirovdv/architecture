@@ -107,14 +107,6 @@ export class LessonsPage implements OnInit, AfterViewInit, OnChanges {
   }
 
   changeData(id: string, mode = false): void {
-    this.chosenSemester.globalVar.forEach((item: any) => {
-      if (item.id === id) {
-        this.chosenTheme = item;
-        this.themeSelected = item?.theme || '';
-        this.loading = false;
-      }
-    });
-
     if (mode) {
       this.carousel.nativeElement.scrollIntoView({
         behavior: 'smooth',
@@ -152,6 +144,13 @@ export class LessonsPage implements OnInit, AfterViewInit, OnChanges {
 
   goToSlide(index: number): void {
     this.currentSlide = index;
+  }
+
+  goToSlideByItemTitle(title: string): void {
+    // const index = Object.keys(this.theme.files).findIndex(
+    //   (key) => this.theme.files[key].title === title
+    // );
+    // this.currentSlide = index;
   }
 
   @HostListener('touchstart', ['$event'])

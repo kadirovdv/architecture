@@ -251,6 +251,22 @@ import { LoaderService } from '../../services/loader.service';
           }
         }
       }
+
+      @media screen and (max-width: 500px) {
+        .loader-content {
+          .logo-text-uz,
+          .logo-text-ru,
+          .logo-text-en {
+            display: inline-block;
+            font-size: 1.4rem;
+            font-weight: bold;
+            font-family: 'Inter';
+            font-style: normal;
+            overflow: hidden;
+            color: #fff;
+          }
+        }
+      }
     `,
   ],
 })

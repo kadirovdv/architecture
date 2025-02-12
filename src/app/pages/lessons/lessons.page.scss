@@ -320,7 +320,7 @@ h2 {
   }
 
   .carousel-slide h4 {
-    font-size: 20px !important;
+    font-size: 17px !important;
   }
 
   h2 {
@@ -335,8 +335,10 @@ h2 {
     top: -25%;
     left: unset !important;
     margin: 0 auto;
-    display: block;
-    width: auto !important;
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
     transform: translate(5%, 40%);
     scale: .6;
   }
@@ -349,12 +351,25 @@ h2 {
     font-size: 30px !important;
   }
 
+  .lessons .col-md-6 h4:first-child {
+    margin-top: 30px;
+  }
+
   .lessons .custom-dropdown:nth-child(2) {
     margin-bottom: 20px !important;
   }
+
   .carousel-btn {
-    display: none !important;
+    top: 57%;
   }
+  .carousel-btn.prev {
+    left: -15px;
+  }
+  
+  .carousel-btn.next {
+    right: -15px;
+  }
+
   .carousel-indicators {
     bottom: 30px;
     display: flex !important;
