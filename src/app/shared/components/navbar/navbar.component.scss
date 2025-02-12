@@ -1,6 +1,420 @@
 nav {
-    z-index: 1;
-    ul li {
-        cursor: pointer;
+  z-index: 999;
+  background: rgba(3, 3, 3, 0.35);
+  position: absolute;
+  top: 0;
+  ul li {
+    cursor: pointer;
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none !important;
+    width: 100px;
+    img {
+      width: 80px;
     }
+    h3 {
+      font-family: "Merriweather Sans";
+      font-style: normal;
+      font-weight: 700;
+      font-size: 20px;
+      color: #ffffff !important;
+      cursor: pointer;
+      text-transform: uppercase;
+      margin-bottom: 0px !important;
+      margin-left: 15px;
+    }
+  }
+
+  .nav-items {
+    display: flex;
+    align-items: center;
+    li:first-child,
+    li:nth-child(2) {
+      font-family: "Inter";
+      font-style: normal;
+      font-weight: 800;
+      font-size: 20px;
+      color: #ffffff;
+      text-transform: uppercase;
+    }
+
+    li:not(:last-child) {
+      margin-right: 20px;
+    }
+  }
+
+  .nav-input {
+    overflow: hidden;
+    position: relative;
+    input {
+      width: 375px;
+      background: #ffffff;
+      border-radius: 50px;
+      padding: 13px 20px;
+      outline: none;
+      border: none;
+    }
+
+    svg {
+      position: absolute;
+      right: 20px;
+      top: 55px;
+      transition: all 0.2s ease-in-out;
+    }
+
+    .top-5 {
+      top: 5px;
+    }
+  }
+}
+
+.position-sticky {
+  background: url(/assets/img/nav-bg.png) no-repeat;
+  background-position: bottom;
+}
+
+.menu-btn {
+  width: 50px;
+  height: 50px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  border: 3px solid #fff;
+  display: none;
+}
+
+.menu-btn__burger {
+  width: 30px;
+  height: 3px;
+  background: #fff;
+  border-radius: 5px;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.menu-btn__burger::before,
+.menu-btn__burger::after {
+  content: "";
+  position: absolute;
+  width: 30px;
+  height: 3px;
+  background: #fff;
+  border-radius: 5px;
+  transition: all 0.2s ease-in-out;
+}
+
+.menu-btn__burger::before {
+  transform: translateY(-10px);
+}
+
+.menu-btn__burger::after {
+  transform: translateY(10px);
+}
+
+.menu-btn.open .menu-btn__burger {
+  transform: translateX(-50px);
+  background: transparent;
+}
+
+.menu-btn.open .menu-btn__burger::before {
+  transform: rotate(45deg) translate(35px, -35px);
+  background: #fa00c4;
+}
+
+.menu-btn.open .menu-btn__burger::after {
+  transform: rotate(-45deg) translate(35px, 35px);
+  background: #fa00c4;
+}
+
+.menu-btn.open {
+  border: 3px solid #fa00c4;
+}
+
+@media screen and (max-width: 995px) {
+  .menu-btn {
+    display: flex;
+  }
+  .nav-items {
+    flex-direction: column;
+    justify-content: space-between;
+    position: fixed;
+    top: 71.5px;
+    left: 0px;
+    right: 0px;
+    width: 100%;
+    height: 0px;
+    background: rgba(3, 3, 3, 0.35);
+    transition: transform 1s ease;
+    padding-bottom: 0px;
+    padding-left: 0px !important;
+    overflow: hidden;
+  }
+
+  .nav-items.open {
+    padding-top: 20px;
+    padding-bottom: 70px;
+    height: 350px;
+    overflow: auto;
+
+    li:not(:last-child) {
+      margin-right: 0px !important;
+    }
+  }
+}
+
+.loader-content {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99;
+  background: rgba(120, 120, 120, 0.8);
+  backdrop-filter: blur(7px);
+  z-index: 9999;
+}
+
+.loader-content .loader-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-text-uz,
+.logo-text-ru,
+.logo-text-en {
+  display: inline-block;
+  font-size: 2.4rem;
+  font-weight: bold;
+  font-family: "Inter";
+  font-style: normal;
+  overflow: hidden;
+  color: #fff;
+}
+
+.logo-text-uz::after {
+  content: "";
+  display: inline-block;
+  animation: abomination1 2.235s linear infinite;
+  animation-fill-mode: forwards;
+}
+
+.logo-text-ru::after {
+  content: "";
+  display: inline-block;
+  animation: abomination2 2.235s linear infinite;
+  animation-fill-mode: forwards;
+}
+
+.logo-text-en::after {
+  content: "";
+  display: inline-block;
+  animation: abomination3 2.235s linear infinite;
+  animation-fill-mode: forwards;
+}
+
+// MUHANDISLIK GRAFIKASI
+@keyframes abomination1 {
+  0% {
+    content: "M";
+  }
+  5.26% {
+    content: "MU";
+  }
+  10.53% {
+    content: "MUH";
+  }
+  15.79% {
+    content: "MUHA";
+  }
+  21.05% {
+    content: "MUHAND";
+  }
+  26.32% {
+    content: "MUHANDI";
+  }
+  31.58% {
+    content: "MUHANDIS";
+  }
+  36.84% {
+    content: "MUHANDISL";
+  }
+  42.11% {
+    content: "MUHANDISLI";
+  }
+  47.37% {
+    content: "MUHANDISLIK";
+  }
+  52.63% {
+    content: "MUHANDISLIK G";
+  }
+  57.89% {
+    content: "MUHANDISLIK GR";
+  }
+  63.16% {
+    content: "MUHANDISLIK GRA";
+  }
+  68.42% {
+    content: "MUHANDISLIK GRAF";
+  }
+  73.68% {
+    content: "MUHANDISLIK GRAFI";
+  }
+  78.95% {
+    content: "MUHANDISLIK GRAFIK";
+  }
+  84.21% {
+    content: "MUHANDISLIK GRAFIKA";
+  }
+  89.47% {
+    content: "MUHANDISLIK GRAFIKAS";
+  }
+  94.74% {
+    content: "MUHANDISLIK GRAFIKASI";
+  }
+}
+
+@keyframes abomination2 {
+  0% {
+    content: "И";
+  }
+  5.26% {
+    content: "ИН";
+  }
+  10.53% {
+    content: "ИНЖ";
+  }
+  15.79% {
+    content: "ИНЖЕ";
+  }
+  21.05% {
+    content: "ИНЖЕН";
+  }
+  26.32% {
+    content: "ИНЖЕНЕ";
+  }
+  31.58% {
+    content: "ИНЖЕНЕР";
+  }
+  36.84% {
+    content: "ИНЖЕНЕРН";
+  }
+  42.11% {
+    content: "ИНЖЕНЕРНА";
+  }
+  47.37% {
+    content: "ИНЖЕНЕРНАЯ";
+  }
+  52.63% {
+    content: "ИНЖЕНЕРНАЯ Г";
+  }
+  57.89% {
+    content: "ИНЖЕНЕРНАЯ ГР";
+  }
+  63.16% {
+    content: "ИНЖЕНЕРНАЯ ГРА";
+  }
+  68.42% {
+    content: "ИНЖЕНЕРНАЯ ГРАФ";
+  }
+  73.68% {
+    content: "ИНЖЕНЕРНАЯ ГРАФИ";
+  }
+  78.95% {
+    content: "ИНЖЕНЕРНАЯ ГРАФИК";
+  }
+  84.21% {
+    content: "ИНЖЕНЕРНАЯ ГРАФИКА";
+  }
+}
+
+@keyframes abomination3 {
+  0% {
+    content: "E";
+  }
+  5% {
+    content: "EN";
+  }
+  10% {
+    content: "ENG";
+  }
+  15% {
+    content: "ENGI";
+  }
+  20% {
+    content: "ENGIN";
+  }
+  25% {
+    content: "ENGINE";
+  }
+  30% {
+    content: "ENGINEE";
+  }
+  35% {
+    content: "ENGINEER";
+  }
+  40% {
+    content: "ENGINEERIN";
+  }
+  45% {
+    content: "ENGINEERING";
+  }
+  50% {
+    content: "ENGINEERING ";
+  }
+  55% {
+    content: "ENGINEERING G";
+  }
+  60% {
+    content: "ENGINEERING GR";
+  }
+  65% {
+    content: "ENGINEERING GRA";
+  }
+  70% {
+    content: "ENGINEERING GRAP";
+  }
+  75% {
+    content: "ENGINEERING GRAPH";
+  }
+  80% {
+    content: "ENGINEERING GRAPHI";
+  }
+  85% {
+    content: "ENGINEERING GRAPHIC";
+  }
+  90% {
+    content: "ENGINEERING GRAPHICS";
+  }
+}
+
+@media screen and (max-width: 500px) {
+  nav {
+    padding: 0px !important;
+    z-index: 9999;
+  }
+
+  .loader-content {
+    img {
+      width: 100% !important;
+    }
+  }
+}
+
+@media screen and (max-width: 375px) {
+  nav {
+    input {
+      width: 350px !important;
+    }
+  }
 }

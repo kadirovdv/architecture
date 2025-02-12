@@ -1,0 +1,48 @@
+<div class="position-relative min-h-80 w-100 p-2 overflow-hidden">
+  <div class="position-absolute bottom-0 right-0 pe-4 pb-3">
+    <button
+      class="btn btn-primary btn-lg add-btn"
+      routerLink="/dashboard/create-build"
+    >
+      <i class="bi bi-plus-lg"></i>
+    </button>
+  </div>
+  <div class="row mb-3 custom-border-bottom pb-2">
+    <div class="col-1">#</div>
+    <div class="col">Name</div>
+    <div class="col-3">Author</div>
+    <div class="col-2">Actions</div>
+  </div>
+  <div
+    *ngIf="loader; else content"
+    class="d-flex justify-content-center align-items-center min-h-80"
+  >
+    <app-loader></app-loader>
+  </div>
+  <ng-template #content>
+    <div class="row mb-2" *ngFor="let lesson of globalVar; let i = index">
+      <div class="col-1">{{ i + 1 }}</div>
+      <div class="col">
+        {{ lesson.lessonTitle?.uz?.length >= 18 ?
+        lesson.lessonTitle?.uz?.slice(0, 18) + '...' : lesson.lessonTitle?.uz
+        }}, {{ lesson.lessonTitle?.ru?.length >= 18 ?
+        lesson.lessonTitle?.ru?.slice(0, 18) + '...' :
+        lesson.lessonTitle?.ru }}, {{ lesson.lessonTitle?.en?.length >= 18
+        ? lesson.lessonTitle?.en?.slice(0, 18) + '...' :
+        lesson.lessonTitle?.en }}
+      </div>
+      <div class="col-3">You</div>
+      <div class="col-2">
+        <button
+          class="btn btn-warning me-2"
+          [routerLink]="['/dashboard/edit-build', lesson.id]"
+        >
+          <i class="bi bi-pencil-square text-white"></i>
+        </button>
+        <button class="btn btn-danger" (click)="deleteBuild(lesson.id)">
+          <i class="bi bi-trash text-white"></i>
+        </button>
+      </div>
+    </div>
+  </ng-template>
+</div>

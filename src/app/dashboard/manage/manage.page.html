@@ -1,18 +1,66 @@
-<div class="container min-h-screen d-flex justify-content-center align-items-center">
+<div
+  class="container min-h-screen d-flex justify-content-center align-items-center"
+>
+  <div class="w-100">
+    <button
+      class="btn btn-primary mb-3"
+      style="border: none"
+      (click)="goBack()"
+    >
+      <i class="bi bi-arrow-left"></i>
+    </button>
     <div class="card w-100 min-h-80 shadow-sm">
-        <div class="card-body p-0">
-            <div class="row">
-                <div class="col-md-2 p-0">
-                    <ul class="side-bar">
-                        <li class="side-bar-item" routerLink="/dashboard/manage/sections" routerLinkActive="side-bar-item-active">Sections</li>
-                        <li class="side-bar-item" routerLink="/dashboard/manage/seasons" routerLinkActive="side-bar-item-active">Seasons</li>
-                        <li class="side-bar-item" routerLink="/dashboard/manage/themes" routerLinkActive="side-bar-item-active">Themes</li>
-                    </ul>
-                </div>
-                <div class="col-md-10 ps-0">
-                    <router-outlet></router-outlet>
-                </div>
-            </div>
+      <div class="card-body p-0">
+        <div class="row">
+          <div class="col-md-2 p-0">
+            <ul class="side-bar">
+              <li
+                class="side-bar-item"
+                routerLink="/dashboard/manage/users"
+                routerLinkActive="side-bar-item-active"
+                (click)="saveRouteSrc.saveRoute('/dashboard/manage/users')"
+              >
+                Foydalanuvchilar
+              </li>
+              <li
+                class="side-bar-item"
+                routerLink="/dashboard/manage/lessons"
+                routerLinkActive="side-bar-item-active"
+                (click)="saveRouteSrc.saveRoute('/dashboard/manage/lessons')"
+              >
+                Fanlar
+              </li>
+              <li
+                class="side-bar-item"
+                routerLink="/dashboard/manage/semester"
+                routerLinkActive="side-bar-item-active"
+                (click)="saveRouteSrc.saveRoute('/dashboard/manage/semester')"
+              >
+                Semesterlar
+              </li>
+              <li
+                class="side-bar-item"
+                routerLink="/dashboard/manage/themes"
+                routerLinkActive="side-bar-item-active"
+                (click)="saveRouteSrc.saveRoute('/dashboard/manage/themes')"
+              >
+                Mavzular
+              </li>
+              <li
+                class="side-bar-item"
+                routerLink="/dashboard/manage/build"
+                routerLinkActive="side-bar-item-active"
+                (click)="saveRouteSrc.saveRoute('/dashboard/manage/build')"
+              >
+                Barchasini saqlash
+              </li>
+            </ul>
+          </div>
+          <div class="col-md-10 ps-0">
+            <router-outlet></router-outlet>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
 </div>

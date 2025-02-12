@@ -1,0 +1,176 @@
+<div class="position-relative min-h-80 w-100 p-2 overflow-hidden">
+  <div class="position-absolute bottom-0 right-0 pe-4 pb-3">
+    <button
+      class="btn btn-primary btn-lg add-btn"
+      [disabled]="isNewSemester"
+      (click)="isNewSemester = true"
+    >
+      <i class="bi bi-plus-lg"></i>
+    </button>
+  </div>
+  <div class="row mb-3 custom-border-bottom pb-2">
+    <div class="col-1">#</div>
+    <div class="col">Name</div>
+    <div class="col-3">Author</div>
+    <div class="col-2">Actions</div>
+  </div>
+  <div
+    *ngIf="loader; else content"
+    class="d-flex justify-content-center align-items-center min-h-80"
+  >
+    <app-loader></app-loader>
+  </div>
+  <ng-template #content>
+    <div class="row mb-2" *ngFor="let semester of semesters; let i = index">
+      <div class="col-1">{{ i + 1 }}</div>
+      <div class="col" *ngIf="semesterIdToEdit !== semester.id">
+        {{ semester.semesterTitle.uz.length >= 18 ?
+        semester.semesterTitle.uz.slice(0, 18) + '...' :
+        semester.semesterTitle.uz }}, {{ semester.semesterTitle.ru.length
+        >= 18 ? semester.semesterTitle.ru.slice(0, 18) + '...' :
+        semester.semesterTitle.ru }}, {{
+        semester.semesterTitle.en.length >= 18 ?
+        semester.semesterTitle.en.slice(0, 18) + '...' :
+        semester.semesterTitle.en }}
+      </div>
+      <div class="col ps-0" *ngIf="semesterIdToEdit === semester.id">
+        <div class="col mb-2">
+          <div class="d-flex align-items-center position-relative">
+            <b class="me-2"><h4 class="mb-0">UZ:</h4></b>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="semesterNameUz"
+            />
+            <div
+              class="btn-clear"
+              *ngIf="semesterNameUz.length > 3"
+              (click)="semesterNameUz = ''"
+            >
+              <i class="bi bi-x-square-fill"></i>
+            </div>
+          </div>
+        </div>
+        <div class="col mb-2">
+          <div class="d-flex align-items-center position-relative">
+            <b class="me-2"><h4 class="mb-0">RU:</h4></b>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="semesterNameRu"
+            />
+            <div
+              class="btn-clear"
+              *ngIf="semesterNameRu.length > 3"
+              (click)="semesterNameRu = ''"
+            >
+              <i class="bi bi-x-square-fill"></i>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="d-flex align-items-center position-relative">
+            <b class="me-2"><h4 class="mb-0">EN:</h4></b>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="semesterNameEn"
+            />
+            <div
+              class="btn-clear"
+              *ngIf="semesterNameEn.length > 3"
+              (click)="semesterNameEn = ''"
+            >
+              <i class="bi bi-x-square-fill"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-3">You</div>
+      <div class="col-2" *ngIf="semesterIdToEdit !== semester.id">
+        <button
+          class="btn btn-warning me-2"
+          (click)="editSemester(semester.id, semester)"
+        >
+          <i class="bi bi-pencil-square text-white"></i>
+        </button>
+        <button class="btn btn-danger" (click)="deleteSemester(semester.id)">
+          <i class="bi bi-trash text-white"></i>
+        </button>
+      </div>
+      <div class="col-2" *ngIf="semesterIdToEdit === semester.id">
+        <button class="btn btn-success me-2" (click)="save()">
+          <i class="bi bi-floppy-fill text-white"></i>
+        </button>
+        <button class="btn btn-warning" (click)="cancel()">
+          <i class="bi bi-x-square-fill text-white"></i>
+        </button>
+      </div>
+    </div>
+    <div class="row" *ngIf="isNewSemester">
+      <div class="col-1">#</div>
+      <div class="col">
+        <div class="col mb-2">
+          <div class="d-flex align-items-center position-relative">
+            <b class="me-2"><h4 class="mb-0">UZ:</h4></b>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="semesterNameUz"
+            />
+            <div
+              class="btn-clear"
+              *ngIf="semesterNameUz.length > 3"
+              (click)="semesterNameUz = ''"
+            >
+              <i class="bi bi-x-square-fill"></i>
+            </div>
+          </div>
+        </div>
+        <div class="col mb-2">
+          <div class="d-flex align-items-center position-relative">
+            <b class="me-2"><h4 class="mb-0">RU:</h4></b>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="semesterNameRu"
+            />
+            <div
+              class="btn-clear"
+              *ngIf="semesterNameRu.length > 3"
+              (click)="semesterNameRu = ''"
+            >
+              <i class="bi bi-x-square-fill"></i>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="d-flex align-items-center position-relative">
+            <b class="me-2"><h4 class="mb-0">EN:</h4></b>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="semesterNameEn"
+            />
+            <div
+              class="btn-clear"
+              *ngIf="semesterNameEn.length > 3"
+              (click)="semesterNameEn = ''"
+            >
+              <i class="bi bi-x-square-fill"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-3">You</div>
+      <div class="col-2">
+        <button class="btn btn-success me-2" (click)="save()">
+          <i class="bi bi-floppy-fill text-white"></i>
+        </button>
+        <button class="btn btn-warning" (click)="cancel()">
+          <i class="bi bi-x-square-fill text-white"></i>
+        </button>
+      </div>
+    </div>
+  </ng-template>
+</div>

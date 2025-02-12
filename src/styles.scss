@@ -1,11 +1,18 @@
 /* You can add global styles to this file, and also import other style files */
+@import url("https://fonts.googleapis.com/css2?family=Merriweather+Sans:ital,wght@0,300..800;1,300..800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Merriweather+Sans:ital,wght@0,300..800;1,300..800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Marvel:ital,wght@0,400;0,700;1,400;1,700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Judson:ital,wght@0,400;0,700;1,400&family=Marvel:ital,wght@0,400;0,700;1,400;1,700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Judson:ital,wght@0,400;0,700;1,400&family=Marvel:ital,wght@0,400;0,700;1,400;1,700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Adamina&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Judson:ital,wght@0,400;0,700;1,400&family=Marvel:ital,wght@0,400;0,700;1,400;1,700&display=swap");
+@import "~@ng-select/ng-select/themes/default.theme.css";
 
 ul {
-  padding-left: 0px !important;
+  padding-left: 0px;
 }
 
 li {
-  list-style: none !important;
+  list-style: none;
 }
 
 .min-h-screen {
@@ -26,4 +33,143 @@ li {
 
 .custom-border-bottom {
   border-bottom: 1px solid #dfdfdf;
+}
+
+.swiper .swiper-pagination-bullet {
+  margin: 0px 50px !important;
+  width: 24px;
+  height: 24px;
+  opacity: 1;
+  // background: #B94C31;
+
+  &:first-child,
+  &:nth-child(2),
+  &:nth-child(3) {
+    position: relative;
+    background: #898381;
+    &::before {
+      content: "";
+      display: block;
+      width: 100px;
+      height: 6px;
+      left: -100px;
+      position: absolute;
+      top: calc(12px - 4px);
+      background: #898381;
+    }
+  }
+
+  &:nth-child(3) {
+    position: relative;
+    &::after {
+      content: "";
+      display: block;
+      width: 100px;
+      height: 6px;
+      right: -100px;
+      position: absolute;
+      top: calc(12px - 4px);
+      background: #898381;
+    }
+  }
+
+  &-active {
+    background: #b94c31 !important;
+    &::before {
+      content: "";
+      display: block;
+      width: 100px;
+      height: 6px;
+      background-color: #b94c31 !important;
+      left: -100px;
+      position: absolute;
+      top: calc(12px - 4px);
+    }
+    &::after {
+      content: "";
+      display: block;
+      width: 100px;
+      height: 6px;
+      background-color: #b94c31 !important;
+      right: -100px;
+      position: absolute;
+      top: calc(12px - 4px);
+    }
+  }
+}
+
+ng-select .ng-arrow-wrapper {
+  display: none !important;
+}
+
+ng-select.ng-select-opened .ng-select-container.ng-has-value {
+  &::after {
+    rotate: 180deg;
+    top: 5px;
+  }
+}
+
+ng-select .ng-select-container.ng-has-value {
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
+  width: 400px;
+  height: 60px !important;
+  cursor: pointer;
+  text-align: center;
+
+  .ng-value {
+    width: 100%;
+  }
+
+  &::after {
+    content: url(/assets/svg/arrow.svg);
+    position: absolute;
+    right: 20px;
+  }
+}
+
+ng-dropdown-panel {
+  background: #ffffff;
+  .list-box {
+    width: 100%;
+  }
+  .ng-option {
+    height: 60px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+}
+
+ng-select .ng-dropdown-panel.ng-select-bottom {
+  border-bottom-right-radius: 20px !important;
+  border-bottom-left-radius: 20px !important;
+  overflow: hidden;
+}
+
+@media screen and (max-width: 500px) {
+  .mySwiper {
+    padding-top: 50px !important;
+    .swiper-pagination {
+      display: flex;
+    }
+    .swiper-slide {
+      font-size: 20px !important;
+      line-height: normal !important;
+    }
+  }
+}
+
+.custom-tooltip {
+  position: absolute;
+  background: black;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+  transform: translateX(-50%);
 }

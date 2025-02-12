@@ -1,0 +1,362 @@
+:host {
+  --current-slide: 0;
+}
+
+.lessons {
+  padding: 60px 0px;
+  background: url(/assets/img/lessons-bg.png) no-repeat;
+  min-height: 100%;
+  background-size: cover;
+  background-position: 0px -50px;
+
+  h1 {
+    font-family: "Ramaraja";
+    font-style: normal;
+    font-weight: 400;
+    font-size: 64px;
+    line-height: 110px;
+    text-align: right;
+
+    color: #ffffff;
+  }
+
+  h5 {
+    font-family: "Ramaraja";
+    font-style: normal;
+    font-weight: 400;
+    font-size: 36px;
+    line-height: 62px;
+    text-align: center;
+    text-transform: uppercase;
+    color: #ffffff;
+  }
+  p {
+    font-family: "Ramaraja";
+    font-style: normal;
+    font-weight: 400;
+    font-size: 32px;
+    line-height: 55px;
+    text-align: center;
+    color: #ffffff;
+    margin-bottom: 70px;
+  }
+
+  .col-md-6 {
+    h4 {
+      font-family: "Ramaraja";
+      font-style: normal;
+      font-weight: 400;
+      font-size: 32px;
+      line-height: 55px;
+      color: #ffffff;
+      text-align: center;
+      text-transform: uppercase;
+    }
+  }
+}
+
+h2 {
+  font-family: "Ramaraja";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 36px;
+  line-height: 62px;
+  text-align: center;
+  color: #f5f5f5;
+}
+
+.lessons-card {
+  width: 100%;
+  background: #ffffff;
+  box-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
+  border-radius: 35px;
+  height: 590px;
+  &-header {
+    margin-bottom: 20px;
+    img {
+      height: 160px;
+      margin: 0px auto;
+      display: block;
+    }
+  }
+  &-body {
+    padding: 40px 40px 0px 40px;
+    h3 {
+      margin-top: 40px;
+      font-family: "Ramaraja";
+      font-style: normal;
+      font-weight: 400;
+      font-size: 24px;
+      text-align: center;
+      color: #515151;
+    }
+    p {
+      margin-top: 40px;
+      font-family: "Ramaraja";
+      font-style: normal;
+      font-weight: 400;
+      font-size: 24px;
+      line-height: 41px;
+      text-align: center;
+      color: #878686;
+    }
+  }
+}
+
+.carousel {
+  position: relative;
+  width: 100%;
+  min-height: 800px;
+  margin: auto;
+  overflow: hidden;
+  padding: 20px;
+  padding-top: 200px;
+  padding-bottom: 50px;
+}
+
+.carousel-wrapper {
+  display: grid;
+  position: relative;
+  gap: 20px 20px;
+}
+
+.carousel-slide {
+  min-width: 100%;
+  padding: 80px 0px;
+  width: 100%;
+  opacity: 0;
+  transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+  transform: translateX(100%);
+  position: absolute;
+  background: #ffffff;
+  box-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
+  border-radius: 35px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  min-height: 100%;
+}
+
+.carousel-slide .custom-height {
+  min-height: 100%;
+}
+
+.carousel-slide h4 {
+  font-family: "Ramaraja";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 26px;
+  text-align: center;
+  color: #515151;
+}
+
+.carousel-slide.active {
+  opacity: 1;
+  transform: translateX(0);
+  z-index: 2;
+}
+
+.carousel-slide.prev {
+  transform: translateX(-100%);
+  z-index: 1;
+}
+
+.carousel-slide.next {
+  transform: translateX(100%);
+  z-index: 1;
+}
+
+.carousel-btn {
+  position: absolute;
+  top: 63%;
+  transform: translateY(-50%);
+  color: white;
+  border: none;
+  cursor: pointer;
+  z-index: 1000;
+  background: none;
+}
+
+.carousel-btn.prev {
+  left: 30px;
+}
+
+.carousel-btn.next {
+  right: 30px;
+}
+
+.carousel-indicators {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.carousel-indicators span {
+  width: 10px;
+  height: 10px;
+  background: gray;
+  border-radius: 50%;
+  margin: 0 5px;
+  cursor: pointer;
+}
+
+.carousel-indicators span.active {
+  background: black;
+}
+
+.carousel-slide.materials::before {
+  content: url(/assets/img/list.png);
+  display: block;
+  position: absolute;
+  top: -20%;
+  left: 43%;
+  width: 80px;
+  z-index: 999;
+}
+
+.carousel-slide.videos::before {
+  content: url(/assets/img/videos.png);
+  display: block;
+  position: absolute;
+  top: -20%;
+  left: 43%;
+  width: 80px;
+  z-index: 999;
+}
+
+.carousel-slide.presentations::before {
+  content: url(/assets/img/power-point.png);
+  display: block;
+  position: absolute;
+  top: -20%;
+  left: 43%;
+  width: 80px;
+  z-index: 999;
+}
+
+.carousel-slide.discussions::before {
+  content: url(/assets/img/book.png);
+  display: block;
+  position: absolute;
+  top: -20%;
+  left: 43%;
+  width: 80px;
+  z-index: 999;
+}
+
+.media-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.open-btn,
+.download-btn {
+  width: 45px;
+  height: 45px;
+  background: #ffffff;
+  box-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
+  border-radius: 23px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.media-item-body .last-item-img {
+  opacity: 0.5;
+}
+
+.rotating-spinner {
+  animation: spinner 1s linear infinite;
+}
+
+.carousel-indicators {
+  display: none;
+}
+
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media screen and (max-width: 500px) {
+  .custom-dropdown {
+    width: 100% !important;
+  }
+  .lessons h1:first-child {
+    font-size: 30px !important;
+    white-space: inherit; 
+    line-height: 50px !important;
+  }
+  .lessons-card-body {
+    padding: 20px 20px 0px 20px !important;
+    h3 {
+      font-size: 20px !important;
+      margin-bottom: 0px !important;
+    }
+    p {
+      font-size: 18px !important;
+    }
+  }
+
+  .lessons {
+    h5 {
+      font-size: 25px !important;
+    }
+
+    p {
+      font-size: 20px !important;
+      line-height: 40px ;
+    }
+  }
+  .carousel {
+    min-height: 800px;
+  }
+  .carousel-slide {
+    min-height: 500px;
+  }
+
+  .carousel-slide h4 {
+    font-size: 20px !important;
+  }
+
+  h2 {
+    font-size: 25px !important;
+    line-height: 50px !important;
+  }
+
+  .carousel-slide.presentations::before,
+  .carousel-slide.materials::before,
+  .carousel-slide.videos::before,
+  .carousel-slide.discussions::before {
+    top: -25%;
+    left: unset !important;
+    margin: 0 auto;
+    display: block;
+    width: auto !important;
+    transform: translate(5%, 40%);
+    scale: .6;
+  }
+
+  .carousel-slide .overflow-x-scroll {
+    padding-left: 20px !important;
+    padding-bottom: 50px !important;
+  }
+  .lessons .col-md-6 h4 {
+    font-size: 30px !important;
+  }
+
+  .lessons .custom-dropdown:nth-child(2) {
+    margin-bottom: 20px !important;
+  }
+  .carousel-btn {
+    display: none !important;
+  }
+  .carousel-indicators {
+    bottom: 30px;
+    display: flex !important;
+  }
+}

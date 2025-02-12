@@ -3,6 +3,8 @@ import { NgModule } from '@angular/core';
 import { PagesPage } from './pages.page';
 import { ThemePage } from './theme/theme.page';
 import { MainPage } from './main/main.page';
+import { AboutPage } from './about/about.page';
+import { LessonsPage } from './lessons/lessons.page';
 
 const routes: Routes = [
   {
@@ -14,6 +16,14 @@ const routes: Routes = [
         path: 'main',
         component: MainPage,
       },
+      {
+        path: 'about',
+        component: AboutPage
+      },
+      {
+        path: 'lessons/:id',
+        component: LessonsPage
+      }
     ],
   },
 ];

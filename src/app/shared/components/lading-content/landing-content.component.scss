@@ -1,5 +1,107 @@
 .bg {
-  background: url(/assets/img/bg.png);
+  background: url(/assets/img/header-bg.png);
   background-size: cover;
   background-repeat: no-repeat;
+  background-size: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding-bottom: 100px;
+}
+
+.landing-header {
+  padding-top: 90px;
+  position: absolute;
+  top: 27%;
+  display: flex;
+  flex-direction: column;
+  background: url(/assets/img/header-bg-2.png);
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-size: 540px;
+  min-height: 580px;
+  width: 563px !important;
+  padding-left: 20px;
+  h1 {
+    font-family: "Merriweather Sans";
+    font-style: normal;
+    font-weight: 700;
+    font-size: 36px !important;
+    color: #ffffff;
+    margin-bottom: 40px;
+  }
+
+  ul {
+    margin-bottom: 80px;
+    li {
+      list-style: disc !important;
+      text-transform: uppercase;
+      font-family: "Marvel";
+      font-style: normal;
+      font-weight: 400;
+      font-size: 22px;
+      line-height: 27px;
+      color: #ffffff;
+      line-height: 27px;
+    }
+  }
+
+  a {
+    font-family: "Inter";
+    font-style: normal;
+    font-weight: 500;
+    font-size: 14px;
+    color: #ffffff;
+    text-decoration: none;
+  }
+}
+
+.landing-text {
+  position: absolute;
+  top: 95%;
+  font-family: "Merriweather Sans";
+  font-style: normal;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 25px;
+  color: #676767;
+}
+
+.landing-text-other {
+  position: absolute;
+  top: 95%;
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 900;
+  font-size: 48px;
+  line-height: 58px;
+  color: #6e6e6e;
+  text-transform: uppercase;
+}
+
+@media screen and (max-width: 500px) {
+  .landing-text {
+    position: relative;
+    top: 110%;
+  }
+  .bg {
+    background-size: auto 100%;
+    padding-bottom: 200px;
+  }
+  .landing-header {
+    width: 100% !important;
+    position: relative;
+    padding-top: 30px;
+    padding-right: 20px;
+    height: 540px;
+    h1 {
+      font-size: 24px !important;
+    }
+    ul {
+      margin-bottom: 40px;
+    }
+  }
+  .landing-text-other {
+    font-size: 35px;
+  }
 }

@@ -1,55 +1,48 @@
-// src/app/services/crud.service.ts
 import { Injectable } from '@angular/core';
-import {
-  Firestore,
-  collectionData,
-  docData,
-  collection,
-  doc,
-  setDoc,
-  deleteDoc,
-  updateDoc,
-  addDoc,
-  documentId
-} from '@angular/fire/firestore';
+import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CrudService {
-  constructor(private firestore: Firestore) {}
+  constructor(private firestore: AngularFirestore) {}
+  data$: Observable<any[]> = new Observable();
 
-  // Create
-  createIColelctionAndtem(collectionName: string, data: any): Promise<any> {
-    const collectionRef = collection(this.firestore, collectionName);
-    return addDoc(collectionRef, data);
+  addDocument<T>(collectionName: string, data: T): Promise<void> {
+    const id = this.firestore.createId();
+    return this.firestore.collection<T>(collectionName).doc(id).set({ ...data, id });
   }
 
-  createItemInColelction(collectionName: string, data: any = {}) {
-    const id = documentId();
-    console.log(id);
-    
-    const docRef = doc(this.firestore, `${collectionName}/${id}`);
-    return updateDoc(docRef, data);
+  getDocuments<T>(collectionName: string): Observable<T[]> {
+    return this.firestore.collection<T>(collectionName).snapshotChanges().pipe(
+      map((actions) =>
+        actions.map((a) => {
+          const data = a.payload.doc.data() as T;
+          const id = a.payload.doc.id;
+          return { ...data, id };
+        })
+      )
+    );
   }
 
-  // Read
-  getItems(collectionName: string): Observable<any[]> {
-    const collectionRef = collection(this.firestore, collectionName);
-    return collectionData(collectionRef, { idField: 'id' });
+  getDocumentById<T>(collectionName: string, docId: string): Observable<T | undefined> {
+    return this.firestore.collection<T>(collectionName).doc(docId).valueChanges();
   }
 
-  // Update
-  updateItem(collectionName: string, id: string, data: any): Promise<void> {
-    const docRef = doc(this.firestore, `${collectionName}/${id}`);
-    return updateDoc(docRef, data);
+  updateDocument<T>(collectionName: string, docId: string, data: Partial<T>): Promise<void> {
+    return this.firestore.collection<T>(collectionName).doc(docId).update(data);
   }
 
-  // Delete
-  deleteItem(collectionName: string, id: string): Promise<void> {
-    const docRef = doc(this.firestore, `${collectionName}/${id}`);
-    return deleteDoc(docRef);
+  deleteDocument(collectionName: string, docId: string): Promise<void> {
+    return this.firestore.collection(collectionName).doc(docId).delete();
   }
 
+  getDataByField(collection: string, docId: string): Observable<any> {
+    return this.firestore
+      .collection(collection)
+      .doc(docId)
+      .valueChanges();
+  }
 }

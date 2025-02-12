@@ -1,15 +1,120 @@
-<nav class="position-fixed w-100 p-3">
-    <div class="container">
-        <div class="pl-3 pr-3 nav d-flex justify-content-between align-items-center">
-            <a href="#">
-                <img src="/assets/img/logo.png" width="60" />
-            </a>
-            <ul class="d-flex mt-0 mb-0">
-                <li class="me-4">Text</li>
-                <li class="me-4">Text</li>
-                <li class="me-4">Text</li>
-                <li>Text</li>
-            </ul>
-        </div>
+<nav
+  class="position-fixed w-100 p-3"
+  *ngIf="currentState"
+  [class.position-sticky]="currentNavState"
+>
+  <div class="container">
+    <div
+      class="pl-3 pr-3 nav d-flex justify-content-between align-items-center position-relative"
+    >
+      <a href="#" class="nav-logo">
+        <img src="/assets/img/logo.png" />
+        <h3>{{ "logo-text" | translate }}</h3>
+      </a>
+      <div class="menu-btn" (click)="toggleNav()">
+        <div class="menu-btn__burger"></div>
+      </div>
+      <ul class="nav-items d-flex mt-0 mb-0" [class.open]="open">
+        <li
+          (click)="toggleNav()"
+          [routerLink]="['/pages/about']"
+          routerLinkActive="router-link-active"
+          class="me-5"
+        >
+          {{ "about-us" | translate }}
+        </li>
+        <li>
+          <div class="nav-input">
+            <input
+              type="text"
+              class=""
+              name="search"
+              (focus)="focusInput()"
+              (blur)="focusInput()"
+              [(ngModel)]="searchQuery"
+              (input)="onSearch()"
+              id="searchID"
+              #input
+            />
+            <svg
+              width="40"
+              height="40"
+              viewBox="0 0 40 40"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              xmlns:xlink="http://www.w3.org/1999/xlink"
+              [class.top-5]="isInputFocused"
+            >
+              <rect width="40" height="40" fill="url(#pattern0_392_20)" />
+              <defs>
+                <pattern
+                  id="pattern0_392_20"
+                  patternContentUnits="objectBoundingBox"
+                  width="1"
+                  height="1"
+                >
+                  <use xlink:href="#image0_392_20" transform="scale(0.02)" />
+                </pattern>
+                <image
+                  id="image0_392_20"
+                  width="50"
+                  height="50"
+                  xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAAChklEQVR4nO2Zu24TQRSGPxeElgYbEVIYHoECCJdXQAIH+YKECA+AxEVESAl0wAsgUUEKpCiiIDFKDYGGS96AhhZSBZGQ2MFwpH+lKQxi8czYu+wnjbTy5f/3jPecOTOGgoKR5AAwDcwDa8A6sKPxBfig9y4DFUaQM0Ab6AC9vxz22WXgNCPAEWDFubku8Aq4BhwDysAeDbs+DlwHVvXZ5HsvgMPDCqIFfNWNfAPuAftTfN8Cuw9sSmMDaBCZOWc2F4DxAbQOAYuO3iyRuCvDH7ouedK9CuzGCqYlIzOsBdCfcoKpEzCxk5y4FcoEmHFyphrCYMXJiZCUnJxph1gneqowE4RnXJWwB5zyKdyWqJXYWFhpNs8ln21HRwtYmnViUGyd6aq9seuBuaKZeUl8Xsv7kg+xeYlZ2xGbG/J+7ENsTWLWO8VmUt7vfIitSyxmfiRU5P3Zh9i2xMaIz155f89LIBt5ebQ++kx22xTF5qS8rQznovw+8iE2LTHbnsbmjbzP+XpOkxbFS6uQskXpAPt8iS5rZqyRi8UDeVpL740TEt0aQht/1Ld425khX/v0fpj2M3k9D2FQ1cLU03Y0FLflYSeTB0OZNJzDBzso8M0F5/DhLIGZdYKZ8fSYlfRLJEHs6sSGWMEkOWOHbP/KhJMT7rDS2yQCdSdnNlWa06wzZZXYLacx7PYJpkEEqk41S4xX1VpMajEd06jotZvqndybXlBiN4cZDDqyWUr5t4JtD572aUZ/F0ydiJR1UPAEeK8Suq3F7RPwFniom/rTtqAxCsH4wsp7p08wF8lRMC0yyFSegqn9D8E0yWgwO0UwGSkAc2SU885jdoeMU4v5d3ZBwa8Z+Ak4rhMJLuUtjQAAAABJRU5ErkJggg=="
+                />
+              </defs>
+            </svg>
+          </div>
+        </li>
+        <li
+          class="cursor-pointer"
+          (click)="changeLanguage('ru')"
+          *ngIf="langDisplay !== 'ru' && langDisplay !== 'en'"
+        >
+          <h3 class="text-white">{{ langDisplay | uppercase }}</h3>
+        </li>
+        <li
+          class="cursor-pointer"
+          (click)="changeLanguage('en')"
+          *ngIf="langDisplay !== 'uz' && langDisplay !== 'en'"
+        >
+          <h3 class="text-white">{{ langDisplay | uppercase }}</h3>
+        </li>
+        <li
+          class="cursor-pointer"
+          (click)="changeLanguage('uz')"
+          *ngIf="langDisplay !== 'uz' && langDisplay !== 'ru'"
+        >
+          <h3 class="text-white">{{ langDisplay | uppercase }}</h3>
+        </li>
+        <!-- <li>
+          <svg
+            width="37"
+            height="37"
+            viewBox="0 0 37 37"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+          >
+            <rect width="37" height="37" fill="url(#pattern0_392_18)" />
+            <defs>
+              <pattern
+                id="pattern0_392_18"
+                patternContentUnits="objectBoundingBox"
+                width="1"
+                height="1"
+              >
+                <use xlink:href="#image0_392_18" transform="scale(0.02)" />
+              </pattern>
+              <image
+                id="image0_392_18"
+                width="50"
+                height="50"
+                xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAABE0lEQVR4nO3aPU4DMRRFYVfUiDorIesLhDVQsAtEnw4QG6DNsI0PGU36mMSeF8enHkvv6I5/9VI6EtzgCT/iMOEx15YKRLbi8lAiku0z9ykIWM81TSWD/kjBUFrXEKmMkUgwjESCYSQSDCORI8Az3nCbLjkRvM+ff9SWUVlkhe95yBfuTil20TnSSkaLyd5CRqtVq7aMlstvTRmt95FaMpbYEGvIOENdIWQsJXJuGQcR7CzPv08AuhPp5te6usmul+XXiSJdbIh6OKLo4dCoh2O8Hi5Wernq4rOXx4cXvF78c1BLDJFgGIkEw0gkGEYiwXDNiUzzmHWK11SzLxmU+6KisikRyY1nWeaQTAT2WSI3nv0CbsW1soWp+/cAAAAASUVORK5CYII="
+              />
+            </defs>
+          </svg>
+        </li> -->
+      </ul>
     </div>
+  </div>
 </nav>

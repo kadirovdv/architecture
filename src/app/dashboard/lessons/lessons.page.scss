@@ -1,0 +1,38 @@
+.list-group-flush > .list-group-item:last-child {
+  border-bottom-width: 1px !important;
+}
+
+.bi-plus-lg::before {
+  font-weight: bolder !important;
+  font-size: 1.4rem !important;
+}
+
+.add-btn {
+  border-radius: 50% !important;
+  width: 60px !important;
+  height: 60px !important;
+}
+
+.btn-clear {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+}
+
+.modal.show {
+  justify-content: center;
+  align-items: center;
+  background: rgba($color: #000000, $alpha: .5);
+  backdrop-filter: blur(5px);
+}
+
+.d-flex.position-fixed {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  min-height: 100vh !important;
+  backdrop-filter: blur(5px);
+  z-index: 10000 !important;
+}
