@@ -148,11 +148,21 @@
               }"
             class="{{item}}"
           >
-            <h4 class="text-center">
+            <h4 class="text-center" *ngIf="lang === 'uz'">
               {{ item === 'presentations' ? 'NAMUNAVIY MASALALARNING YECHIMLARI
               BO’YICHA PREZENTASIYALAR' : item === 'videos' ? 'MAVZU BO’YICHA
-              MA’RUZA MATERIALLARI' : item === 'discussions' ? 'MAVZU BO’YICHA
+              VIDEO MATERIALLARI' : item === 'discussions' ? 'MAVZU BO’YICHA
               MA’RUZA MATERIALLARI' : 'MAVZU BO’YICHA MA’RUZA MATERIALLARI' }}
+            </h4>
+            <h4 class="text-center" *ngIf="lang === 'ru'">
+              {{ item === 'presentations' ? 'ПРЕЗЕНТАЦИИ' : item === 'videos' ?
+              'ВИДЕОУРОКИ' : item === 'discussions' ? 'ТЕОРЕТИЧЕСКИЕ МАТЕРИАЛЫ'
+              : 'ТЕОРЕТИЧЕСКИЕ МАТЕРИАЛЫ' }}
+            </h4>
+            <h4 class="text-center" *ngIf="lang === 'en'">
+              {{ item === 'presentations' ? 'PRESENTATIONS' : item ===
+              'videos' ? 'VIDEO LESSONS' : item === 'discussions' ? 'THEORETICAL
+              MATERIALS' : 'OPTIONS FOR GRAPHIC ASSIGNMENTS' }}
             </h4>
             <div
               class="custom-height d-flex justify-content-center align-items-center"
