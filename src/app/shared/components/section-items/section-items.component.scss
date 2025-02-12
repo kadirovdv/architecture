@@ -188,6 +188,9 @@ h1 {
 }
 
 @media screen and (max-width: 500px) {
+  h1 {
+    margin-top: 3.5rem !important;
+  }
   .about-platform {
     min-height: 100% !important;
   }
