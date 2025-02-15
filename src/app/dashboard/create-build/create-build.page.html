@@ -16,7 +16,7 @@
           selected
           [value]="{'helperKeys(lesson.lessonTitle)': 'default', 'thumbnail': '', 'helperKeys(lesson.lessonDesc)': '', 'id': ''}"
         >
-          Tanlash
+          Fanni tanlang
         </option>
         <option *ngFor="let lesson of lessons" [ngValue]="lesson">
           {{ lesson.lessonTitle.uz.length >= 55 ? lesson.lessonTitle.uz.slice(0,
@@ -35,7 +35,7 @@
           selected
           [value]="{'helperKeys(semester.semesterTitle)': 'default', 'id': ''}"
         >
-          Tanlash
+          Semesterni tanlang
         </option>
         <option *ngFor="let semester of semesters" [ngValue]="semester">
           {{ semester.semesterTitle.uz.length >= 18 ?
@@ -55,7 +55,7 @@
           selected
           [value]="{'helperKeys(theme.themeTitle)': 'default', 'id': ''}"
         >
-          Tanlash
+          Mavzuni tanlang
         </option>
         <option *ngFor="let theme of themes" [ngValue]="theme">
           {{ theme.themeTitle.uz.length >= 18 ? theme.themeTitle.uz.slice(0, 18)
