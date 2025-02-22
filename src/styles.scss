@@ -7,6 +7,28 @@
 @import url("https://fonts.googleapis.com/css2?family=Adamina&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Judson:ital,wght@0,400;0,700;1,400&family=Marvel:ital,wght@0,400;0,700;1,400;1,700&display=swap");
 @import "~@ng-select/ng-select/themes/default.theme.css";
 
+.btn-primary {
+  background-color: rgba(196, 151, 151, 0.75) !important;
+  border-color: transparent !important;
+  border-radius: 5px !important;
+  height: 45px;
+}
+
+.btn-primary:hover {
+  background-color: rgba(199, 134, 134, 0.9) !important;
+}
+
+.btn-secondary {
+  background: rgba(208, 81, 49, 0.85) !important;
+  border-color: transparent !important;
+  border-radius: 5px !important;
+  height: 45px;
+}
+
+.btn-secondary:hover {
+  background-color: rgba(208, 81, 49, 1) !important;
+}
+
 ul {
   padding-left: 0px;
 }
@@ -174,8 +196,6 @@ ng-select .ng-dropdown-panel.ng-select-bottom {
   }
 
   .swiper .swiper-pagination-bullet {
-   
-  
     &:first-child,
     &:nth-child(2),
     &:nth-child(3) {

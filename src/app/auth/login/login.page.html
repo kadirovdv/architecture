@@ -1,39 +1,33 @@
-<div class="container">
-  <div
-    class="w-100 min-h-screen d-flex justify-content-center align-items-center"
-  >
-    <div class="card" style="max-width: 380px; width: 300px">
-      <div class="card-body">
-        <div class="mb-3">
-          <label for="exampleInputEmail1" class="form-label"
-            >Email manzil</label
-          >
-          <input
-            type="email"
-            class="form-control"
-            id="exampleInputEmail1"
-            aria-describedby="emailHelp"
-            [(ngModel)]="email"
-          />
-        </div>
-        <div class="mb-3">
-          <label for="exampleInputPassword1" class="form-label">Parol</label>
-          <input
-            type="password"
-            class="form-control"
-            id="exampleInputPassword1"
-            [(ngModel)]="password"
-          />
-        </div>
-        <button type="submit" class="btn btn-primary w-100" (click)="login()">Kirish</button>
-        <button class="btn btn-light" (click)="signInWithGoogle()">
-          <img
-            src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg"
-            alt=""
-            width="50px"
-          />
-        </button>
+<div
+  class="login-content w-100 min-h-screen d-flex justify-content-center align-items-center"
+>
+  <div class="card" style="max-width: 380px; width: 300px">
+    <div class="card-body">
+      <div class="mb-3">
+        <label for="exampleInputEmail1" class="form-label">Email manzil</label>
+        <input
+          type="email"
+          class="form-control"
+          id="exampleInputEmail1"
+          aria-describedby="emailHelp"
+          [(ngModel)]="email"
+        />
       </div>
+      <div class="mb-3">
+        <label for="exampleInputPassword1" class="form-label">Parol</label>
+        <input
+          type="password"
+          class="form-control"
+          id="exampleInputPassword1"
+          [(ngModel)]="password"
+        />
+      </div>
+      <button type="submit" class="btn btn-primary w-100 mb-3" (click)="login()">
+        Kirish
+      </button>
+      <button class="btn btn-secondary w-100">
+        Ro'yxatdan o'tish
+      </button>
     </div>
   </div>
 </div>

@@ -27,7 +27,7 @@ export class LoginPage implements OnInit {
       if (event.key === 'Enter' && this.email.includes('@') && this.password) {
         this.login();
       }
-    })
+    });
   }
 
   ngOnInit() {
@@ -36,10 +36,24 @@ export class LoginPage implements OnInit {
       if (user) {
         this.location.historyGo(-1);
       }
-    })
+    });
   }
 
   login(): void {
+    if (!this.email && !this.password) {
+      this.toastr.warning('Email va parol kiritilmadi!');
+      return;
+    } else if (!this.email) {
+      this.toastr.warning('Email kiritilmadi!');
+      return;
+    } else if (!this.password) {
+      this.toastr.warning('Parol kiritilmadi!');
+      return;
+    } else if (!this.email.includes('@')) {
+      this.toastr.warning('Email manzil xato kiritildi!');
+      return;
+    }
+
     this.afAuth
       .signInWithEmailAndPassword(this.email, this.password)
       .then(() => this.router.navigate(['/dashboard']))

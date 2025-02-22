@@ -1,0 +1,23 @@
+.login-content {
+  background-color: #e8d8d8;
+  font-family: "Merriweather Sans";
+  font-style: normal;
+}
+
+.btn {
+  font-weight: 800;
+  font-size: 17px;
+  line-height: 25px;
+  color: #ffffff;
+}
+
+.form-control {
+    background-color: #FFDFAE;
+    height: 45px;
+    border-color: transparent;
+
+}
+.form-control:focus,
+.form-control:active {
+    box-shadow: 0 0 0 0.15rem rgba(255, 223, 174, 0.5);
+}
