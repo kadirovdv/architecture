@@ -12,6 +12,7 @@ import { CreateBuildPage } from './create-build/create-build.page';
 import { EditBuildPage } from './edit-build/edit-build.page';
 import { UsersPage } from './users/users.page';
 import { LessonsPage } from './lessons/lessons.page';
+import { NgSelectModule } from '@ng-select/ng-select';
 
 @NgModule({
   declarations: [
@@ -31,6 +32,7 @@ import { LessonsPage } from './lessons/lessons.page';
     SharedModule,
     ReactiveFormsModule,
     FormsModule,
+    NgSelectModule
   ],
   exports: [],
 })

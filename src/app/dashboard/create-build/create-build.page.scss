@@ -31,3 +31,43 @@
 .category-section:not(:last-child) {
   border-right: 2px solid #dfdfdf;
 }
+
+.create-build-content {
+  background-color: #e8d8d8;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.create-build-card {
+  width: 90%;
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.create-build-ng-card {
+  width: 610px;
+  height: 55px;
+  background: rgba(122, 0, 255, 0.29);
+  box-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
+  border-radius: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: "Merriweather Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 25px;
+  color: #6e6e6e;
+}
+
+.position-absolute-btn {
+  position: absolute;
+  top: 5px;
+  right: 20px;
+  z-index: 10000 !important;
+  cursor: pointer;
+}

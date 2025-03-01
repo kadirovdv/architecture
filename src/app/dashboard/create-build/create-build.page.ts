@@ -3,8 +3,9 @@ import { CrudService } from 'src/app/shared/services/crud.service';
 import { DropboxService } from 'src/app/shared/services/dropbox.service';
 import { FormGroup, FormControl } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
-import { concatMap, from, tap, timer } from 'rxjs';
+import { concatMap, from, Observable, tap, timer } from 'rxjs';
 import { Location } from '@angular/common';
+import { FileGroups, Lesson } from 'src/app/shared/interfaces/interfaces';
 
 @Component({
   selector: 'app-create-build',
@@ -12,12 +13,9 @@ import { Location } from '@angular/common';
   styleUrls: ['./create-build.page.scss'],
 })
 export class CreateBuildPage implements OnInit {
-  lesson: any = {
-    id: '',
-    lessonTitle: {},
-    lessonDesc: {},
-    thumbnail: '',
-  };
+  lessons: Lesson[] | any = [];
+  lesson: Lesson | null = null
+
   semester: any = {
     id: '',
     semesterTitle: {},
@@ -28,58 +26,18 @@ export class CreateBuildPage implements OnInit {
   };
   loader = false;
   loading: boolean = false;
-  fileGroups: any = {
-    materials: {
-      ru: [],
-      uz: [],
-      en: [],
-    },
-    presentations: {
-      ru: [],
-      uz: [],
-      en: [],
-    },
-    discussions: {
-      ru: [],
-      uz: [],
-      en: [],
-    },
-    videos: {
-      ru: [],
-      uz: [],
-      en: [],
-    },
-  };
-  uploadedFilesByCategory: any = {
-    materials: {
-      ru: [],
-      uz: [],
-      en: [],
-    },
-    presentations: {
-      ru: [],
-      uz: [],
-      en: [],
-    },
-    discussions: {
-      ru: [],
-      uz: [],
-      en: [],
-    },
-    videos: {
-      ru: [],
-      uz: [],
-      en: [],
-    },
-  };
+
+
+  lessonFileGroups: FileGroups | any = {};
+  themeFileGroups: FileGroups | any = {};
+  uploadedFilesByCategory: FileGroups | any = {};
+
+
   uploadedFiles: any[] = [];
   totalSize: number | any = 0;
   sizeExceeded: boolean = false;
   error = false;
 
-  public lessons: any[] = [];
-  public semesters: any[] = [];
-  public sections: any[] = [];
   public themes: any[] = [];
   public files: any[] = [];
   public globalVar: any = {};
@@ -101,15 +59,7 @@ export class CreateBuildPage implements OnInit {
     });
     this.crudService.getDocuments('lessons').subscribe((res) => {
       this.lessons = res;
-      this.lessons = this.lessons.sort((a, b) => {
-        const dateA: any = new Date(a.createdAt);
-        const dateB: any = new Date(b.createdAt);
-        return dateA - dateB;
-      });
-    });
-    this.crudService.getDocuments('semesters').subscribe((res) => {
-      this.semesters = res;
-      this.semesters = this.semesters.sort((a, b) => {
+      this.lessons = this.lessons.sort((a: any, b: any) => {
         const dateA: any = new Date(a.createdAt);
         const dateB: any = new Date(b.createdAt);
         return dateA - dateB;
@@ -127,7 +77,7 @@ export class CreateBuildPage implements OnInit {
   build() {
     if (!this.error) {
       const lessonExists = this.globalVarCompare.find(
-        (item: any) => item.lessonTitle.uz === this.lesson.lessonTitle.uz
+        (item: any) => item.lessonTitle.uz === this.lesson?.lessonTitle.uz
       );
 
       if (lessonExists) {
@@ -195,7 +145,7 @@ export class CreateBuildPage implements OnInit {
 
   onFileSelected(event: Event, category: string, lang: string): void {
     const fileInput: any = event.target as HTMLInputElement;
-    if (!this.fileGroups[category] || !this.fileGroups[category][lang]) {
+    if (!this.lessonFileGroups[category] || !this.lessonFileGroups[category][lang]) {
       this.toastr.error('Invalid category or language');
       return;
     }
@@ -207,7 +157,7 @@ export class CreateBuildPage implements OnInit {
         file.sizeExceeded = true;
         this.toastr.error('File size is too big');
       } else {
-        this.fileGroups[category][lang].push(file);
+        this.lessonFileGroups[category][lang].push(file);
       }
     }
 
@@ -215,8 +165,8 @@ export class CreateBuildPage implements OnInit {
   }
 
   removeFile(category: string, lang: string, index: number): void {
-    if (this.fileGroups[category] && this.fileGroups[category][lang]) {
-      this.fileGroups[category][lang].splice(index, 1);
+    if (this.lessonFileGroups[category] && this.lessonFileGroups[category][lang]) {
+      this.lessonFileGroups[category][lang].splice(index, 1);
       this.calculateTotalSize();
       this.toastr.success('File removed successfully.');
     } else {
@@ -239,7 +189,7 @@ export class CreateBuildPage implements OnInit {
         newFile.sizeExceeded = true;
         this.toastr.error('File size is too big');
       } else {
-        this.fileGroups[category][lang][index] = newFile;
+        this.lessonFileGroups[category][lang][index] = newFile;
         this.calculateTotalSize();
         this.toastr.success('File replaced successfully.');
       }
@@ -249,7 +199,7 @@ export class CreateBuildPage implements OnInit {
   saveAll(): void {
     this.error = false;
 
-    if (!this.lesson.lessonTitle) {
+    if (!this.lesson?.lessonTitle) {
       this.error = true;
       this.toastr.error('Iltimos, fanlardan birni tanlang!');
       return;
@@ -271,10 +221,10 @@ export class CreateBuildPage implements OnInit {
     const categoryStatus: any = {};
 
     // Count total files for each category and language
-    for (const category in this.fileGroups) {
+    for (const category in this.lessonFileGroups) {
       categoryStatus[category] = {};
-      for (const lang in this.fileGroups[category]) {
-        const files = this.fileGroups[category][lang].filter(
+      for (const lang in this.lessonFileGroups[category]) {
+        const files = this.lessonFileGroups[category][lang].filter(
           (file: any) => file !== null
         );
         categoryStatus[category][lang] = {
@@ -293,9 +243,9 @@ export class CreateBuildPage implements OnInit {
 
     const uploadObservables: any = [];
 
-    for (const category in this.fileGroups) {
-      for (const lang in this.fileGroups[category]) {
-        this.fileGroups[category][lang]
+    for (const category in this.lessonFileGroups) {
+      for (const lang in this.lessonFileGroups[category]) {
+        this.lessonFileGroups[category][lang]
           .filter((file: any) => file !== null)
           .forEach((file: any) => {
             uploadObservables.push(
@@ -333,10 +283,9 @@ export class CreateBuildPage implements OnInit {
         },
         complete: () => {
           this.globalVar = {
-            lessonTitle: this.lesson.lessonTitle,
-            lessonDesc: this.lesson.lessonDesc,
-            thumbnail: this.lesson.thumbnail,
-            id: this.lesson.id,
+            lessonTitle: this.lesson?.lessonTitle,
+            thumbnail: this.lesson?.thumbnail,
+            id: this.lesson?.id,
             createdAt: new Date().toISOString(),
             semesters: [
               {
@@ -379,9 +328,9 @@ export class CreateBuildPage implements OnInit {
 
   calculateTotalSize(): void {
     this.totalSize = 0;
-    for (const category in this.fileGroups) {
-      for (const lang in this.fileGroups[category]) {
-        this.fileGroups[category][lang].forEach((file: any) => {
+    for (const category in this.lessonFileGroups) {
+      for (const lang in this.lessonFileGroups[category]) {
+        this.lessonFileGroups[category][lang].forEach((file: any) => {
           if (file) {
             this.totalSize += file.size;
           }
@@ -395,7 +344,7 @@ export class CreateBuildPage implements OnInit {
   }
 
   removeAllFromGroup(category: string, lang: string): void {
-    this.fileGroups[category][lang] = [null];
+    this.lessonFileGroups[category][lang] = [null];
   }
 
   goBack() {

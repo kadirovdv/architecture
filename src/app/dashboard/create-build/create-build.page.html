@@ -4,162 +4,212 @@
     <app-loader></app-loader>
   </div>
 </div>
-<div class="container my-5">
-  <button class="btn btn-primary mb-3" style="border: none" (click)="goBack()">
-    <i class="bi bi-arrow-left"></i>
-  </button>
-  <div class="row">
-    <div class="col-md-12 mb-3">
-      <h1>Mavzuni tanlang</h1>
-      <select class="form-control" [(ngModel)]="lesson" (change)="getLessons()">
-        <option
-          selected
-          [value]="{'helperKeys(lesson.lessonTitle)': 'default', 'thumbnail': '', 'helperKeys(lesson.lessonDesc)': '', 'id': ''}"
+<div class="create-build-content">
+  <div class="create-build-card">
+    <button
+      class="mb-3 bg-none border-0"
+      style="width: 50px"
+      (click)="goBack()"
+    >
+      <img src="/assets/svg/arrow-left.svg" class="w-100" alt="arrow-left" />
+    </button>
+    <div class="row">
+      <div
+        class="col-md-12 mb-3 d-flex justify-content-center align-items-center flex-column"
+      >
+        <ng-select
+          [(ngModel)]="lesson"
+          class="create-build-ng-select mb-4"
+          placeholder="Fanni tanlang..."
         >
-          Fanni tanlang
-        </option>
-        <option *ngFor="let lesson of lessons" [ngValue]="lesson">
-          {{ lesson.lessonTitle.uz.length >= 55 ? lesson.lessonTitle.uz.slice(0,
-          55) + '...' : lesson.lessonTitle.uz }}, {{
-          lesson.lessonTitle.ru.length >= 55 ? lesson.lessonTitle.ru.slice(0,
-          55) + '...' : lesson.lessonTitle.ru }}, {{
-          lesson.lessonTitle.en.length >= 55 ? lesson.lessonTitle.en.slice(0,
-          55) + '...' : lesson.lessonTitle.en }}
-        </option>
-      </select>
-    </div>
-    <div class="col-md-6">
-      <h1>Semester tanlang</h1>
-      <select class="form-control" [(ngModel)]="semester">
-        <option
-          selected
-          [value]="{'helperKeys(semester.semesterTitle)': 'default', 'id': ''}"
-        >
-          Semesterni tanlang
-        </option>
-        <option *ngFor="let semester of semesters" [ngValue]="semester">
-          {{ semester.semesterTitle.uz.length >= 18 ?
-          semester.semesterTitle.uz.slice(0, 18) + '...' :
-          semester.semesterTitle.uz }}, {{ semester.semesterTitle.ru.length >=
-          18 ? semester.semesterTitle.ru.slice(0, 18) + '...' :
-          semester.semesterTitle.ru }}, {{ semester.semesterTitle.en.length >=
-          18 ? semester.semesterTitle.en.slice(0, 18) + '...' :
-          semester.semesterTitle.en }}
-        </option>
-      </select>
-    </div>
-    <div class="col-md-6">
-      <h1>Mavzuni tanlang</h1>
-      <select class="form-control" [(ngModel)]="theme">
-        <option
-          selected
-          [value]="{'helperKeys(theme.themeTitle)': 'default', 'id': ''}"
-        >
-          Mavzuni tanlang
-        </option>
-        <option *ngFor="let theme of themes" [ngValue]="theme">
-          {{ theme.themeTitle.uz.length >= 18 ? theme.themeTitle.uz.slice(0, 18)
-          + '...' : theme.themeTitle.uz }}, {{ theme.themeTitle.ru.length >= 18
-          ? theme.themeTitle.ru.slice(0, 18) + '...' : theme.themeTitle.ru }},
-          {{ theme.themeTitle.en.length >= 18 ? theme.themeTitle.en.slice(0, 18)
-          + '...' : theme.themeTitle.en }}
-        </option>
-      </select>
-    </div>
-    <div class="col">
-      <h1 class="mt-4">Faylni tanlang</h1>
-      <div class="container my-4">
-        <div class="row">
-          <div
-          *ngFor="let category of helperKeys(fileGroups)"
-          class="category-section mb-4 col"
-        >
-          <h5>{{ changeObjectKeyName(category) | titlecase }}</h5>
-        
-          <div *ngFor="let lang of helperKeys(fileGroups[category])">
-            <h6 class="text-muted mt-3">{{ lang | uppercase }}</h6>
-        
-            <div
-              *ngFor="let file of fileGroups[category][lang]; let fileIndex = index"
-              class="file-item"
-            >
-              <div
-                class="card mb-3"
-                *ngIf="file"
-                [class.bg-warning]="file?.sizeExceeded"
-              >
-                <div class="card-body">
-                  <div class="row">
-                    <div class="col">
-                      <span class="fw-bold">
-                        {{ fileIndex }}. {{ file?.name.length >= 18 ? file?.name.slice(0, 18) + '...' : file?.name }}
-                      </span>
-                    </div>
-                    <div class="col">
-                      <b>{{ file ? formatFileSize(file.size) : 'N/A' }}</b>
-                    </div>
-                    <div class="col">
-                      <button
-                        class="btn btn-warning"
-                        (click)="replaceInput.click()"
-                      >
-                        <i class="bi bi-pencil-square text-white"></i>
-                      </button>
-                      <button
-                        class="btn btn-danger ms-2"
-                        (click)="removeFile(category, lang, fileIndex)"
-                      >
-                        <i class="bi bi-trash text-white"></i>
-                      </button>
-                    </div>
-                  </div>
+          <ng-option *ngFor="let lesson of lessons" [value]="lesson">
+            {{ lesson?.lessonTitle?.uz?.length >= 55 ?
+            lesson.lessonTitle.uz.slice(0, 55) + '...' : lesson.lessonTitle.uz
+            }}, {{ lesson.lessonTitle.ru.length >= 55 ?
+            lesson.lessonTitle.ru.slice(0, 55) + '...' : lesson.lessonTitle.ru
+            }}, {{ lesson.lessonTitle.en.length >= 55 ?
+            lesson.lessonTitle.en.slice(0, 55) + '...' : lesson.lessonTitle.en
+            }}
+          </ng-option>
+        </ng-select>
+        <div class="create-build-ng-card">FAN BO’YICHA RESURSLAR BAZASI</div>
+        <div class="container my-4">
+          <div class="row">
+            <div class="col-md-5">
+              <div class="position-relative">
+                <input
+                  type="file"
+                  hidden
+                  #hiddenInput
+                  multiple
+                  (change)="onFileSelected($event, 'materials', 'uz')"
+                />
+                <div
+                  class="bg-none p-0 position-absolute-btn"
+                  (click)="hiddenInput.click()"
+                >
+                  <img src="/assets/svg/plus.svg" width="70px" alt="upload" />
                 </div>
+                <ng-select
+                  class="create-build-ng-select-file mb-4"
+                  placeholder="FAN BO’YICHA MA’RUZA MATERIALLARI"
+                  [clearable]="false"
+                  searchable="false"
+                >
+                  <ng-container *ngIf="lessonFileGroups">
+                    <ng-container
+                      *ngFor="let category of helperKeys(lessonFileGroups)"
+                    >
+                      {{ category }}
+                    </ng-container>
+                  </ng-container>
+                </ng-select>
               </div>
-              <input
-                type="file"
-                class="d-none"
-                #replaceInput
-                (change)="replaceFile($event, category, lang, fileIndex)"
-              />
             </div>
-        
-            <input
-              type="file"
-              class="form-control"
-              (change)="onFileSelected($event, category, lang)"
-              hidden
-              #hiddenInput
-              multiple
-            />
-            <small
-              class="fw-bold"
-              *ngIf="fileGroups[category][lang]?.length > 1"
-            >
-              Tanlangan fayllar soni: {{ fileGroups[category][lang]?.length - 1 }}
-            </small>
-            <br />
-            <button
-              class="btn btn-danger w-100 mb-1"
-              *ngIf="fileGroups[category][lang]?.length > 1"
-              (click)="removeAllFromGroup(category, lang)"
-            >
-              Hammasini o'chirish
-            </button>
-            <button class="btn btn-primary w-100" (click)="hiddenInput.click()">
-              {{ changeObjectKeyName(category) | titlecase }} qo'shish
-            </button>
+            <div class="col-md-2"></div>
+            <div class="col-md-5">
+              <ng-select
+                class="create-build-ng-select-file mb-4"
+                placeholder="AMALIY MASHG’ULOTLAR"
+                searchable="false"
+              >
+              </ng-select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-3"></div>
+            <div class="col-md-6">
+              <ng-select
+                class="create-build-ng-select-file mb-4"
+                placeholder="FAN  BO’YICHA VIDEO DARSLAR"
+                searchable="false"
+              >
+              </ng-select>
+            </div>
+            <div class="col-md-3"></div>
+          </div>
+          <div class="row">
+            <div class="col-md-5">
+              <ng-select
+                class="create-build-ng-select-file mb-4"
+                placeholder="FAN  BO’YICHA VIDEO DARSLAR"
+                searchable="false"
+              >
+              </ng-select>
+            </div>
+            <div class="col-md-2"></div>
+            <div class="col-md-5">
+              <ng-select
+                class="create-build-ng-select-file mb-4"
+                placeholder="FAN  BO’YICHA VIDEO DARSLAR"
+                searchable="false"
+              >
+              </ng-select>
+            </div>
           </div>
         </div>
-        </div>
       </div>
-      <h4>Jami fayllar hajmi: {{ formatFileSize(totalSize) }}</h4>
-      <button
-        type="button"
-        class="btn btn-warning btn-lg w-100 mt-4"
-        (click)="saveAll()"
-      >
-        Upload All
-      </button>
     </div>
   </div>
 </div>
+
+<!-- <div class="col">
+  <h1 class="mt-4">Faylni tanlang</h1>
+  <div class="container my-4">
+    <div class="row">
+      <div
+        *ngFor="let category of helperKeys(fileGroups)"
+        class="category-section mb-4 col"
+      >
+        <h5>{{ changeObjectKeyName(category) | titlecase }}</h5>
+
+        <div *ngFor="let lang of helperKeys(fileGroups[category])">
+          <h6 class="text-muted mt-3">{{ lang | uppercase }}</h6>
+
+          <div
+            *ngFor="let file of fileGroups[category][lang]; let fileIndex = index"
+            class="file-item"
+          >
+            <div
+              class="card mb-3"
+              *ngIf="file"
+              [class.bg-warning]="file?.sizeExceeded"
+            >
+              <div class="card-body">
+                <div class="row">
+                  <div class="col">
+                    <span class="fw-bold">
+                      {{ fileIndex }}. {{ file?.name.length >= 18 ?
+                      file?.name.slice(0, 18) + '...' : file?.name }}
+                    </span>
+                  </div>
+                  <div class="col">
+                    <b>{{ file ? formatFileSize(file.size) : 'N/A' }}</b>
+                  </div>
+                  <div class="col">
+                    <button
+                      class="btn btn-warning"
+                      (click)="replaceInput.click()"
+                    >
+                      <i class="bi bi-pencil-square text-white"></i>
+                    </button>
+                    <button
+                      class="btn btn-danger ms-2"
+                      (click)="removeFile(category, lang, fileIndex)"
+                    >
+                      <i class="bi bi-trash text-white"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <input
+              type="file"
+              class="d-none"
+              #replaceInput
+              (change)="replaceFile($event, category, lang, fileIndex)"
+            />
+          </div>
+
+          <input
+            type="file"
+            class="form-control"
+            (change)="onFileSelected($event, category, lang)"
+            hidden
+            #hiddenInput
+            multiple
+          />
+          <small
+            class="fw-bold"
+            *ngIf="fileGroups[category][lang]?.length > 1"
+          >
+            Tanlangan fayllar soni: {{ fileGroups[category][lang]?.length
+            - 1 }}
+          </small>
+          <br />
+          <button
+            class="btn btn-danger w-100 mb-1"
+            *ngIf="fileGroups[category][lang]?.length > 1"
+            (click)="removeAllFromGroup(category, lang)"
+          >
+            Hammasini o'chirish
+          </button>
+          <button
+            class="btn btn-primary w-100"
+            (click)="hiddenInput.click()"
+          >
+            {{ changeObjectKeyName(category) | titlecase }} qo'shish
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <h4>Jami fayllar hajmi: {{ formatFileSize(totalSize) }}</h4>
+  <button
+    type="button"
+    class="btn btn-warning btn-lg w-100 mt-4"
+    (click)="saveAll()"
+  >
+    Upload All
+  </button>
+</div> -->
