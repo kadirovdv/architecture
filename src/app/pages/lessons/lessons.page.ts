@@ -103,6 +103,8 @@ export class LessonsPage implements OnInit, AfterViewInit, OnChanges {
         this.themeSelected = this.semester?.themes[0]?.themeTitle[this.lang];
 
         this.loaderService.hideLoader(true);
+      }, (e) => {
+        this.loaderService.hideLoader(true);
       });
   }
 
