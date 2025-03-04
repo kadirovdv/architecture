@@ -47,6 +47,7 @@ li {
 
 .min-h-80 {
   min-height: 80vh;
+  max-height: 80vh;
 }
 
 .right-0 {
@@ -59,6 +60,10 @@ li {
 
 .custom-border-bottom {
   border-bottom: 1px solid #dfdfdf;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 
 .create-build-ng-select {

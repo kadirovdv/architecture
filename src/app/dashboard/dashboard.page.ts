@@ -12,6 +12,6 @@ export class DashboardPage implements OnInit {
   constructor(private navService: ToggleNavVisibilityService, private dropboxService: DropboxService, private dropboxAuthService: DropboxAuthService) {}
 
   ngOnInit(): void {
-    this.navService.changeState(false);
+    // this.navService.changeState(false);
   }
 }

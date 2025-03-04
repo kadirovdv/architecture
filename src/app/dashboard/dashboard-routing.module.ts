@@ -11,36 +11,36 @@ import { UsersPage } from './users/users.page';
 import { LessonsPage } from './lessons/lessons.page';
 
 const routes: Routes = [
-  { path: '', redirectTo: '/dashboard/manage/semester', pathMatch: 'full' },
+  { path: '', redirectTo: '/dashboard/lessons', pathMatch: 'full' },
   {
     path: '',
     component: DashboardPage,
     children: [
       {
-        path: 'manage',
-        component: ManagePage,
-        children: [
-          {
-            path: 'users',
-            component: UsersPage,
-          },
-          {
-            path: 'lessons',
-            component: LessonsPage,
-          },
-          {
-            path: 'semester',
-            component: SemesterPage,
-          },
-          {
-            path: 'themes',
-            component: ThemesPage,
-          },
-          {
-            path: 'build',
-            component: BuildPage,
-          },
-        ],
+        path: 'lessons',
+        component: LessonsPage,
+        // children: [
+        //   {
+        //     path: 'users',
+        //     component: UsersPage,
+        //   },
+        //   {
+        //     path: 'lessons',
+        //     component: LessonsPage,
+        //   },
+        //   {
+        //     path: 'semester',
+        //     component: SemesterPage,
+        //   },
+        //   {
+        //     path: 'themes',
+        //     component: ThemesPage,
+        //   },
+        //   {
+        //     path: 'build',
+        //     component: BuildPage,
+        //   },
+        // ],
       },
       {
         path: 'create-build',
@@ -50,6 +50,10 @@ const routes: Routes = [
         path: 'edit-build/:id',
         component: EditBuildPage,
       },
+      {
+        path: "**",
+        redirectTo: "lessons"
+      }
     ],
   },
 ];

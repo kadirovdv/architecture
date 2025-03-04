@@ -1,6 +1,6 @@
 nav {
+  background: #d0853b;
   z-index: 999;
-  background: rgba(3, 3, 3, 0.35);
   position: absolute;
   top: 0;
   ul li {
@@ -16,8 +16,7 @@ nav {
       width: 80px;
     }
     h3 {
-      font-family: "Merriweather Sans";
-      font-style: normal;
+      font-family: "Inter";
       font-weight: 700;
       font-size: 20px;
       color: #ffffff !important;
@@ -32,13 +31,14 @@ nav {
     display: flex;
     align-items: center;
     li:first-child,
-    li:nth-child(2) {
+    li:nth-child(3) h3 {
       font-family: "Inter";
       font-style: normal;
       font-weight: 800;
-      font-size: 20px;
+      font-size: 16px;
       color: #ffffff;
       text-transform: uppercase;
+      margin-bottom: 0px;
     }
 
     li:not(:last-child) {
