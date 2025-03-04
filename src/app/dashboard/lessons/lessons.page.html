@@ -1,14 +1,5 @@
 <div class="container">
   <div class="position-relative min-h-80 w-100 overflow-hidden lessons-card">
-    <div class="position-absolute bottom-0 right-0 pe-4 pb-3">
-      <button
-        class="btn btn-primary btn-lg add-btn"
-        [disabled]="isNewLesson"
-        (click)="isNewLesson = true;"
-      >
-        <i class="bi bi-plus-lg"></i>
-      </button>
-    </div>
     <div class="lesson-items lesson-items-top">
       <div class="lesson-item d-flex py-4">
         <div>FANLAR</div>
@@ -43,11 +34,15 @@
             <div class="action-btn cursor-pointer">
               <img src="/assets/svg/arrow-down.svg" width="30px" alt="">
             </div>
-            <div class="action-btn cursor-pointer">
+            <!-- <div class="action-btn cursor-pointer">
               <img src="/assets/svg/plus.svg" width="30px" alt="">
-            </div>
+            </div> -->
           </div>
         </div>
+      </div>
+      <div class="add-lesson pt-3 cursor-pointer text-center">
+        <span class="me-2">Fanlarga resurs qo’shish</span>
+        <img src="/assets/svg/plus.svg" width="30px" alt="">
       </div>
     </ng-template>
   </div>

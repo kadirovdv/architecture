@@ -73,10 +73,9 @@
 
       .action-btn:last-child {
         border-left: 1px solid #000;
-        padding: 0px 15px 0px 10px;
+        padding: 11px 15px 11px 10px;
       }
     }
-
 
     .lesson-item:first-child div:first-child {
       border-right: 1px solid #000;
@@ -93,4 +92,11 @@
       color: #6e6e6e;
     }
   }
+}
+
+.add-lesson span {
+  font-weight: 700;
+  font-size: 18px;
+  color: #898381;
+  color: #898381;
 }
