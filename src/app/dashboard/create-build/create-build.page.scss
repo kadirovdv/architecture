@@ -33,11 +33,12 @@
 }
 
 .create-build-content {
-  background-color: #e8d8d8;
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  background: #ffedd3;
+  box-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
 }
 
 .create-build-card {
@@ -50,8 +51,6 @@
 .create-build-ng-card {
   width: 610px;
   height: 55px;
-  background: rgba(122, 0, 255, 0.29);
-  box-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
   border-radius: 20px;
   display: flex;
   justify-content: center;
@@ -62,12 +61,16 @@
   font-size: 17px;
   line-height: 25px;
   color: #6e6e6e;
+  background: #d0853b;
+  box-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
+  border-radius: 10px;
+  color: #fff;
 }
 
 .position-absolute-btn {
   position: absolute;
   top: 5px;
   right: 20px;
-  z-index: 10000 !important;
+  z-index: 999 !important;
   cursor: pointer;
 }
