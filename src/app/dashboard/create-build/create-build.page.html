@@ -48,7 +48,7 @@
                   class="bg-none p-0 position-absolute-btn"
                   (click)="hiddenInput.click()"
                 >
-                  <img src="/assets/svg/plus.svg" width="70px" alt="upload" />
+                  <img src="/assets/svg/plus.svg" width="30px" alt="upload" />
                 </div>
                 <ng-select
                   class="create-build-ng-select-file mb-4"
@@ -67,13 +67,159 @@
               </div>
             </div>
             <div class="col-md-6">
-              <ng-select
-                class="create-build-ng-select-file mb-4"
-                placeholder="GRAFIK TOPSHIRIQLAR VARIANTLARI"
-                searchable="false"
-              >
-              </ng-select>
+              <div class="position-relative">
+                <input
+                  type="file"
+                  hidden
+                  #hiddenInput
+                  multiple
+                  (change)="onFileSelected($event, 'materials', 'uz')"
+                />
+                <div
+                  class="bg-none p-0 position-absolute-btn"
+                  (click)="hiddenInput.click()"
+                >
+                  <img src="/assets/svg/plus.svg" width="30px" alt="upload" />
+                </div>
+                <ng-select
+                  class="create-build-ng-select-file mb-4"
+                  placeholder="GRAFIK TOPSHIRIQLAR VARIANTLARI"
+                  [clearable]="false"
+                  searchable="false"
+                >
+                  <ng-container *ngIf="lessonFileGroups">
+                    <ng-container
+                      *ngFor="let category of helperKeys(lessonFileGroups)"
+                    >
+                      {{ category }}
+                    </ng-container>
+                  </ng-container>
+                </ng-select>
+              </div>
             </div>
+          </div>
+        </div>
+        <div class="create-build-ng-card">Didaktik materiallar</div>
+        <div class="container my-4">
+          <div class="row">
+            <div class="col-md-3"></div>
+            <div class="col-md-6">
+              <div class="position-relative">
+                <input
+                  type="file"
+                  hidden
+                  #hiddenInput
+                  multiple
+                  (change)="onFileSelected($event, 'materials', 'uz')"
+                />
+                <div
+                  class="bg-none p-0 position-absolute-btn"
+                  (click)="hiddenInput.click()"
+                >
+                  <img src="/assets/svg/plus.svg" width="30px" alt="upload" />
+                </div>
+                <ng-select
+                  class="create-build-ng-select-file mb-4"
+                  placeholder="MA’RUZA MATNI"
+                  [clearable]="false"
+                  searchable="false"
+                >
+                  <ng-container *ngIf="lessonFileGroups">
+                    <ng-container
+                      *ngFor="let category of helperKeys(lessonFileGroups)"
+                    >
+                      {{ category }}
+                    </ng-container>
+                  </ng-container>
+                </ng-select>
+              </div>
+            </div>
+            <div class="col-md-3"></div>
+            <div class="col-md-6">
+              <div class="position-relative">
+                <input
+                  type="file"
+                  hidden
+                  #hiddenInput
+                  multiple
+                  (change)="onFileSelected($event, 'materials', 'uz')"
+                />
+                <div
+                  class="bg-none p-0 position-absolute-btn"
+                  (click)="hiddenInput.click()"
+                >
+                  <img src="/assets/svg/plus.svg" width="30px" alt="upload" />
+                </div>
+                <ng-select
+                  class="create-build-ng-select-file mb-4"
+                  placeholder="PREZENTATSIYA"
+                  [clearable]="false"
+                  searchable="false"
+                >
+                  <ng-container *ngIf="lessonFileGroups">
+                    <ng-container
+                      *ngFor="let category of helperKeys(lessonFileGroups)"
+                    >
+                      {{ category }}
+                    </ng-container>
+                  </ng-container>
+                </ng-select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="position-relative">
+                <div class="bg-none p-0 position-absolute-btn">
+                  <img src="/assets/svg/plus.svg" width="30px" alt="upload" />
+                </div>
+                <ng-select
+                  class="create-build-ng-select-file mb-4"
+                  placeholder="VIDEO DARS"
+                  [clearable]="false"
+                  searchable="false"
+                >
+                  <ng-container *ngIf="lessonFileGroups">
+                    <ng-container
+                      *ngFor="let category of helperKeys(lessonFileGroups)"
+                    >
+                      {{ category }}
+                    </ng-container>
+                  </ng-container>
+                </ng-select>
+              </div>
+            </div>
+            <div class="col-md-3"></div>
+            <div class="col-md-6">
+              <div class="position-relative">
+                <input
+                  type="file"
+                  hidden
+                  #hiddenInput
+                  multiple
+                  (change)="onFileSelected($event, 'materials', 'uz')"
+                />
+                <div
+                  class="bg-none p-0 position-absolute-btn"
+                  (click)="hiddenInput.click()"
+                >
+                  <img src="/assets/svg/plus.svg" width="30px" alt="upload" />
+                </div>
+                <ng-select
+                  class="create-build-ng-select-file mb-4"
+                  placeholder="FAN BO’YICHA  ADABIYOTLAR"
+                  [clearable]="false"
+                  searchable="false"
+                >
+                  <ng-container *ngIf="lessonFileGroups">
+                    <ng-container
+                      *ngFor="let category of helperKeys(lessonFileGroups)"
+                    >
+                      {{ category }}
+                    </ng-container>
+                  </ng-container>
+                </ng-select>
+              </div>
+            </div>
+            <div class="col-md-3"></div>
           </div>
         </div>
       </div>
