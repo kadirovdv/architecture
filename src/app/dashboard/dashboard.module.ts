@@ -13,6 +13,7 @@ import { EditBuildPage } from './edit-build/edit-build.page';
 import { UsersPage } from './users/users.page';
 import { LessonsPage } from './lessons/lessons.page';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { CreateLessonsPage } from './create-lessons/create-lessons.page';
 
 @NgModule({
   declarations: [
@@ -24,7 +25,8 @@ import { NgSelectModule } from '@ng-select/ng-select';
     CreateBuildPage,
     EditBuildPage,
     UsersPage,
-    LessonsPage
+    LessonsPage,
+    CreateLessonsPage
   ],
   imports: [
     DashboardRoutingModule,

@@ -30,25 +30,47 @@
         </div>
         <div class="lesson-item position-relative">
           <div class="text-center">Grafik topshiriqlar</div>
-          <div class="d-flex position-absolute right-0 top-0 action-btns">
+          <div
+            class="d-flex position-absolute right-0 top-0 action-btns"
+            (click)="openDropdown(i)"
+          >
             <div class="action-btn cursor-pointer">
-              <img src="/assets/svg/arrow-down.svg" width="30px" alt="">
+              <img src="/assets/svg/arrow-down.svg" width="30px" alt="" />
             </div>
-            <!-- <div class="action-btn cursor-pointer">
-              <img src="/assets/svg/plus.svg" width="30px" alt="">
-            </div> -->
+          </div>
+          <div class="action-dropdown" *ngIf="selectedIndex === i">
+            <div class="d-flex align-items-center">
+              <input class="form-control me-2" type="text" />
+              <img src="/assets/svg/plus.svg" class="cursor-pointer" width="30px" alt="" />
+            </div>
+            <div>
+              <span *ngFor="let item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]">
+                {{ item }}
+                <br>
+              </span>
+            </div>
           </div>
         </div>
       </div>
-      <div class="add-lesson pt-3 cursor-pointer text-center">
+      <div
+        class="add-lesson pt-4 pb-3 cursor-pointer text-center"
+        routerLink="/dashboard/create-lesson"
+      >
+        <span class="me-2">Yangi fan qo'shish</span>
+        <img src="/assets/svg/plus.svg" width="30px" alt="" />
+      </div>
+      <div
+        class="add-lesson py-3 cursor-pointer text-center"
+        routerLink="/dashboard/create-build"
+      >
         <span class="me-2">Fanlarga resurs qo’shish</span>
-        <img src="/assets/svg/plus.svg" width="30px" alt="">
+        <img src="/assets/svg/plus.svg" width="30px" alt="" />
       </div>
     </ng-template>
   </div>
 </div>
 
-<ng-container *ngIf="loaderItem">
+<ng-container *ngIf="loader">
   <div
     class="d-flex justify-content-center align-items-center min-h-80 w-100 position-fixed"
   >

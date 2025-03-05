@@ -9,6 +9,7 @@ import { CreateBuildPage } from './create-build/create-build.page';
 import { EditBuildPage } from './edit-build/edit-build.page';
 import { UsersPage } from './users/users.page';
 import { LessonsPage } from './lessons/lessons.page';
+import { CreateLessonsPage } from './create-lessons/create-lessons.page';
 
 const routes: Routes = [
   { path: '', redirectTo: '/dashboard/lessons', pathMatch: 'full' },
@@ -20,27 +21,31 @@ const routes: Routes = [
         path: 'lessons',
         component: LessonsPage,
         // children: [
-        //   {
-        //     path: 'users',
-        //     component: UsersPage,
-        //   },
-        //   {
-        //     path: 'lessons',
-        //     component: LessonsPage,
-        //   },
-        //   {
-        //     path: 'semester',
-        //     component: SemesterPage,
-        //   },
-        //   {
-        //     path: 'themes',
-        //     component: ThemesPage,
-        //   },
-        //   {
-        //     path: 'build',
-        //     component: BuildPage,
-        //   },
+        // {
+        //   path: 'users',
+        //   component: UsersPage,
+        // },
+        // {
+        //   path: 'lessons',
+        //   component: LessonsPage,
+        // },
+        // {
+        //   path: 'semester',
+        //   component: SemesterPage,
+        // },
+        // {
+        //   path: 'themes',
+        //   component: ThemesPage,
+        // },
+        // {
+        //   path: 'build',
+        //   component: BuildPage,
+        // },
         // ],
+      },
+      {
+        path: 'create-lesson',
+        component: CreateLessonsPage,
       },
       {
         path: 'create-build',
@@ -51,9 +56,9 @@ const routes: Routes = [
         component: EditBuildPage,
       },
       {
-        path: "**",
-        redirectTo: "lessons"
-      }
+        path: '**',
+        redirectTo: 'lessons',
+      },
     ],
   },
 ];
