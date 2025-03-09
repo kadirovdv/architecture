@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore, AngularFirestoreCollection } from '@angular/fire/compat/firestore';
-import { Observable } from 'rxjs';
+import { from, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 @Injectable({
@@ -31,12 +31,12 @@ export class CrudService {
     return this.firestore.collection<T>(collectionName).doc(docId).valueChanges();
   }
 
-  updateDocument<T>(collectionName: string, docId: string, data: Partial<T>): Promise<void> {
-    return this.firestore.collection<T>(collectionName).doc(docId).update(data);
+  updateDocument<T>(collectionName: string, docId: string, data: Partial<T>): Observable<any> {
+    return from(this.firestore.collection<T>(collectionName).doc(docId).update(data));
   }
 
-  deleteDocument(collectionName: string, docId: string): Promise<void> {
-    return this.firestore.collection(collectionName).doc(docId).delete();
+  deleteDocument(collectionName: string, docId: string): Observable<any> {
+    return from(this.firestore.collection(collectionName).doc(docId).delete());
   }
 
   getDataByField(collection: string, docId: string): Observable<any> {

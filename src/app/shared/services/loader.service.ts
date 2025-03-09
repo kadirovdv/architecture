@@ -5,10 +5,15 @@ import { EventEmitter, Injectable } from '@angular/core';
 })
 export class LoaderService {
   loader = new EventEmitter<boolean>();
+  loaderDashboard = new EventEmitter<boolean>();
   constructor() {}
 
   showLoader() {
     this.loader.emit(true);
+  }
+
+  showLoaderDashboard() {
+    this.loaderDashboard.emit(true);
   }
 
   hideLoader(random: boolean = false) {
@@ -18,6 +23,7 @@ export class LoaderService {
       }, Math.abs(10 - Math.random() * 10) * 1000);
     } else {
         this.loader.emit(false);
+        this.loaderDashboard.emit(false);
     }
   }
 }

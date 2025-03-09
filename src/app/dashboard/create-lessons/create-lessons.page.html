@@ -11,7 +11,7 @@
       />
     </div>
     <div class="create-lessons-card-body">
-      <form>
+      <form [formGroup]="createLessonsForm" (submit)="save()">
         <div class="d-flex flex-column">
           <div class="mb-4">
             <span>UZ</span>
@@ -26,13 +26,20 @@
             <input class="form-control" type="text" formControlName="en" />
           </div>
         </div>
-        <div class="d-flex justify-content-center">
+        <input type="file" accept="image/*" (change)="onFileSelected($event)" hidden #input />
+        <div class="d-flex justify-content-center cursor-pointer" (click)="input.click()">
           <div class="create-lessons-card-img">
             <div class="header">FAN MUQOVASI UCHUN RASM TANLANG</div>
             <div class="body">
-              <img src="/assets/svg/plus.svg" width="50px" alt="" />
+              <img [src]="!imgDisplay ? '/assets/svg/plus.svg' : imgDisplay" [ngStyle]="{ 'width': !imgDisplay ? '50px' : '100%'}" alt="" />
             </div>
           </div>
+        </div>
+
+        <div class="d-flex justify-content-end mt-4">
+          <button class="btn" type="submit">
+            <img src="/assets/svg/save.svg" alt="">
+          </button>
         </div>
       </form>
     </div>

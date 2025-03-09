@@ -5,17 +5,18 @@ export interface Section {
 }
 
 export interface Lesson {
-  id?: string | any;
-  lessonTitle?: LessonTitle | any;
-  thumbnail?: string | any;
-  index?: number | any;
-  createdAt?: string | any;
+  id?: string;
+  lessonTitle?: LessonTitle;
+  thumbnail?: string;
+  index?: number;
+  createdAt?: string;
+  tasks?: string[];
 }
 
 export interface LessonTitle {
-  uz?: string | any;
-  ru?: string | any;
-  en?: string | any;
+  uz?: string;
+  ru?: string;
+  en?: string;
 }
 
 export interface FileGroups {

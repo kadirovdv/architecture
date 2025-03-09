@@ -3,14 +3,14 @@ import { DashboardRoutingModule } from './dashboard-routing.module';
 import { DashboardPage } from './dashboard.page';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '../shared/shared.module';
-import { ManagePage } from './manage/manage.page';
-import { SemesterPage } from './semester/semester.page';
+// import { ManagePage } from './manage/manage.page';
+// import { SemesterPage } from './semester/semester.page';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { ThemesPage } from './themes/themes.page';
-import { BuildPage } from './build/build.page';
+// import { ThemesPage } from './themes/themes.page';
+// import { BuildPage } from './build/build.page';
 import { CreateBuildPage } from './create-build/create-build.page';
-import { EditBuildPage } from './edit-build/edit-build.page';
-import { UsersPage } from './users/users.page';
+// import { EditBuildPage } from './edit-build/edit-build.page';
+// import { UsersPage } from './users/users.page';
 import { LessonsPage } from './lessons/lessons.page';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { CreateLessonsPage } from './create-lessons/create-lessons.page';
@@ -18,15 +18,15 @@ import { CreateLessonsPage } from './create-lessons/create-lessons.page';
 @NgModule({
   declarations: [
     DashboardPage,
-    ManagePage,
-    SemesterPage,
-    ThemesPage,
-    BuildPage,
+    // ManagePage,
+    // SemesterPage,
+    // ThemesPage,
+    // BuildPage,
     CreateBuildPage,
-    EditBuildPage,
-    UsersPage,
+    // EditBuildPage,
+    // UsersPage,
     LessonsPage,
-    CreateLessonsPage
+    CreateLessonsPage,
   ],
   imports: [
     DashboardRoutingModule,
@@ -34,7 +34,7 @@ import { CreateLessonsPage } from './create-lessons/create-lessons.page';
     SharedModule,
     ReactiveFormsModule,
     FormsModule,
-    NgSelectModule
+    NgSelectModule,
   ],
   exports: [],
 })

@@ -14,7 +14,7 @@ import { FileGroups, Lesson } from 'src/app/shared/interfaces/interfaces';
 })
 export class CreateBuildPage implements OnInit {
   lessons: Lesson[] | any = [];
-  lesson: Lesson | null = null
+  lesson: Lesson | null = null;
 
   semester: any = {
     id: '',
@@ -27,11 +27,9 @@ export class CreateBuildPage implements OnInit {
   loader = false;
   loading: boolean = false;
 
-
   lessonFileGroups: FileGroups | any = {};
   themeFileGroups: FileGroups | any = {};
   uploadedFilesByCategory: FileGroups | any = {};
-
 
   uploadedFiles: any[] = [];
   totalSize: number | any = 0;
@@ -77,7 +75,7 @@ export class CreateBuildPage implements OnInit {
   build() {
     if (!this.error) {
       const lessonExists = this.globalVarCompare.find(
-        (item: any) => item.lessonTitle.uz === this.lesson?.lessonTitle.uz
+        (item: any) => item.lessonTitle.uz === this.lesson?.lessonTitle?.uz
       );
 
       if (lessonExists) {
@@ -108,16 +106,18 @@ export class CreateBuildPage implements OnInit {
 
         this.crudService
           .updateDocument('globalVar', lessonExists.id, updatedLesson)
-          .then(() => {
-            this.loading = false;
-            this.toastr.success(
-              'All files across categories were uploaded and updated successfully.'
-            );
-            this.navigate.historyGo(-1);
-          })
-          .catch((e) => {
-            console.error(e);
-          });
+          .subscribe(
+            () => {
+              this.loading = false;
+              this.toastr.success(
+                'All files across categories were uploaded and updated successfully.'
+              );
+              this.navigate.historyGo(-1);
+            },
+            (e) => {
+              console.log(e);
+            }
+          );
       } else {
         this.crudService
           .addDocument('globalVar', this.globalVar)
@@ -145,7 +145,10 @@ export class CreateBuildPage implements OnInit {
 
   onFileSelected(event: Event, category: string, lang: string): void {
     const fileInput: any = event.target as HTMLInputElement;
-    if (!this.lessonFileGroups[category] || !this.lessonFileGroups[category][lang]) {
+    if (
+      !this.lessonFileGroups[category] ||
+      !this.lessonFileGroups[category][lang]
+    ) {
       this.toastr.error('Invalid category or language');
       return;
     }
@@ -165,7 +168,10 @@ export class CreateBuildPage implements OnInit {
   }
 
   removeFile(category: string, lang: string, index: number): void {
-    if (this.lessonFileGroups[category] && this.lessonFileGroups[category][lang]) {
+    if (
+      this.lessonFileGroups[category] &&
+      this.lessonFileGroups[category][lang]
+    ) {
       this.lessonFileGroups[category][lang].splice(index, 1);
       this.calculateTotalSize();
       this.toastr.success('File removed successfully.');
@@ -279,7 +285,9 @@ export class CreateBuildPage implements OnInit {
       .subscribe({
         next: (results: any) => {
           this.uploadedFiles.push(results);
-          this.dropboxService.createSharedLink(results.path_display).subscribe(() => {});
+          this.dropboxService
+            .createSharedLink(results.path_display)
+            .subscribe(() => {});
         },
         complete: () => {
           this.globalVar = {

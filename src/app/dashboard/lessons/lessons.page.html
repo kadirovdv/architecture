@@ -7,73 +7,69 @@
       <div class="lessons-item"></div>
     </div>
     <div
-      *ngIf="loader; else content"
-      class="d-flex justify-content-center align-items-center min-h-80"
+      class="lesson-items lesson-items-bottom"
+      *ngFor="let lesson of lessons; let i = index"
     >
-      <app-loader></app-loader>
-    </div>
-    <ng-template #content>
-      <div
-        class="lesson-items lesson-items-bottom"
-        *ngFor="let lesson of lessons; let i = index"
-      >
-        <div class="lesson-item d-flex">
-          <div class="px-3">{{ lesson.index }}</div>
-          <div class="px-4">
-            {{ lesson.lessonTitle.uz }}
-            <!-- , {{
+      <div class="lesson-item d-flex">
+        <div class="px-3">{{ lesson.index }}</div>
+        <div class="px-4">
+          {{ lesson.lessonTitle?.uz }}
+          <!-- , {{
                 lesson.lessonTitle.ru.length >= 18 ? lesson.lessonTitle.ru.slice(0,
                 18) + '...' : lesson.lessonTitle.ru }}, {{
                 lesson.lessonTitle.en.length >= 18 ? lesson.lessonTitle.en.slice(0,
                 18) + '...' : lesson.lessonTitle.en }} -->
-          </div>
         </div>
-        <div class="lesson-item position-relative">
-          <div class="text-center">Grafik topshiriqlar</div>
+      </div>
+      <div class="lesson-item position-relative">
+        <div class="text-center">Grafik topshiriqlar</div>
+        <div class="d-flex position-absolute right-0 top-0 action-btns">
           <div
-            class="d-flex position-absolute right-0 top-0 action-btns"
-            (click)="openDropdown(i)"
+            class="action-btn cursor-pointer"
+            (click)="openDropdown(i, lesson)"
           >
-            <div class="action-btn cursor-pointer">
-              <img src="/assets/svg/arrow-down.svg" width="30px" alt="" />
-            </div>
+            <img src="/assets/svg/arrow-down.svg" width="30px" alt="" />
           </div>
-          <div class="action-dropdown" *ngIf="selectedIndex === i">
-            <div class="d-flex align-items-center">
-              <input class="form-control me-2" type="text" />
-              <img src="/assets/svg/plus.svg" class="cursor-pointer" width="30px" alt="" />
-            </div>
-            <div>
-              <span *ngFor="let item of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]">
-                {{ item }}
-                <br>
-              </span>
-            </div>
+          <!-- <div
+            class="action-btn cursor-pointer"
+            [routerLink]="['/dashboard/create-build/', lesson.id]"
+          >
+            <img src="/assets/svg/plus.svg" width="30px" alt="" />
+          </div> -->
+        </div>
+        <div class="action-dropdown" *ngIf="selectedIndex === i">
+          <div class="d-flex align-items-center">
+            <input class="form-control me-2" type="text" [(ngModel)]="task" />
+            <img
+              src="/assets/svg/plus.svg"
+              class="cursor-pointer"
+              width="30px"
+              alt=""
+              (click)="addTaskToLesson()"
+            />
+          </div>
+          <div>
+            <span *ngFor="let item of lesson.tasks">
+              {{ item }}
+              <br />
+            </span>
           </div>
         </div>
       </div>
-      <div
-        class="add-lesson pt-4 pb-3 cursor-pointer text-center"
-        routerLink="/dashboard/create-lesson"
-      >
-        <span class="me-2">Yangi fan qo'shish</span>
-        <img src="/assets/svg/plus.svg" width="30px" alt="" />
-      </div>
-      <div
-        class="add-lesson py-3 cursor-pointer text-center"
-        routerLink="/dashboard/create-build"
-      >
-        <span class="me-2">Fanlarga resurs qo’shish</span>
-        <img src="/assets/svg/plus.svg" width="30px" alt="" />
-      </div>
-    </ng-template>
+    </div>
+    <div
+      class="add-lesson pt-4 pb-3 cursor-pointer text-center"
+      routerLink="/dashboard/create-lesson"
+    >
+      <span class="me-2">Yangi fan qo'shish</span>
+      <img src="/assets/svg/plus.svg" width="30px" alt="" />
+    </div>
+    <div
+      class="add-lesson py-3 cursor-pointer text-center"
+      routerLink="/dashboard/create-build"
+    >
+      <span class="me-2">Fanlarga resurs qo’shish</span>
+      <img src="/assets/svg/plus.svg" width="30px" alt="" />
+    </div>
   </div>
 </div>
-
-<ng-container *ngIf="loader">
-  <div
-    class="d-flex justify-content-center align-items-center min-h-80 w-100 position-fixed"
-  >
-    <app-loader></app-loader>
-  </div>
-</ng-container>
