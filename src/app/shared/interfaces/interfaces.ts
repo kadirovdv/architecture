@@ -1,23 +1,8 @@
-export interface Section {
-  sectionId: string;
-  name: string;
-  author: string;
+export interface GlobalVar {
+  lesson: Lesson;
+  
 }
 
-export interface Lesson {
-  id?: string;
-  lessonTitle?: LessonTitle;
-  thumbnail?: string;
-  index?: number;
-  createdAt?: string;
-  tasks?: string[];
-}
-
-export interface LessonTitle {
-  uz?: string;
-  ru?: string;
-  en?: string;
-}
 
 export interface FileGroups {
   materials?: Files;
@@ -35,4 +20,20 @@ export interface Files {
 export interface File {
   name?: string;
   size?: number;
+}
+
+
+export interface Lesson {
+  id?: string;
+  lessonTitle?: LessonTitle;
+  thumbnail?: string;
+  index?: number;
+  createdAt?: string;
+  tasks?: string[];
+}
+
+export interface LessonTitle {
+  uz?: string;
+  ru?: string;
+  en?: string;
 }

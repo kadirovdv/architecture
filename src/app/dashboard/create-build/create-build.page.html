@@ -9,7 +9,6 @@
     <button
       class="mb-3 bg-none border-0"
       style="width: 50px"
-      (click)="goBack()"
     >
       <img src="/assets/svg/arrow-left.svg" class="w-100" alt="arrow-left" />
     </button>
@@ -23,13 +22,8 @@
           placeholder="Fanni tanlang..."
         >
           <ng-option *ngFor="let lesson of lessons" [value]="lesson">
-            {{ lesson?.lessonTitle?.uz?.length >= 55 ?
-            lesson.lessonTitle.uz.slice(0, 55) + '...' : lesson.lessonTitle.uz
-            }}, {{ lesson.lessonTitle.ru.length >= 55 ?
-            lesson.lessonTitle.ru.slice(0, 55) + '...' : lesson.lessonTitle.ru
-            }}, {{ lesson.lessonTitle.en.length >= 55 ?
-            lesson.lessonTitle.en.slice(0, 55) + '...' : lesson.lessonTitle.en
-            }}
+            {{ lesson.lessonTitle?.uz }} - {{ lesson.lessonTitle?.ru }} -
+            {{ lesson.lessonTitle?.en }}
           </ng-option>
         </ng-select>
         <div class="create-build-ng-card">Grafik topshiriqni tanlang</div>
@@ -42,7 +36,6 @@
                   hidden
                   #hiddenInput
                   multiple
-                  (change)="onFileSelected($event, 'materials', 'uz')"
                 />
                 <div
                   class="bg-none p-0 position-absolute-btn"
@@ -56,13 +49,7 @@
                   [clearable]="false"
                   searchable="false"
                 >
-                  <ng-container *ngIf="lessonFileGroups">
-                    <ng-container
-                      *ngFor="let category of helperKeys(lessonFileGroups)"
-                    >
-                      {{ category }}
-                    </ng-container>
-                  </ng-container>
+                
                 </ng-select>
               </div>
             </div>
@@ -73,7 +60,6 @@
                   hidden
                   #hiddenInput
                   multiple
-                  (change)="onFileSelected($event, 'materials', 'uz')"
                 />
                 <div
                   class="bg-none p-0 position-absolute-btn"
@@ -87,13 +73,7 @@
                   [clearable]="false"
                   searchable="false"
                 >
-                  <ng-container *ngIf="lessonFileGroups">
-                    <ng-container
-                      *ngFor="let category of helperKeys(lessonFileGroups)"
-                    >
-                      {{ category }}
-                    </ng-container>
-                  </ng-container>
+                 
                 </ng-select>
               </div>
             </div>
@@ -110,7 +90,6 @@
                   hidden
                   #hiddenInput
                   multiple
-                  (change)="onFileSelected($event, 'materials', 'uz')"
                 />
                 <div
                   class="bg-none p-0 position-absolute-btn"
@@ -124,13 +103,7 @@
                   [clearable]="false"
                   searchable="false"
                 >
-                  <ng-container *ngIf="lessonFileGroups">
-                    <ng-container
-                      *ngFor="let category of helperKeys(lessonFileGroups)"
-                    >
-                      {{ category }}
-                    </ng-container>
-                  </ng-container>
+               
                 </ng-select>
               </div>
             </div>
@@ -142,7 +115,6 @@
                   hidden
                   #hiddenInput
                   multiple
-                  (change)="onFileSelected($event, 'materials', 'uz')"
                 />
                 <div
                   class="bg-none p-0 position-absolute-btn"
@@ -156,13 +128,7 @@
                   [clearable]="false"
                   searchable="false"
                 >
-                  <ng-container *ngIf="lessonFileGroups">
-                    <ng-container
-                      *ngFor="let category of helperKeys(lessonFileGroups)"
-                    >
-                      {{ category }}
-                    </ng-container>
-                  </ng-container>
+                  
                 </ng-select>
               </div>
             </div>
@@ -177,13 +143,7 @@
                   [clearable]="false"
                   searchable="false"
                 >
-                  <ng-container *ngIf="lessonFileGroups">
-                    <ng-container
-                      *ngFor="let category of helperKeys(lessonFileGroups)"
-                    >
-                      {{ category }}
-                    </ng-container>
-                  </ng-container>
+                
                 </ng-select>
               </div>
             </div>
@@ -195,7 +155,6 @@
                   hidden
                   #hiddenInput
                   multiple
-                  (change)="onFileSelected($event, 'materials', 'uz')"
                 />
                 <div
                   class="bg-none p-0 position-absolute-btn"
@@ -209,13 +168,7 @@
                   [clearable]="false"
                   searchable="false"
                 >
-                  <ng-container *ngIf="lessonFileGroups">
-                    <ng-container
-                      *ngFor="let category of helperKeys(lessonFileGroups)"
-                    >
-                      {{ category }}
-                    </ng-container>
-                  </ng-container>
+                
                 </ng-select>
               </div>
             </div>
