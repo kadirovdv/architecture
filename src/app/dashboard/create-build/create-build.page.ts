@@ -5,7 +5,7 @@ import { FormGroup, FormControl } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { concatMap, from, Observable, tap, timer } from 'rxjs';
 import { Location } from '@angular/common';
-import { FileGroups, Lesson } from 'src/app/shared/interfaces/interfaces';
+import { Lesson } from 'src/app/shared/interfaces/interfaces';
 
 @Component({
   selector: 'app-create-build',
@@ -15,9 +15,12 @@ import { FileGroups, Lesson } from 'src/app/shared/interfaces/interfaces';
 export class CreateBuildPage implements OnInit {
   lessons: Lesson[] = [];
   lesson: Lesson | null = null;
+
+  task: Task | null = null;
+
   loading: boolean = false;
 
-  filesToUploadByCategory: FileGroups = {}
+  // filesToUploadByCategory: FileGroups = {}
 
   constructor(
     private crudService: CrudService,
@@ -41,5 +44,13 @@ export class CreateBuildPage implements OnInit {
         return dateA - dateB;
       });
     });
+  }
+
+  onFileSelected(event: Event) {
+    
+  }
+
+  createBuild() {
+
   }
 }

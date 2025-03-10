@@ -109,6 +109,24 @@ li {
   .ng-arrow-wrapper {
     display: none !important;
   }
+
+  &.bg-yellow {
+    .ng-dropdown-panel.ng-select-bottom {
+      border-radius: 10px !important;
+      border-top-right-radius: 0px !important;
+      border-top-left-radius: 0px !important;
+    }
+  }
+
+  &.bg-yellow .ng-select-container {
+    background-color: #d0853b;
+    border-color: transparent;
+    border-radius: 10px;
+
+    .ng-value-container .ng-placeholder {
+      color: #fff;
+    }
+  }
 }
 
 .create-build-ng-select-file {

@@ -1,14 +1,12 @@
-export interface GlobalVar {
-  lesson: Lesson;
-  
+export interface FirstClassFileGroups {
+  taskExampleFiles?: Files[];
+  taskSolutionFiles?: Files[];
 }
 
-
-export interface FileGroups {
-  materials?: Files;
-  presentations?: Files;
-  discussions?: Files;
-  videos?: Files;
+export interface SecondClassFileGroups {
+  taskTitleFiles?: Files[];
+  taskPresentationFiles?: Files[];
+  taskLiteratureFiles?: Files[];
 }
 
 export interface Files {
@@ -29,11 +27,20 @@ export interface Lesson {
   thumbnail?: string;
   index?: number;
   createdAt?: string;
-  tasks?: string[];
+  tasks?: Task[] | any[];
 }
 
 export interface LessonTitle {
   uz?: string;
   ru?: string;
   en?: string;
+}
+
+export interface Task {
+  title?: string;
+  id?: string;
+  index?: number;
+  createdAt?: string;
+  firstBasedFiles: FirstClassFileGroups;
+  secondBasedFiles: SecondClassFileGroups;
 }

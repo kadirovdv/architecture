@@ -66,6 +66,7 @@ export class SectionItemsComponent implements AfterViewInit {
       },
       (err) => {
         this.loaderService.hideLoader(true);
+        this.loaderService.hideLoader()
       }
     );
   }
