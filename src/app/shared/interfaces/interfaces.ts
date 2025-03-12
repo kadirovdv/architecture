@@ -1,18 +1,18 @@
 export interface FirstClassFileGroups {
-  taskExampleFiles?: Files[];
-  taskSolutionFiles?: Files[];
+  taskExampleFiles?: Files;
+  taskSolutionFiles?: Files;
 }
 
 export interface SecondClassFileGroups {
-  taskTitleFiles?: Files[];
-  taskPresentationFiles?: Files[];
-  taskLiteratureFiles?: Files[];
+  taskTitleFiles?: Files;
+  taskPresentationFiles?: Files;
+  taskLiteratureFiles?: Files;
 }
 
 export interface Files {
-  uz?: [];
-  ru?: [];
-  en?: [];
+  uz?: File[];
+  ru?: File[];
+  en?: File[];
 }
 
 export interface File {
@@ -41,6 +41,6 @@ export interface Task {
   id?: string;
   index?: number;
   createdAt?: string;
-  firstBasedFiles: FirstClassFileGroups;
-  secondBasedFiles: SecondClassFileGroups;
+  firstBasedFiles?: FirstClassFileGroups;
+  secondBasedFiles?: SecondClassFileGroups;
 }

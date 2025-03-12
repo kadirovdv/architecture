@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ToastrService } from 'ngx-toastr';
-import { Lesson } from 'src/app/shared/interfaces/interfaces';
+import { Lesson, Task } from 'src/app/shared/interfaces/interfaces';
 import { CrudService } from 'src/app/shared/services/crud.service';
 import { DropboxService } from 'src/app/shared/services/dropbox.service';
 
@@ -16,7 +16,14 @@ export class LessonsPage {
   selectedIndex: number = -1;
   selectedId: string = '';
   tasksInLesson: any[] = [];
-  task: string = '';
+  task: Task = {
+    title: '',
+    id: '',
+    index: 0,
+    createdAt: '',
+    firstBasedFiles: {},
+    secondBasedFiles: {},
+  };
 
   constructor(
     private crudService: CrudService,
@@ -57,17 +64,19 @@ export class LessonsPage {
     if (!this.task) {
       this.toastr.warning('Grafik topshiriqni kiriting');
       return;
-    }  
-    if (this.tasksInLesson.includes(this.task)) {
+    }
+    if (this.tasksInLesson.includes(this.task.title)) {
       this.toastr.error('Bu grafik topshiriq mavjud');
       return;
     } else {
+      this.task.index = this.tasksInLesson.length + 1;
       this.crudService
         .updateDocument('lessons', this.selectedId, {
           tasks: [...this.tasksInLesson, this.task],
         })
         .subscribe(() => {
           this.toastr.success("Grafik topshiriq qo'shildi");
+          this.task.title = '';
         });
     }
   }

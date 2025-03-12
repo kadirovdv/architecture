@@ -39,7 +39,11 @@
         </div>
         <div class="action-dropdown" *ngIf="selectedIndex === i">
           <div class="d-flex align-items-center">
-            <input class="form-control me-2" type="text" [(ngModel)]="task" />
+            <input
+              class="form-control me-2"
+              type="text"
+              [(ngModel)]="task.title"
+            />
             <img
               src="/assets/svg/plus.svg"
               class="cursor-pointer"
@@ -49,10 +53,10 @@
             />
           </div>
           <div>
-            <span *ngFor="let item of lesson.tasks">
-              {{ item }}
+            <div class="my-1 ms-1" *ngFor="let item of lesson.tasks">
+              {{ item.index }}. {{ item.title }}
               <br />
-            </span>
+            </div>
           </div>
         </div>
       </div>

@@ -26,17 +26,24 @@
         <ng-select
           [(ngModel)]="task"
           class="create-build-ng-select bg-yellow mb-4"
-          placeholder="Grafik topshiriqni tanlang"
+          [placeholder]="'Grafik topshiriqni tanlang'"
+          [clearable]="true"
         >
-          <ng-option *ngFor="let task of lesson?.tasks" [value]="task">
-            {{ task }}
+          <ng-option *ngFor="let taskItem of lesson?.tasks" [value]="taskItem">
+            {{ taskItem.title }}
           </ng-option>
         </ng-select>
         <div class="container my-4">
           <div class="row">
             <div class="col-md-6">
               <div class="position-relative">
-                <input type="file" hidden #hiddenInput multiple />
+                <input
+                  type="file"
+                  hidden
+                  #hiddenInput
+                  multiple
+                  (change)="onFileSelected($event, 'taskExampleFiles', 'uz')"
+                />
                 <div
                   class="bg-none p-0 position-absolute-btn"
                   (click)="hiddenInput.click()"
@@ -49,6 +56,12 @@
                   [clearable]="false"
                   searchable="false"
                 >
+                  <ng-option
+                    *ngFor="let item of task?.firstBasedFiles?.taskExampleFiles?.uz"
+                    [value]="item"
+                  >
+                    {{ item.name }}
+                  </ng-option>
                 </ng-select>
               </div>
             </div>
