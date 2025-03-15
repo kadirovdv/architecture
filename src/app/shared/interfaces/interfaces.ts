@@ -6,6 +6,7 @@ export interface FirstClassFileGroups {
 export interface SecondClassFileGroups {
   taskTitleFiles?: Files;
   taskPresentationFiles?: Files;
+  taskVideoUrls?: Videos[];
   taskLiteratureFiles?: Files;
 }
 
@@ -18,6 +19,11 @@ export interface Files {
 export interface File {
   name?: string;
   size?: number;
+}
+
+export interface Videos {
+  url: string;
+  name: string;
 }
 
 

@@ -25,6 +25,7 @@
     "@ng-select/ng-select": "^14.2.0",
     "@ngx-translate/core": "^16.0.4",
     "@ngx-translate/http-loader": "^16.0.1",
+    "@popperjs/core": "^2.11.8",
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
     "disable-devtool": "^0.3.8",

@@ -41,18 +41,53 @@
                   type="file"
                   hidden
                   #hiddenInput
+                  data-category="taskExampleFiles"
                   multiple
-                  (change)="onFileSelected($event, 'taskExampleFiles', 'uz')"
+                  (change)="onFileSelected($event, 'taskExampleFiles', selectedLanguage)"
                 />
-                <div
-                  class="bg-none p-0 position-absolute-btn"
-                  (click)="hiddenInput.click()"
-                >
-                  <img src="/assets/svg/plus.svg" width="30px" alt="upload" />
-                  <div class="lang-choose">
-                    <div>UZ</div>
-                    <div>RU</div>
-                    <div>EN</div>
+                <div class="bg-none p-0 position-absolute-btn">
+                  <div ngbDropdown class="d-inline-block">
+                    <img
+                      src="/assets/svg/plus.svg"
+                      width="30px"
+                      alt="upload"
+                      ngbDropdownToggle
+                    />
+                    <div ngbDropdownMenu>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('uz', 'taskExampleFiles')"
+                      >
+                        <img
+                          src="/assets/svg/uz.svg"
+                          alt=""
+                          class="me-1"
+                        />O'zbek
+                      </button>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('ru', 'taskExampleFiles')"
+                      >
+                        <img
+                          src="/assets/svg/ru.svg"
+                          alt=""
+                          class="me-1"
+                        />Русский
+                      </button>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('en', 'taskExampleFiles')"
+                      >
+                        <img
+                          src="/assets/svg/en.svg"
+                          alt=""
+                          class="me-1"
+                        />English
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <ng-select
@@ -61,33 +96,30 @@
                   [clearable]="false"
                   searchable="false"
                 >
-                  <ng-container *ngIf="task?.firstBasedFiles">
+                  <ng-container *ngIf="task?.firstBasedFiles?.taskExampleFiles">
                     <ng-container
-                      *ngFor="let category of objectKeys(task.firstBasedFiles)"
+                      *ngFor="let lang of objectKeys(task?.firstBasedFiles?.taskExampleFiles)"
                     >
-                      <ng-container
-                        *ngFor="let lang of objectKeys(task.firstBasedFiles[category])"
+                      <ng-option
+                        *ngFor="let item of task?.firstBasedFiles?.taskExampleFiles[lang]; let i = index"
+                        [value]="item"
+                        [disabled]="true"
                       >
-                        <ng-option
-                          *ngFor="let item of task.firstBasedFiles[category][lang]; let i = index"
-                          [value]="item"
-                          [disabled]="true"
-                        >
-                          <div
-                            class="d-flex align-items-center"
-                            (click)="removeFile(category, lang, i)"
-                          >
-                            {{ lang }}
-                            <span> {{ item.name }} </span>
-                            <img
-                              src="/assets/svg/cancel.svg"
-                              width="30px"
-                              class="ms-2"
-                              alt=""
-                            />
-                          </div>
-                        </ng-option>
-                      </ng-container>
+                        <div class="d-flex align-items-center">
+                          <span> {{ item.name }} </span>
+                          <img
+                            src="/assets/svg/cancel.svg"
+                            width="25px"
+                            class="mx-2"
+                            alt=""
+                          />
+                          <img
+                            src="/assets/svg/{{ lang }}.svg"
+                            width="25px"
+                            alt=""
+                          />
+                        </div>
+                      </ng-option>
                     </ng-container>
                   </ng-container>
                 </ng-select>
@@ -95,12 +127,58 @@
             </div>
             <div class="col-md-6">
               <div class="position-relative">
-                <input type="file" hidden #hiddenInput multiple />
-                <div
-                  class="bg-none p-0 position-absolute-btn"
-                  (click)="hiddenInput.click()"
-                >
-                  <img src="/assets/svg/plus.svg" width="30px" alt="upload" />
+                <input
+                  type="file"
+                  hidden
+                  #hiddenInput
+                  data-category="taskSolutionFiles"
+                  multiple
+                  (change)="onFileSelected($event, 'taskSolutionFiles', selectedLanguage)"
+                />
+                <div class="bg-none p-0 position-absolute-btn">
+                  <div ngbDropdown class="d-inline-block">
+                    <img
+                      src="/assets/svg/plus.svg"
+                      width="30px"
+                      alt="upload"
+                      ngbDropdownToggle
+                    />
+                    <div ngbDropdownMenu>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('uz', 'taskSolutionFiles')"
+                      >
+                        <img
+                          src="/assets/svg/uz.svg"
+                          alt=""
+                          class="me-1"
+                        />O'zbek
+                      </button>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('ru', 'taskSolutionFiles')"
+                      >
+                        <img
+                          src="/assets/svg/ru.svg"
+                          alt=""
+                          class="me-1"
+                        />Русский
+                      </button>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('en', 'taskSolutionFiles')"
+                      >
+                        <img
+                          src="/assets/svg/en.svg"
+                          alt=""
+                          class="me-1"
+                        />English
+                      </button>
+                    </div>
+                  </div>
                 </div>
                 <ng-select
                   class="create-build-ng-select-file mb-4"
@@ -108,6 +186,34 @@
                   [clearable]="false"
                   searchable="false"
                 >
+                  <ng-container
+                    *ngIf="task?.firstBasedFiles?.taskSolutionFiles"
+                  >
+                    <ng-container
+                      *ngFor="let lang of objectKeys(task.firstBasedFiles.taskSolutionFiles)"
+                    >
+                      <ng-option
+                        *ngFor="let item of task.firstBasedFiles.taskSolutionFiles[lang]; let i = index"
+                        [value]="item"
+                        [disabled]="true"
+                      >
+                        <div class="d-flex align-items-center">
+                          <span> {{ item.name }} </span>
+                          <img
+                            src="/assets/svg/cancel.svg"
+                            width="25px"
+                            class="mx-2"
+                            alt=""
+                          />
+                          <img
+                            src="/assets/svg/{{ lang }}.svg"
+                            width="25px"
+                            alt=""
+                          />
+                        </div>
+                      </ng-option>
+                    </ng-container>
+                  </ng-container>
                 </ng-select>
               </div>
             </div>
@@ -119,31 +225,149 @@
             <div class="col-md-3"></div>
             <div class="col-md-6">
               <div class="position-relative">
-                <input type="file" hidden #hiddenInput multiple />
-                <div
-                  class="bg-none p-0 position-absolute-btn"
-                  (click)="hiddenInput.click()"
-                >
-                  <img src="/assets/svg/plus.svg" width="30px" alt="upload" />
+                <input
+                  type="file"
+                  hidden
+                  #hiddenInput
+                  data-category="taskTitleFiles"
+                  multiple
+                  (change)="onFileSelected($event, 'taskTitleFiles', selectedLanguage)"
+                />
+                <div class="bg-none p-0 position-absolute-btn">
+                  <div ngbDropdown class="d-inline-block">
+                    <img
+                      src="/assets/svg/plus.svg"
+                      width="30px"
+                      alt="upload"
+                      ngbDropdownToggle
+                    />
+                    <div ngbDropdownMenu>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('uz', 'taskTitleFiles')"
+                      >
+                        <img
+                          src="/assets/svg/uz.svg"
+                          alt=""
+                          class="me-1"
+                        />O'zbek
+                      </button>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('ru', 'taskTitleFiles')"
+                      >
+                        <img
+                          src="/assets/svg/ru.svg"
+                          alt=""
+                          class="me-1"
+                        />Русский
+                      </button>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('en', 'taskTitleFiles')"
+                      >
+                        <img
+                          src="/assets/svg/en.svg"
+                          alt=""
+                          class="me-1"
+                        />English
+                      </button>
+                    </div>
+                  </div>
                 </div>
                 <ng-select
                   class="create-build-ng-select-file mb-4"
-                  placeholder="MA’RUZA MATNI"
+                  placeholder="MA'RUZA MATNI"
                   [clearable]="false"
                   searchable="false"
                 >
+                  <ng-container *ngIf="task?.secondBasedFiles?.taskTitleFiles">
+                    <ng-container
+                      *ngFor="let lang of objectKeys(task.secondBasedFiles.taskTitleFiles)"
+                    >
+                      <ng-option
+                        *ngFor="let item of task.secondBasedFiles.taskTitleFiles[lang]; let i = index"
+                        [value]="item"
+                        [disabled]="true"
+                      >
+                        <div class="d-flex align-items-center">
+                          <span> {{ item.name }} </span>
+                          <img
+                            src="/assets/svg/cancel.svg"
+                            width="25px"
+                            class="mx-2"
+                            alt=""
+                          />
+                          <img
+                            src="/assets/svg/{{ lang }}.svg"
+                            width="25px"
+                            alt=""
+                          />
+                        </div>
+                      </ng-option>
+                    </ng-container>
+                  </ng-container>
                 </ng-select>
               </div>
             </div>
             <div class="col-md-3"></div>
             <div class="col-md-6">
               <div class="position-relative">
-                <input type="file" hidden #hiddenInput multiple />
-                <div
-                  class="bg-none p-0 position-absolute-btn"
-                  (click)="hiddenInput.click()"
-                >
-                  <img src="/assets/svg/plus.svg" width="30px" alt="upload" />
+                <input
+                  type="file"
+                  hidden
+                  #hiddenInput
+                  data-category="taskPresentationFiles"
+                  multiple
+                  (change)="onFileSelected($event, 'taskPresentationFiles', selectedLanguage)"
+                />
+                <div class="bg-none p-0 position-absolute-btn">
+                  <div ngbDropdown class="d-inline-block">
+                    <img
+                      src="/assets/svg/plus.svg"
+                      width="30px"
+                      alt="upload"
+                      ngbDropdownToggle
+                    />
+                    <div ngbDropdownMenu>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('uz', 'taskPresentationFiles')"
+                      >
+                        <img
+                          src="/assets/svg/uz.svg"
+                          alt=""
+                          class="me-1"
+                        />O'zbek
+                      </button>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('ru', 'taskPresentationFiles')"
+                      >
+                        <img
+                          src="/assets/svg/ru.svg"
+                          alt=""
+                          class="me-1"
+                        />Русский
+                      </button>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('en', 'taskPresentationFiles')"
+                      >
+                        <img
+                          src="/assets/svg/en.svg"
+                          alt=""
+                          class="me-1"
+                        />English
+                      </button>
+                    </div>
+                  </div>
                 </div>
                 <ng-select
                   class="create-build-ng-select-file mb-4"
@@ -151,6 +375,32 @@
                   [clearable]="false"
                   searchable="false"
                 >
+                  <ng-container *ngIf="task?.secondBasedFiles?.taskPresentationFiles">
+                    <ng-container
+                      *ngFor="let lang of objectKeys(task.secondBasedFiles.taskPresentationFiles)"
+                    >
+                      <ng-option
+                        *ngFor="let item of task.secondBasedFiles.taskPresentationFiles[lang]; let i = index"
+                        [value]="item"
+                        [disabled]="true"
+                      >
+                        <div class="d-flex align-items-center">
+                          <span> {{ item.name }} </span>
+                          <img
+                            src="/assets/svg/cancel.svg"
+                            width="25px"
+                            class="mx-2"
+                            alt=""
+                          />
+                          <img
+                            src="/assets/svg/{{ lang }}.svg"
+                            width="25px"
+                            alt=""
+                          />
+                        </div>
+                      </ng-option>
+                    </ng-container>
+                  </ng-container>
                 </ng-select>
               </div>
             </div>
@@ -171,19 +421,91 @@
             <div class="col-md-3"></div>
             <div class="col-md-6">
               <div class="position-relative">
-                <input type="file" hidden #hiddenInput multiple />
-                <div
-                  class="bg-none p-0 position-absolute-btn"
-                  (click)="hiddenInput.click()"
-                >
-                  <img src="/assets/svg/plus.svg" width="30px" alt="upload" />
+                <input
+                  type="file"
+                  hidden
+                  #hiddenInput
+                  data-category="taskLiteratureFiles"
+                  multiple
+                  (change)="onFileSelected($event, 'taskLiteratureFiles', selectedLanguage)"
+                />
+                <div class="bg-none p-0 position-absolute-btn">
+                  <div ngbDropdown class="d-inline-block">
+                    <img
+                      src="/assets/svg/plus.svg"
+                      width="30px"
+                      alt="upload"
+                      ngbDropdownToggle
+                    />
+                    <div ngbDropdownMenu>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('uz', 'taskLiteratureFiles')"
+                      >
+                        <img
+                          src="/assets/svg/uz.svg"
+                          alt=""
+                          class="me-1"
+                        />O'zbek
+                      </button>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('ru', 'taskLiteratureFiles')"
+                      >
+                        <img
+                          src="/assets/svg/ru.svg"
+                          alt=""
+                          class="me-1"
+                        />Русский
+                      </button>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('en', 'taskLiteratureFiles')"
+                      >
+                        <img
+                          src="/assets/svg/en.svg"
+                          alt=""
+                          class="me-1"
+                        />English
+                      </button>
+                    </div>
+                  </div>
                 </div>
                 <ng-select
                   class="create-build-ng-select-file mb-4"
-                  placeholder="FAN BO’YICHA  ADABIYOTLAR"
+                  placeholder="FAN BO'YICHA ADABIYOTLAR"
                   [clearable]="false"
                   searchable="false"
                 >
+                  <ng-container *ngIf="task?.secondBasedFiles?.taskLiteratureFiles">
+                    <ng-container
+                      *ngFor="let lang of objectKeys(task.secondBasedFiles.taskLiteratureFiles)"
+                    >
+                      <ng-option
+                        *ngFor="let item of task.secondBasedFiles.taskLiteratureFiles[lang]; let i = index"
+                        [value]="item"
+                        [disabled]="true"
+                      >
+                        <div class="d-flex align-items-center">
+                          <span> {{ item.name }} </span>
+                          <img
+                            src="/assets/svg/cancel.svg"
+                            width="25px"
+                            class="mx-2"
+                            alt=""
+                          />
+                          <img
+                            src="/assets/svg/{{ lang }}.svg"
+                            width="25px"
+                            alt=""
+                          />
+                        </div>
+                      </ng-option>
+                    </ng-container>
+                  </ng-container>
                 </ng-select>
               </div>
             </div>
@@ -204,103 +526,10 @@
   </div>
 </div>
 
-<!-- <div class="col">
-  <h1 class="mt-4">Faylni tanlang</h1>
-  <div class="container my-4">
-    <div class="row">
-      <div
-        *ngFor="let category of helperKeys(fileGroups)"
-        class="category-section mb-4 col"
-      >
-        <h5>{{ changeObjectKeyName(category) | titlecase }}</h5>
-
-        <div *ngFor="let lang of helperKeys(fileGroups[category])">
-          <h6 class="text-muted mt-3">{{ lang | uppercase }}</h6>
-
-          <div
-            *ngFor="let file of fileGroups[category][lang]; let fileIndex = index"
-            class="file-item"
-          >
-            <div
-              class="card mb-3"
-              *ngIf="file"
-              [class.bg-warning]="file?.sizeExceeded"
-            >
-              <div class="card-body">
-                <div class="row">
-                  <div class="col">
-                    <span class="fw-bold">
-                      {{ fileIndex }}. {{ file?.name.length >= 18 ?
-                      file?.name.slice(0, 18) + '...' : file?.name }}
-                    </span>
-                  </div>
-                  <div class="col">
-                    <b>{{ file ? formatFileSize(file.size) : 'N/A' }}</b>
-                  </div>
-                  <div class="col">
-                    <button
-                      class="btn btn-warning"
-                      (click)="replaceInput.click()"
-                    >
-                      <i class="bi bi-pencil-square text-white"></i>
-                    </button>
-                    <button
-                      class="btn btn-danger ms-2"
-                      (click)="removeFile(category, lang, fileIndex)"
-                    >
-                      <i class="bi bi-trash text-white"></i>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <input
-              type="file"
-              class="d-none"
-              #replaceInput
-              (change)="replaceFile($event, category, lang, fileIndex)"
-            />
-          </div>
-
-          <input
-            type="file"
-            class="form-control"
-            (change)="onFileSelected($event, category, lang)"
-            hidden
-            #hiddenInput
-            multiple
-          />
-          <small
-            class="fw-bold"
-            *ngIf="fileGroups[category][lang]?.length > 1"
-          >
-            Tanlangan fayllar soni: {{ fileGroups[category][lang]?.length
-            - 1 }}
-          </small>
-          <br />
-          <button
-            class="btn btn-danger w-100 mb-1"
-            *ngIf="fileGroups[category][lang]?.length > 1"
-            (click)="removeAllFromGroup(category, lang)"
-          >
-            Hammasini o'chirish
-          </button>
-          <button
-            class="btn btn-primary w-100"
-            (click)="hiddenInput.click()"
-          >
-            {{ changeObjectKeyName(category) | titlecase }} qo'shish
-          </button>
-        </div>
-      </div>
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <app-video-upload></app-video-upload>
     </div>
   </div>
-  <h4>Jami fayllar hajmi: {{ formatFileSize(totalSize) }}</h4>
-  <button
-    type="button"
-    class="btn btn-warning btn-lg w-100 mt-4"
-    (click)="saveAll()"
-  >
-    Upload All
-  </button>
-</div> -->
+</div>

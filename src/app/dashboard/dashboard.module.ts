@@ -9,12 +9,13 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 // import { ThemesPage } from './themes/themes.page';
 // import { BuildPage } from './build/build.page';
 import { CreateBuildPage } from './create-build/create-build.page';
+import { VideoUploadComponent } from './create-build/video-upload/video-upload.component';
 // import { EditBuildPage } from './edit-build/edit-build.page';
 // import { UsersPage } from './users/users.page';
 import { LessonsPage } from './lessons/lessons.page';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { CreateLessonsPage } from './create-lessons/create-lessons.page';
-
+import { NgbDropdownModule, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 @NgModule({
   declarations: [
     DashboardPage,
@@ -23,6 +24,7 @@ import { CreateLessonsPage } from './create-lessons/create-lessons.page';
     // ThemesPage,
     // BuildPage,
     CreateBuildPage,
+    VideoUploadComponent,
     // EditBuildPage,
     // UsersPage,
     LessonsPage,
@@ -35,6 +37,8 @@ import { CreateLessonsPage } from './create-lessons/create-lessons.page';
     ReactiveFormsModule,
     FormsModule,
     NgSelectModule,
+    NgbDropdownModule,
+    NgbModalModule,
   ],
   exports: [],
 })

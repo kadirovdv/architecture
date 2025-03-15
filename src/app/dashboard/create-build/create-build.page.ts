@@ -1,27 +1,26 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, ViewChildren, QueryList } from '@angular/core';
 import { CrudService } from 'src/app/shared/services/crud.service';
 import { ToastrService } from 'ngx-toastr';
 import { Location } from '@angular/common';
 import {
   Lesson,
   Task,
-  File,
   FirstClassFileGroups,
   SecondClassFileGroups,
   Files,
+  Videos,
 } from 'src/app/shared/interfaces/interfaces';
 import { DropboxService } from 'src/app/shared/services/dropbox.service';
 import {
   concatMap,
   delay,
-  finalize,
-  forkJoin,
   from,
   Observable,
   tap,
   timer,
 } from 'rxjs';
-import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { VideoUploadComponent } from './video-upload/video-upload.component';
 
 @Component({
   selector: 'app-create-build',
@@ -29,18 +28,22 @@ import { NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
   styleUrls: ['./create-build.page.scss'],
 })
 export class CreateBuildPage implements OnInit {
+  @ViewChildren('hiddenInput') hiddenInputs!: QueryList<ElementRef>;
   lessons: Lesson[] = [];
   lesson: Lesson | null = null;
   task: Task | any = null;
   uploadedFilesByCategory: any = {};
   loading: boolean = false;
   uploadedFiles: any;
+  selectedLanguage: string = 'uz';
+  currentCategory: string = '';
 
   constructor(
     private crudService: CrudService,
     private toastr: ToastrService,
     private location: Location,
-    private dropboxService: DropboxService
+    private dropboxService: DropboxService,
+    private modalService: NgbModal
   ) {}
 
   ngOnInit(): void {
@@ -62,7 +65,7 @@ export class CreateBuildPage implements OnInit {
   onFileSelected(
     event: Event,
     category: keyof FirstClassFileGroups | keyof SecondClassFileGroups,
-    language: 'uz' | 'ru' | 'en'
+    language: string
   ) {
     if (!this.task) return;
 
@@ -86,6 +89,8 @@ export class CreateBuildPage implements OnInit {
       this.task.secondBasedFiles[category][language] ??= [];
       this.task.secondBasedFiles[category][language]!.push(...filesArray);
     }
+
+    console.log(this.task);
   }
 
   private isFirstClassFileCategory(
@@ -233,5 +238,31 @@ export class CreateBuildPage implements OnInit {
 
   objectKeys(obj: any): string[] {
     return Object.keys(obj);
+  }
+
+  onFileTypeSelect(lang: string, category: string) {
+    this.selectedLanguage = lang;
+    this.currentCategory = category;
+    const inputs = this.hiddenInputs.toArray();
+    const input = inputs.find(
+      (input) => input.nativeElement.getAttribute('data-category') === category
+    );
+    if (input) {
+      input.nativeElement.click();
+    }
+  }
+
+  addVideo() {
+    const modalRef = this.modalService.open(VideoUploadComponent);
+    modalRef.result.then((result: Videos) => {
+      if (!this.task.secondBasedFiles.taskVideoFiles) {
+        this.task.secondBasedFiles.taskVideoFiles = [];
+      }
+      this.task.secondBasedFiles.taskVideoFiles.push(result);
+    }).catch(() => {});
+  }
+
+  removeVideo(index: number) {
+    this.task.secondBasedFiles.taskVideoFiles?.splice(index, 1);
   }
 }
