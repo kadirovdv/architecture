@@ -41,6 +41,6 @@ export interface Task {
   id?: string;
   index?: number;
   createdAt?: string;
-  firstBasedFiles?: FirstClassFileGroups;
-  secondBasedFiles?: SecondClassFileGroups;
+  firstBasedFiles?: FirstClassFileGroups | any;
+  secondBasedFiles?: SecondClassFileGroups | any;
 }

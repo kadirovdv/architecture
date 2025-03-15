@@ -7,6 +7,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Adamina&family=Josefin+Sans:ital,wght@0,100..700;1,100..700&family=Judson:ital,wght@0,400;0,700;1,400&family=Marvel:ital,wght@0,400;0,700;1,400;1,700&display=swap");
 @import "~@ng-select/ng-select/themes/default.theme.css";
 
+
 .btn-primary {
   background-color: rgba(196, 151, 151, 0.75) !important;
   border-color: transparent !important;
@@ -162,6 +163,10 @@ li {
   .ng-clear-wrapper {
     display: none;
   }
+}
+
+.ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-disabled  {
+  color: #121212 !important;
 }
 
 @media screen and (max-width: 500px) {

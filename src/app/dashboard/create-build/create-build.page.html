@@ -49,6 +49,11 @@
                   (click)="hiddenInput.click()"
                 >
                   <img src="/assets/svg/plus.svg" width="30px" alt="upload" />
+                  <div class="lang-choose">
+                    <div>UZ</div>
+                    <div>RU</div>
+                    <div>EN</div>
+                  </div>
                 </div>
                 <ng-select
                   class="create-build-ng-select-file mb-4"
@@ -56,12 +61,35 @@
                   [clearable]="false"
                   searchable="false"
                 >
-                  <ng-option
-                    *ngFor="let item of task?.firstBasedFiles?.taskExampleFiles?.uz"
-                    [value]="item"
-                  >
-                    {{ item.name }}
-                  </ng-option>
+                  <ng-container *ngIf="task?.firstBasedFiles">
+                    <ng-container
+                      *ngFor="let category of objectKeys(task.firstBasedFiles)"
+                    >
+                      <ng-container
+                        *ngFor="let lang of objectKeys(task.firstBasedFiles[category])"
+                      >
+                        <ng-option
+                          *ngFor="let item of task.firstBasedFiles[category][lang]; let i = index"
+                          [value]="item"
+                          [disabled]="true"
+                        >
+                          <div
+                            class="d-flex align-items-center"
+                            (click)="removeFile(category, lang, i)"
+                          >
+                            {{ lang }}
+                            <span> {{ item.name }} </span>
+                            <img
+                              src="/assets/svg/cancel.svg"
+                              width="30px"
+                              class="ms-2"
+                              alt=""
+                            />
+                          </div>
+                        </ng-option>
+                      </ng-container>
+                    </ng-container>
+                  </ng-container>
                 </ng-select>
               </div>
             </div>
@@ -170,6 +198,7 @@
         class="cursor-pointer"
         width="30px"
         alt="next"
+        (click)="uploadAllFiles()"
       />
     </div>
   </div>
