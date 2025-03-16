@@ -1,0 +1,366 @@
+.file-list-container {
+  width: 100%;
+  border: 1px solid #dfdfdf;
+  border-radius: 10px;
+  background-color: #fff;
+  margin-bottom: 1rem;
+  font-family: "Merriweather Sans";
+}
+
+.file-list-header {
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dfdfdf;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  font-weight: bold;
+  color: #6e6e6e;
+}
+
+.file-list-content {
+  padding: 0.5rem;
+}
+
+.file-item {
+  padding: 0.5rem;
+  border-bottom: 1px solid #f0f0f0;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.file-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.file-name {
+  flex-grow: 1;
+  margin-right: 1rem;
+}
+
+.file-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  img {
+    cursor: pointer;
+    transition: opacity 0.2s;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+
+.custom-select {
+  position: relative;
+  min-width: 160px;
+
+  &.open {
+    .select-trigger {
+      border-color: #007bff;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    .select-arrow {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+.trigger-right {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.loader {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 4px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.select-trigger {
+  display: flex;
+  align-items: center;
+  height: 60px;
+  padding: 0 20px;
+  border: 1px solid #ced4da;
+  border-radius: 20px;
+  background-color: #fff;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  box-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
+
+  &:hover {
+    border-color: #80bdff;
+  }
+
+  &.open {
+    border-color: #007bff;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+
+    .select-arrow {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+.placeholder-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 20px;
+}
+
+.placeholder {
+  font-family: "Merriweather Sans" !important;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 34px;
+  color: #515151;
+  background-color: #fff !important;
+  cursor: pointer;
+}
+
+.file-count {
+  font-family: "Merriweather Sans" !important;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 34px;
+  color: #515151;
+}
+
+.select-arrow {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #495057;
+  transition: transform 0.2s ease;
+}
+
+.select-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-top: 1px solid #dfdfdf;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  z-index: 1000;
+  max-height: 250px;
+  overflow-y: auto;
+  border-top: none;
+}
+
+.select-option {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  gap: 12px;
+
+  &:hover {
+    background-color: #f8f9fa;
+  }
+
+  .lang-icon {
+    flex-shrink: 0;
+  }
+
+  .option-name {
+    flex-grow: 1;
+    font-size: 16px;
+    color: #121212;
+  }
+
+  .option-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  .option-replace {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0.05);
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    &.replacing {
+      background-color: rgba(0, 128, 0, 0.1);
+    }
+  }
+
+  .option-remove {
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #ff4444;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: rgba(255, 68, 68, 0.1);
+    }
+  }
+}
+
+.no-options {
+  padding: 12px 20px;
+  color: #515151;
+  font-size: 16px;
+  text-align: center;
+  font-family: "Ramaraja";
+}
+
+.ng-select-container {
+  position: relative;
+  width: 100%;
+}
+
+.ng-select-header {
+  color: #495057;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.ng-select-main {
+  min-height: 36px;
+  padding: 2px 5px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  background-color: #fff;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  cursor: default;
+
+  &:hover {
+    border-color: #80bdff;
+  }
+
+  &:focus-within {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+}
+
+.ng-select-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 2px;
+  min-height: 30px;
+}
+
+.ng-tag {
+  display: inline-flex;
+  align-items: center;
+  background-color: #e9ecef;
+  border: 1px solid #dee2e6;
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin: 1px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #495057;
+  gap: 5px;
+
+  .tag-icon {
+    flex-shrink: 0;
+  }
+
+  .tag-name {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tag-remove {
+    color: #6c757d;
+    font-size: 1.25rem;
+    line-height: 1;
+    padding: 0 2px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 2px;
+
+    &:hover {
+      color: #dc3545;
+    }
+  }
+
+  &:hover {
+    background-color: #dee2e6;
+  }
+}
+
+.hidden-input {
+  display: none;
+}
+
+.video-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.video-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.05);
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+}
+
+.remove-video {
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #ff4444;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: rgba(255, 68, 68, 0.1);
+  }
+}

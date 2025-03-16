@@ -10,9 +10,17 @@ export class CrudService {
   constructor(private firestore: AngularFirestore) {}
   data$: Observable<any[]> = new Observable();
 
-  addDocument<T>(collectionName: string, data: T): Promise<void> {
+  generateId(): string {
+    return this.firestore.createId();
+  }
+
+  addDocument<T>(collectionName: string, data: T): Observable<T> {
     const id = this.firestore.createId();
-    return this.firestore.collection<T>(collectionName).doc(id).set({ ...data, id });
+    return from(
+      this.firestore.collection<T>(collectionName).doc(id).set({ ...data, id })
+    ).pipe(
+      map(() => ({ ...data, id } as T))
+    );
   }
 
   getDocuments<T>(collectionName: string): Observable<T[]> {

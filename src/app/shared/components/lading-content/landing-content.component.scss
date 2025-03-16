@@ -10,7 +10,7 @@
 }
 
 .landing-header {
-  padding-top: 90px;
+  padding-top: 60px;
   position: absolute;
   top: 27%;
   display: flex;
@@ -18,28 +18,32 @@
   background: url(/assets/img/header-bg-2.png);
   background-size: cover;
   background-repeat: no-repeat;
-  background-size: 540px;
-  min-height: 580px;
+  background-size: 400px;
+  min-height: 470px;
   width: 563px !important;
-  padding-left: 20px;
+  padding-left: 40px;
   h1 {
     font-family: "Merriweather Sans";
     font-style: normal;
     font-weight: 700;
-    font-size: 36px !important;
+    font-size: 20px;
     color: #ffffff;
     margin-bottom: 40px;
+    &.ru {
+      font-weight: 500;
+    }
   }
 
   ul {
     margin-bottom: 80px;
+    padding-left: 15px;
     li {
       list-style: disc !important;
       text-transform: uppercase;
       font-family: "Marvel";
       font-style: normal;
       font-weight: 400;
-      font-size: 22px;
+      font-size: 18px;
       line-height: 27px;
       color: #ffffff;
       line-height: 27px;

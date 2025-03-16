@@ -3,18 +3,28 @@
     <div class="row">
       <div class="col-md-6">
         <div class="landing-header">
-          <h1 class="text-white">
-            {{ "landing-header" | translate }}
-          </h1>
+          <div class="landing-header-title">
+            <h1 class="text-white" *ngIf="locale === 'uz'">
+              GRAFIK <br />
+              TOPSHIRIQLAR <br />
+              ELEKTRON PLATFORMASI
+            </h1>
+            <h1 class="text-white ru" *ngIf="locale === 'ru'">
+              Электронная <br> платформа <br> графических заданий
+            </h1>
+            <h1 class="text-white" *ngIf="locale === 'en'">
+              Electronic platform for <br> graphic tasks
+            </h1>
+          </div>
           <ul>
             <li>{{ "landing-header-text-1" | translate }}"</li>
             <li>{{ "landing-header-text-2" | translate }}"</li>
             <li>{{ "landing-header-text-3" | translate }}"</li>
             <li>{{ "landing-header-text-4" | translate }}"</li>
           </ul>
-          <a href="">
+          <!-- <a href="">
             {{ "landing-header-link" | translate }}
-          </a>
+          </a> -->
         </div>
       </div>
     </div>

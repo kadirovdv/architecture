@@ -70,6 +70,8 @@ export class LessonsPage {
       return;
     } else {
       this.task.index = this.tasksInLesson.length + 1;
+      this.task.createdAt = new Date().toISOString();
+      this.task.id = this.crudService.generateId();
       this.crudService
         .updateDocument('lessons', this.selectedId, {
           tasks: [...this.tasksInLesson, this.task],
@@ -77,7 +79,25 @@ export class LessonsPage {
         .subscribe(() => {
           this.toastr.success("Grafik topshiriq qo'shildi");
           this.task.title = '';
+          this.getLessons();
+          this.tasksInLesson = [];
+          this.selectedIndex = -1;
+          this.selectedId = '';
         });
     }
+  }
+
+  //make a function to delete task from lesson
+  deleteTaskFromLesson(task: Task) {
+    const updatedTasks = this.tasksInLesson.filter(t => t.id !== task.id);
+    this.crudService.updateDocument('lessons', this.selectedId, {
+      tasks: updatedTasks
+    }).subscribe(() => {
+      this.task.title = '';
+      this.getLessons();
+      this.selectedIndex = -1;
+      this.selectedId = '';
+      this.tasksInLesson = [];
+    });
   }
 }

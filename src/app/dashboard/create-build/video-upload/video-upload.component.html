@@ -1,22 +1,18 @@
-<div class="video-upload">
-  <!-- Video upload content will go here -->
-</div>
-
 <div class="modal-header">
-  <h4 class="modal-title">Add Video</h4>
+  <h4 class="modal-title">Video qo'shish</h4>
   <button type="button" class="btn-close" (click)="activeModal.dismiss()"></button>
 </div>
 <div class="modal-body">
   <div class="mb-3">
-    <label class="form-label">Video Name</label>
-    <input type="text" class="form-control" [(ngModel)]="video.name" placeholder="Enter video name">
+    <label class="form-label">Video nomi</label>
+    <input type="text" class="form-control" [(ngModel)]="video.name" placeholder="Video nomini kiriting">
   </div>
   <div class="mb-3">
-    <label class="form-label">Video URL</label>
+    <label class="form-label">Video URLi</label>
     <input type="url" class="form-control" [(ngModel)]="video.url" placeholder="Enter video URL">
   </div>
 </div>
 <div class="modal-footer">
   <button type="button" class="btn btn-secondary" (click)="activeModal.dismiss()">Close</button>
-  <button type="button" class="btn btn-primary" (click)="onSubmit()">Save</button>
+  <button type="button" class="btn btn-primary" [disabled]="!video.url || !video.name" (click)="onSubmit()">Save</button>
 </div> 

@@ -27,6 +27,8 @@ export class AppComponent implements OnInit {
     }
     this.translateService.setDefaultLang(localStorage.getItem('language') || 'uz');
     this.translateService.use(localStorage.getItem('language') || 'uz');
+
+    console.log(window.innerWidth, window.innerHeight);
   }
   private extractText(element: HTMLElement): string {
     return element.innerText || '';

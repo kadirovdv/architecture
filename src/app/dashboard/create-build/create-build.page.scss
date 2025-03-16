@@ -73,7 +73,7 @@
 .position-absolute-btn {
   position: absolute;
   top: 15px;
-  right: 30px;
+  right: 40px;
   z-index: 999 !important;
   cursor: pointer;
 }
@@ -100,4 +100,14 @@
 
 .custom-dropdown-item:hover {
   background-color: #dfdfdf;
+}
+
+.create-build-ng-select-file::ng-deep {
+  .ng-option {
+    pointer-events: none;
+    
+    img {
+      pointer-events: all;
+    }
+  }
 }

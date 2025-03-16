@@ -1,5 +1,5 @@
 <nav
-  class="position-fixed w-100 p-2"
+  class="position-fixed w-100 "
   *ngIf="currentState"
   [class.position-sticky]="currentNavState"
 >
@@ -14,12 +14,11 @@
       <div class="menu-btn" (click)="toggleNav()">
         <div class="menu-btn__burger"></div>
       </div>
-      <ul class="nav-items d-flex mt-0 mb-0" [class.open]="open">
+      <ul class="nav-items d-flex align-items-center mt-0 mb-0" [class.open]="open">
         <li
           (click)="toggleNav()"
           [routerLink]="['/pages/about']"
           routerLinkActive="router-link-active"
-          class="me-5"
         >
           {{ "about-us" | translate }}
         </li>
@@ -37,8 +36,8 @@
               #input
             />
             <svg
-              width="40"
-              height="40"
+              width="20"
+              height="20"
               viewBox="0 0 40 40"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -66,14 +65,14 @@
           </div>
         </li>
         <li
-          class="cursor-pointer"
+          class="cursor-pointer d-flex align-items-center"
           (click)="changeLanguage('ru')"
           *ngIf="langDisplay !== 'ru' && langDisplay !== 'en'"
         >
           <h3 class="text-white">{{ langDisplay | uppercase }}</h3>
         </li>
         <li
-          class="cursor-pointer"
+          class="cursor-pointer d-flex align-items-center"
           (click)="changeLanguage('en')"
           *ngIf="langDisplay !== 'uz' && langDisplay !== 'en'"
         >
@@ -85,6 +84,9 @@
           *ngIf="langDisplay !== 'uz' && langDisplay !== 'ru'"
         >
           <h3 class="text-white">{{ langDisplay | uppercase }}</h3>
+        </li>
+        <li>
+          <img width="20px" src="/assets/img/login.png" routerLink="/auth/login" alt="ru" />
         </li>
         <!-- <li>
           <svg

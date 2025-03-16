@@ -1,12 +1,11 @@
 <div class="loader-content" *ngIf="loading">
   <div class="loader-box">
     <small>Yuklanmoqda...</small>
-    <app-loader></app-loader>
   </div>
 </div>
 <div class="create-build-content">
   <div class="create-build-card">
-    <button class="mb-3 bg-none border-0" style="width: 50px">
+    <button class="mb-3 bg-none border-0" style="width: 50px" (click)="goBack()">
       <img src="/assets/svg/arrow-left.svg" class="w-100" alt="arrow-left" />
     </button>
     <div class="row">
@@ -90,39 +89,13 @@
                     </div>
                   </div>
                 </div>
-                <ng-select
-                  class="create-build-ng-select-file mb-4"
-                  placeholder="GRAFIK TOPSHIRIQ YECHIMI NAMUNALARI (PDF),(PPT)"
-                  [clearable]="false"
-                  searchable="false"
-                >
-                  <ng-container *ngIf="task?.firstBasedFiles?.taskExampleFiles">
-                    <ng-container
-                      *ngFor="let lang of objectKeys(task?.firstBasedFiles?.taskExampleFiles)"
-                    >
-                      <ng-option
-                        *ngFor="let item of task?.firstBasedFiles?.taskExampleFiles[lang]; let i = index"
-                        [value]="item"
-                        [disabled]="true"
-                      >
-                        <div class="d-flex align-items-center">
-                          <span> {{ item.name }} </span>
-                          <img
-                            src="/assets/svg/cancel.svg"
-                            width="25px"
-                            class="mx-2"
-                            alt=""
-                          />
-                          <img
-                            src="/assets/svg/{{ lang }}.svg"
-                            width="25px"
-                            alt=""
-                          />
-                        </div>
-                      </ng-option>
-                    </ng-container>
-                  </ng-container>
-                </ng-select>
+                <app-file-list
+                  [files]="task?.firstBasedFiles?.taskExampleFiles"
+                  [category]="'taskExampleFiles'"
+                  [placeholder]="'GRAFIK TOPSHIRIQ YECHIMI NAMUNALARI (PDF),(PPT)'"
+                  (removeFile)="onRemoveFile($event)"
+                  (replaceFile)="onReplaceFile($event)"
+                ></app-file-list>
               </div>
             </div>
             <div class="col-md-6">
@@ -180,41 +153,13 @@
                     </div>
                   </div>
                 </div>
-                <ng-select
-                  class="create-build-ng-select-file mb-4"
-                  placeholder="GRAFIK TOPSHIRIQLAR VARIANTLARI"
-                  [clearable]="false"
-                  searchable="false"
-                >
-                  <ng-container
-                    *ngIf="task?.firstBasedFiles?.taskSolutionFiles"
-                  >
-                    <ng-container
-                      *ngFor="let lang of objectKeys(task.firstBasedFiles.taskSolutionFiles)"
-                    >
-                      <ng-option
-                        *ngFor="let item of task.firstBasedFiles.taskSolutionFiles[lang]; let i = index"
-                        [value]="item"
-                        [disabled]="true"
-                      >
-                        <div class="d-flex align-items-center">
-                          <span> {{ item.name }} </span>
-                          <img
-                            src="/assets/svg/cancel.svg"
-                            width="25px"
-                            class="mx-2"
-                            alt=""
-                          />
-                          <img
-                            src="/assets/svg/{{ lang }}.svg"
-                            width="25px"
-                            alt=""
-                          />
-                        </div>
-                      </ng-option>
-                    </ng-container>
-                  </ng-container>
-                </ng-select>
+                <app-file-list
+                  [files]="task?.firstBasedFiles?.taskSolutionFiles"
+                  [category]="'taskSolutionFiles'"
+                  [placeholder]="'GRAFIK TOPSHIRIQLAR VARIANTLARI'"
+                  (removeFile)="onRemoveFile($event)"
+                  (replaceFile)="onReplaceFile($event)"
+                ></app-file-list>
               </div>
             </div>
           </div>
@@ -222,8 +167,8 @@
         <div class="create-build-ng-card">Didaktik materiallar</div>
         <div class="container my-4">
           <div class="row">
-            <div class="col-md-3"></div>
-            <div class="col-md-6">
+            <div class="col-md-3 mb-3"></div>
+            <div class="col-md-6 mb-3">
               <div class="position-relative">
                 <input
                   type="file"
@@ -278,43 +223,17 @@
                     </div>
                   </div>
                 </div>
-                <ng-select
-                  class="create-build-ng-select-file mb-4"
-                  placeholder="MA'RUZA MATNI"
-                  [clearable]="false"
-                  searchable="false"
-                >
-                  <ng-container *ngIf="task?.secondBasedFiles?.taskTitleFiles">
-                    <ng-container
-                      *ngFor="let lang of objectKeys(task.secondBasedFiles.taskTitleFiles)"
-                    >
-                      <ng-option
-                        *ngFor="let item of task.secondBasedFiles.taskTitleFiles[lang]; let i = index"
-                        [value]="item"
-                        [disabled]="true"
-                      >
-                        <div class="d-flex align-items-center">
-                          <span> {{ item.name }} </span>
-                          <img
-                            src="/assets/svg/cancel.svg"
-                            width="25px"
-                            class="mx-2"
-                            alt=""
-                          />
-                          <img
-                            src="/assets/svg/{{ lang }}.svg"
-                            width="25px"
-                            alt=""
-                          />
-                        </div>
-                      </ng-option>
-                    </ng-container>
-                  </ng-container>
-                </ng-select>
+                <app-file-list
+                  [files]="task?.secondBasedFiles?.taskTitleFiles"
+                  [category]="'taskTitleFiles'"
+                  [placeholder]="'MA\'RUZA MATNI'"
+                  (removeFile)="onRemoveFile($event)"
+                  (replaceFile)="onReplaceFile($event)"
+                ></app-file-list>
               </div>
             </div>
             <div class="col-md-3"></div>
-            <div class="col-md-6">
+            <div class="col-md-6 mb-3">
               <div class="position-relative">
                 <input
                   type="file"
@@ -369,57 +288,31 @@
                     </div>
                   </div>
                 </div>
-                <ng-select
-                  class="create-build-ng-select-file mb-4"
-                  placeholder="PREZENTATSIYA"
-                  [clearable]="false"
-                  searchable="false"
-                >
-                  <ng-container *ngIf="task?.secondBasedFiles?.taskPresentationFiles">
-                    <ng-container
-                      *ngFor="let lang of objectKeys(task.secondBasedFiles.taskPresentationFiles)"
-                    >
-                      <ng-option
-                        *ngFor="let item of task.secondBasedFiles.taskPresentationFiles[lang]; let i = index"
-                        [value]="item"
-                        [disabled]="true"
-                      >
-                        <div class="d-flex align-items-center">
-                          <span> {{ item.name }} </span>
-                          <img
-                            src="/assets/svg/cancel.svg"
-                            width="25px"
-                            class="mx-2"
-                            alt=""
-                          />
-                          <img
-                            src="/assets/svg/{{ lang }}.svg"
-                            width="25px"
-                            alt=""
-                          />
-                        </div>
-                      </ng-option>
-                    </ng-container>
-                  </ng-container>
-                </ng-select>
+                <app-file-list
+                  [files]="task?.secondBasedFiles?.taskPresentationFiles"
+                  [category]="'taskPresentationFiles'"
+                  [placeholder]="'PREZENTATSIYA'"
+                  (removeFile)="onRemoveFile($event)"
+                  (replaceFile)="onReplaceFile($event)"
+                ></app-file-list>
               </div>
             </div>
             <div class="col-md-6">
               <div class="position-relative">
                 <div class="bg-none p-0 position-absolute-btn">
-                  <img src="/assets/svg/plus.svg" width="30px" alt="upload" />
+                  <img src="/assets/svg/plus.svg" width="30px" alt="upload" (click)="addVideo()" style="cursor: pointer;" />
                 </div>
-                <ng-select
-                  class="create-build-ng-select-file mb-4"
-                  placeholder="VIDEO DARS"
-                  [clearable]="false"
-                  searchable="false"
-                >
-                </ng-select>
+                <app-file-list
+                  [files]="task?.secondBasedFiles?.taskVideoUrls"
+                  [category]="'taskVideoUrls'"
+                  [placeholder]="'VIDEO DARS'"
+                  (removeFile)="onRemoveFile($event)"
+                  (replaceFile)="onReplaceFile($event)"
+                ></app-file-list>
               </div>
             </div>
             <div class="col-md-3"></div>
-            <div class="col-md-6">
+            <div class="col-md-6 mb-3">
               <div class="position-relative">
                 <input
                   type="file"
@@ -474,39 +367,13 @@
                     </div>
                   </div>
                 </div>
-                <ng-select
-                  class="create-build-ng-select-file mb-4"
-                  placeholder="FAN BO'YICHA ADABIYOTLAR"
-                  [clearable]="false"
-                  searchable="false"
-                >
-                  <ng-container *ngIf="task?.secondBasedFiles?.taskLiteratureFiles">
-                    <ng-container
-                      *ngFor="let lang of objectKeys(task.secondBasedFiles.taskLiteratureFiles)"
-                    >
-                      <ng-option
-                        *ngFor="let item of task.secondBasedFiles.taskLiteratureFiles[lang]; let i = index"
-                        [value]="item"
-                        [disabled]="true"
-                      >
-                        <div class="d-flex align-items-center">
-                          <span> {{ item.name }} </span>
-                          <img
-                            src="/assets/svg/cancel.svg"
-                            width="25px"
-                            class="mx-2"
-                            alt=""
-                          />
-                          <img
-                            src="/assets/svg/{{ lang }}.svg"
-                            width="25px"
-                            alt=""
-                          />
-                        </div>
-                      </ng-option>
-                    </ng-container>
-                  </ng-container>
-                </ng-select>
+                <app-file-list
+                  [files]="task?.secondBasedFiles?.taskLiteratureFiles"
+                  [category]="'taskLiteratureFiles'"
+                  [placeholder]="'FAN BO\'YICHA ADABIYOTLAR'"
+                  (removeFile)="onRemoveFile($event)"
+                  (replaceFile)="onReplaceFile($event)"
+                ></app-file-list>
               </div>
             </div>
             <div class="col-md-3"></div>
@@ -520,7 +387,7 @@
         class="cursor-pointer"
         width="30px"
         alt="next"
-        (click)="uploadAllFiles()"
+        (click)="uploadAllFilesAndSaveData()"
       />
     </div>
   </div>
@@ -529,7 +396,7 @@
 <div class="container">
   <div class="row">
     <div class="col-md-12">
-      <app-video-upload></app-video-upload>
+      <!-- Video list will be shown in the ng-select above -->
     </div>
   </div>
 </div>

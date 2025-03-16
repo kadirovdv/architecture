@@ -1,0 +1,75 @@
+<div class="ng-select-container" (click)="$event.stopPropagation()">
+  <input
+    #fileInput
+    type="file"
+    class="hidden-input"
+    (change)="onFileSelected($event)"
+  />
+  <div
+    class="select-trigger"
+    (click)="toggleDropdown($event)"
+    [class.open]="isOpen"
+  >
+    <div class="placeholder-container">
+      <span class="placeholder">{{ placeholder }}</span>
+      <span class="file-count" *ngIf="getTotalFiles() > 0"
+        >({{ getTotalFiles() }})</span
+      >
+    </div>
+    <div class="trigger-right">
+      <div class="loader" *ngIf="isLoading"></div>
+      <span class="select-arrow" *ngIf="!isLoading"></span>
+    </div>
+  </div>
+
+  <div class="select-dropdown" *ngIf="isOpen">
+    <ng-container *ngIf="files">
+      <ng-container *ngIf="!isVideos(files)">
+        <ng-container *ngFor="let lang of objectKeys(files)">
+          <ng-container
+            *ngFor="let item of getFilesForLang(lang); let i = index"
+          >
+            <div class="select-option">
+              <img
+                src="/assets/svg/{{ lang }}.svg"
+                width="20px"
+                alt="{{ lang }}"
+                class="lang-icon"
+              />
+              <span class="option-name">{{ item.name }}</span>
+              <div class="option-actions">
+                <span class="option-replace" (click)="onReplaceFile(lang, i, $event)" [class.replacing]="isReplacing(lang, i)">
+                  <img src="/assets/svg/replace.svg" width="18px" alt="replace"/>
+                </span>
+                <span class="option-remove" (click)="onRemoveFile(lang, i)">×</span>
+              </div>
+            </div>
+          </ng-container>
+        </ng-container>
+      </ng-container>
+
+      <ng-container *ngIf="isVideos(files)">
+        <div class="select-option" *ngFor="let video of files; let i = index">
+          <span class="option-name">{{ video.name }}</span>
+          <div class="video-actions">
+            <a [href]="video.url" target="_blank" class="video-link">
+              <img src="/assets/svg/play.svg" alt="Play" width="16" />
+            </a>
+            <span class="remove-video" (click)="onRemoveFile('', i)">×</span>
+          </div>
+        </div>
+      </ng-container>
+    </ng-container>
+
+    <div
+      class="no-options"
+      *ngIf="
+        !files ||
+        (!isVideos(files) && objectKeys(files).length === 0) ||
+        (isVideos(files) && files.length === 0)
+      "
+    >
+      Fayllar yuklanmagan
+    </div>
+  </div>
+</div>

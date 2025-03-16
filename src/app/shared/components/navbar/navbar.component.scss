@@ -1,8 +1,10 @@
 nav {
-  background: #d0853b;
+  background: rgba(3, 3, 3, 0.35);
+
   z-index: 999;
   position: absolute;
   top: 0;
+  padding: 10px 0px;
   ul li {
     cursor: pointer;
   }
@@ -13,12 +15,12 @@ nav {
     text-decoration: none !important;
     width: 100px;
     img {
-      width: 80px;
+      width: 70px;
     }
     h3 {
       font-family: "Inter";
       font-weight: 700;
-      font-size: 20px;
+      font-size: 14px;
       color: #ffffff !important;
       cursor: pointer;
       text-transform: uppercase;
@@ -35,7 +37,7 @@ nav {
       font-family: "Inter";
       font-style: normal;
       font-weight: 800;
-      font-size: 16px;
+      font-size: 13px;
       color: #ffffff;
       text-transform: uppercase;
       margin-bottom: 0px;
@@ -50,23 +52,24 @@ nav {
     overflow: hidden;
     position: relative;
     input {
-      width: 375px;
+      width: 245px;
       background: #ffffff;
       border-radius: 50px;
-      padding: 13px 20px;
+      padding: 10px 20px;
       outline: none;
       border: none;
+      font-size: 12px;
     }
 
     svg {
       position: absolute;
       right: 20px;
-      top: 55px;
+      top: 45px;
       transition: all 0.2s ease-in-out;
     }
 
     .top-5 {
-      top: 5px;
+      top: 10px;
     }
   }
 }

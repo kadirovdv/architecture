@@ -8,14 +8,13 @@ import { SharedModule } from '../shared/shared.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 // import { ThemesPage } from './themes/themes.page';
 // import { BuildPage } from './build/build.page';
-import { CreateBuildPage } from './create-build/create-build.page';
-import { VideoUploadComponent } from './create-build/video-upload/video-upload.component';
+import { CreateBuildModule } from './create-build/create-build.module';
 // import { EditBuildPage } from './edit-build/edit-build.page';
 // import { UsersPage } from './users/users.page';
 import { LessonsPage } from './lessons/lessons.page';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { CreateLessonsPage } from './create-lessons/create-lessons.page';
-import { NgbDropdownModule, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbActiveModal, NgbDropdownModule, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 @NgModule({
   declarations: [
     DashboardPage,
@@ -23,10 +22,6 @@ import { NgbDropdownModule, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
     // SemesterPage,
     // ThemesPage,
     // BuildPage,
-    CreateBuildPage,
-    VideoUploadComponent,
-    // EditBuildPage,
-    // UsersPage,
     LessonsPage,
     CreateLessonsPage,
   ],
@@ -39,7 +34,9 @@ import { NgbDropdownModule, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
     NgSelectModule,
     NgbDropdownModule,
     NgbModalModule,
+    CreateBuildModule
   ],
+  providers: [NgbActiveModal],
   exports: [],
 })
 export class DashboardModule {}
