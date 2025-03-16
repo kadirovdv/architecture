@@ -1,6 +1,7 @@
 <div class="loader-content" *ngIf="loading">
   <div class="loader-box">
     <small>Yuklanmoqda...</small>
+    <app-loader></app-loader>
   </div>
 </div>
 <div class="create-build-content">
@@ -93,6 +94,7 @@
                   [files]="task?.firstBasedFiles?.taskExampleFiles"
                   [category]="'taskExampleFiles'"
                   [placeholder]="'GRAFIK TOPSHIRIQ YECHIMI NAMUNALARI (PDF),(PPT)'"
+                  [hasError]="hasError('taskExampleFiles')"
                   (removeFile)="onRemoveFile($event)"
                   (replaceFile)="onReplaceFile($event)"
                 ></app-file-list>
@@ -157,6 +159,7 @@
                   [files]="task?.firstBasedFiles?.taskSolutionFiles"
                   [category]="'taskSolutionFiles'"
                   [placeholder]="'GRAFIK TOPSHIRIQLAR VARIANTLARI'"
+                  [hasError]="hasError('taskSolutionFiles')"
                   (removeFile)="onRemoveFile($event)"
                   (replaceFile)="onReplaceFile($event)"
                 ></app-file-list>
@@ -227,6 +230,7 @@
                   [files]="task?.secondBasedFiles?.taskTitleFiles"
                   [category]="'taskTitleFiles'"
                   [placeholder]="'MA\'RUZA MATNI'"
+                  [hasError]="hasError('taskTitleFiles')"
                   (removeFile)="onRemoveFile($event)"
                   (replaceFile)="onReplaceFile($event)"
                 ></app-file-list>
@@ -292,6 +296,7 @@
                   [files]="task?.secondBasedFiles?.taskPresentationFiles"
                   [category]="'taskPresentationFiles'"
                   [placeholder]="'PREZENTATSIYA'"
+                  [hasError]="hasError('taskPresentationFiles')"
                   (removeFile)="onRemoveFile($event)"
                   (replaceFile)="onReplaceFile($event)"
                 ></app-file-list>
@@ -306,6 +311,7 @@
                   [files]="task?.secondBasedFiles?.taskVideoUrls"
                   [category]="'taskVideoUrls'"
                   [placeholder]="'VIDEO DARS'"
+                  [hasError]="hasError('taskVideoUrls')"
                   (removeFile)="onRemoveFile($event)"
                   (replaceFile)="onReplaceFile($event)"
                 ></app-file-list>
@@ -371,6 +377,7 @@
                   [files]="task?.secondBasedFiles?.taskLiteratureFiles"
                   [category]="'taskLiteratureFiles'"
                   [placeholder]="'FAN BO\'YICHA ADABIYOTLAR'"
+                  [hasError]="hasError('taskLiteratureFiles')"
                   (removeFile)="onRemoveFile($event)"
                   (replaceFile)="onReplaceFile($event)"
                 ></app-file-list>

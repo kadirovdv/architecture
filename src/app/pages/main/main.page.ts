@@ -1,10 +1,14 @@
 import { Component } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
+import { Lesson } from 'src/app/shared/interfaces/interfaces';
 import { CrudService } from 'src/app/shared/services/crud.service';
 import { DropboxService } from 'src/app/shared/services/dropbox.service';
 import { i18nService } from 'src/app/shared/services/i18n.service';
 import { LoaderService } from 'src/app/shared/services/loader.service';
 import { SwiperService } from 'src/app/shared/services/swiper.service';
+import { BehaviorSubject, forkJoin, of } from 'rxjs';
+import { switchMap, tap } from 'rxjs/operators';
+import { LoadingService } from 'src/app/shared/services/loading.service';
 
 @Component({
   selector: 'app-main',
@@ -14,11 +18,13 @@ import { SwiperService } from 'src/app/shared/services/swiper.service';
 export class MainPage {
   websiteLessons: any[] = [];
   lang = '';
+  private thumbnailsLoaded = new BehaviorSubject<number>(0);
+
   constructor(
     private swiperService: SwiperService,
     private crudService: CrudService,
     private i18n: i18nService,
-    private loaderService: LoaderService,
+    private loaderService: LoadingService,
     private dropboxService: DropboxService,
     private sanitizer: DomSanitizer
   ) {
@@ -26,10 +32,21 @@ export class MainPage {
   }
 
   ngOnInit() {
-    this.loaderService.showLoader();
+    this.loaderService.show();
     this.getData();
     this.i18n.currentData.subscribe((lang) => {
       this.lang = lang;
+    });
+
+    this.thumbnailsLoaded.subscribe(count => {
+      if (count > 0 && this.websiteLessons.length > 0 && count === this.websiteLessons.length) {
+        this.websiteLessons = [...this.websiteLessons].sort((a, b) => {
+          const dateA = new Date(a.createdAt).getTime();
+          const dateB = new Date(b.createdAt).getTime();
+          return dateA - dateB;
+        });
+        this.loaderService.hide();
+      }
     });
   }
 
@@ -44,32 +61,44 @@ export class MainPage {
   }
 
   getData() {
-    this.crudService.getDocuments('website-lessons').subscribe(
-      (res) => {
-        this.websiteLessons = res || [];
-        this.websiteLessons = this.websiteLessons.sort((a, b) => {
-          const dateA: any = new Date(a.createdAt);
-          const dateB: any = new Date(b.createdAt);
-          return dateA - dateB;
-        });
-        console.log(this.websiteLessons);
-        if (this.websiteLessons.length === 0) {
-          this.loaderService.hideLoader(true);
+    this.crudService.getDocuments('website-lessons').pipe(
+      switchMap((res: unknown) => {
+        const lessons = res as Lesson[];
+
+        if (lessons.length === 0) {
+          this.websiteLessons = lessons;
+          this.loaderService.hide();
+          return of(null);
         }
-        for (let i = 0; i < this.websiteLessons.length; i++) {
-          this.dropboxService
-            .getThumbnail(this.websiteLessons[i].thumbnail)
-            .subscribe((res) => {
-              this.loaderService.hideLoader(true);
-              this.websiteLessons[i].thumbnail =
-                this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(res));
+
+        const thumbnailRequests = lessons.map((lesson, index) =>
+          this.dropboxService.getThumbnail(lesson.thumbnail as string).pipe(
+            tap(thumbnailRes => {
+              lessons[index].thumbnail = 
+                this.sanitizer.bypassSecurityTrustUrl(
+                  URL.createObjectURL(thumbnailRes)
+                );
+              this.thumbnailsLoaded.next(this.thumbnailsLoaded.value + 1);
+            })
+          )
+        );
+
+        return forkJoin(thumbnailRequests).pipe(
+          tap(() => {
+            this.websiteLessons = [...lessons].sort((a: Lesson, b: Lesson) => {
+              const dateA = new Date(a.createdAt || '').getTime();
+              const dateB = new Date(b.createdAt || '').getTime();
+              return dateA - dateB;
             });
-        }
-      },
-      (err) => {
-        this.loaderService.hideLoader(true);
-        this.loaderService.hideLoader();
+            this.loaderService.hide();
+          })
+        );
+      })
+    ).subscribe({
+      error: (err) => {
+        console.error('Error fetching lessons:', err);
+        this.loaderService.hide();
       }
-    );
+    });
   }
 }

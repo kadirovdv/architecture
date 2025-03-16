@@ -1,4 +1,4 @@
-<div class="ng-select-container" (click)="$event.stopPropagation()">
+<div class="ng-select-container" [class.error]="hasError" (click)="$event.stopPropagation()">
   <input
     #fileInput
     type="file"

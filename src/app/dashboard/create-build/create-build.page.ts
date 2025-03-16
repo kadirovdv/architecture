@@ -20,6 +20,8 @@ import { DropboxService } from 'src/app/shared/services/dropbox.service';
 import { concatMap, delay, from, Observable, tap, timer } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { VideoUploadComponent } from './video-upload/video-upload.component';
+import { LoaderService } from 'src/app/shared/services/loader.service';
+import { LoadingService } from 'src/app/shared/services/loading.service';
 
 @Component({
   selector: 'app-create-build',
@@ -36,13 +38,15 @@ export class CreateBuildPage implements OnInit {
   uploadedFiles: any;
   selectedLanguage: string = 'uz';
   currentCategory: string = '';
+  errorCategories: string[] = [];
 
   constructor(
     private crudService: CrudService,
     private toastr: ToastrService,
     private dropboxService: DropboxService,
     private modalService: NgbModal,
-    private location: Location
+    private location: Location,
+    private loaderService: LoadingService
   ) {}
 
   ngOnInit(): void {
@@ -76,10 +80,9 @@ export class CreateBuildPage implements OnInit {
 
     const files = Array.from(input.files);
 
-    // Check file sizes
     const oversizedFiles = files.filter(
       (file) => file.size / (1024 * 1024) > 150
-    ); // 150MB limit
+    ); 
     if (oversizedFiles.length > 0) {
       this.toastr.error("Fayl hajmi 150MB dan o'tib ketdi!");
       return;
@@ -158,7 +161,125 @@ export class CreateBuildPage implements OnInit {
     }
   }
 
+  private validateUpload(): { isValid: boolean; message: string; errorCategories?: string[] } {
+    const errorCategories: string[] = [];
+
+    if (!this.lesson) {
+      return { isValid: false, message: 'Iltimos, fanni tanlang!' };
+    }
+
+    if (!this.task) {
+      return { isValid: false, message: 'Iltimos, topshiriqni tanlang!' };
+    }
+
+    if (!this.task.title || !this.task.id) {
+      return { isValid: false, message: 'Topshiriq ma\'lumotlari to\'liq emas!' };
+    }
+
+    if (!this.task.firstBasedFiles) {
+      errorCategories.push('taskExampleFiles', 'taskSolutionFiles');
+      return { 
+        isValid: false, 
+        message: 'Birinchi bo\'lim fayllari topilmadi!',
+        errorCategories 
+      };
+    }
+
+    if (!this.task.secondBasedFiles) {
+      errorCategories.push('taskTitleFiles', 'taskPresentationFiles', 'taskLiteratureFiles', 'taskVideoUrls');
+      return { 
+        isValid: false, 
+        message: 'Ikkinchi bo\'lim fayllari topilmadi!',
+        errorCategories 
+      };
+    }
+
+    const hasFirstBasedFiles = Object.values(this.task.firstBasedFiles).some(
+      (fileGroup: any) =>
+        Object.values(fileGroup || {}).some((files: any) => files && files.length > 0)
+    );
+
+    const hasSecondBasedFiles = Object.values(this.task.secondBasedFiles).some(
+      (fileGroup: any) =>
+        fileGroup && 
+        (Array.isArray(fileGroup) ? fileGroup.length > 0 : 
+         Object.values(fileGroup).some((files: any) => files && files.length > 0))
+    );
+
+    if (!hasFirstBasedFiles && !hasSecondBasedFiles) {
+      errorCategories.push(
+        'taskExampleFiles', 
+        'taskSolutionFiles',
+        'taskTitleFiles',
+        'taskPresentationFiles',
+        'taskLiteratureFiles',
+        'taskVideoUrls'
+      );
+      return { 
+        isValid: false, 
+        message: 'Kamida bitta fayl yoki video qo\'shing!',
+        errorCategories 
+      };
+    }
+
+    const checkFileSizes = (files: any, category: string): boolean => {
+      if (!files) return true;
+      
+      if (Array.isArray(files)) {
+        if (files.some(file => file.size && file.size / (1024 * 1024) > 150)) {
+          errorCategories.push(category);
+          return false;
+        }
+        return true;
+      }
+
+      const hasOversizedFiles = Object.values(files).some((langFiles: any) =>
+        langFiles ? langFiles.some((file: any) => file.size && file.size / (1024 * 1024) > 150) : false
+      );
+
+      if (hasOversizedFiles) {
+        errorCategories.push(category);
+        return false;
+      }
+      return true;
+    };
+
+    Object.entries(this.task.firstBasedFiles).forEach(([category, files]) => {
+      checkFileSizes(files, category);
+    });
+
+    Object.entries(this.task.secondBasedFiles)
+      .filter(([category]) => category !== 'taskVideoUrls')
+      .forEach(([category, files]) => {
+        checkFileSizes(files, category);
+      });
+
+    if (errorCategories.length > 0) {
+      return { 
+        isValid: false, 
+        message: 'Ba\'zi fayllar hajmi 150MB dan oshib ketdi!',
+        errorCategories 
+      };
+    }
+
+    return { isValid: true, message: '' };
+  }
+
   uploadAllFilesAndSaveData(): void {
+    const validation = this.validateUpload();
+    // if (!validation.isValid) {
+    //   this.toastr.error(validation.message);
+      
+    //   if (validation.errorCategories) {
+    //     this.errorCategories = validation.errorCategories;
+    //     setTimeout(() => {
+    //       this.errorCategories = [];
+    //     }, 400);
+    //   }
+    //   return;
+    // }
+
+    this.loaderService.show();
     const uploadedFiles: Task = {
       title: this.task.title,
       id: this.task.id,
@@ -192,7 +313,6 @@ export class CreateBuildPage implements OnInit {
         };
 
         files.forEach((fileItem: any, index: number) => {
-          // Use the actual File object stored in the file property
           const actualFile = fileItem.file;
           const filePath = `/${fileItem.name}`;
           
@@ -205,7 +325,6 @@ export class CreateBuildPage implements OnInit {
                 target = target[key];
               }
 
-              // Store the response metadata without the file object
               target[lang].push({
                 name: fileItem.name,
                 size: fileItem.size,
@@ -232,7 +351,6 @@ export class CreateBuildPage implements OnInit {
       }
     };
 
-    // Upload all files except videos
     if (this.task.firstBasedFiles?.taskExampleFiles) {
       uploadCategoryFiles(
         'firstBasedFiles.taskExampleFiles',
@@ -282,11 +400,12 @@ export class CreateBuildPage implements OnInit {
         complete: () => {
           this.toastr.success('Fayllar muvaffaqiyatli yuklandi');
           this.saveToFirebase(uploadedFiles);
+          this.loaderService.hide();
         },
         error: (err) => {
           console.error('Error uploading files:', err);
           this.toastr.error('Fayllar yuklanishda xatolik');
-          this.loading = false;
+          this.loaderService.hide();
         },
       });
   }
@@ -390,5 +509,9 @@ export class CreateBuildPage implements OnInit {
 
   goBack(): void {
     this.location.back();
+  }
+
+  hasError(category: string): boolean {
+    return this.errorCategories.includes(category);
   }
 }

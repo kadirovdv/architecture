@@ -13,6 +13,7 @@ export class FileListComponent {
   @Input() placeholder: string = '';
   @Input() category: string = '';
   @Input() isLoading: boolean = false;
+  @Input() hasError: boolean = false;
   @Output() fileSelected = new EventEmitter<File>();
   @Output() removeFile = new EventEmitter<{ category: string; lang: string; index: number }>();
   @Output() replaceFile = new EventEmitter<{category: string, lang: string, index: number, file: File}>();
@@ -21,10 +22,30 @@ export class FileListComponent {
   
   isOpen = false;
   currentReplaceInfo: { lang: string; index: number } | null = null;
+  errorTimeout: any;
 
   @HostListener('document:click')
   onDocumentClick() {
     this.isOpen = false;
+  }
+
+  ngOnChanges() {
+    if (this.hasError) {
+      // Clear any existing timeout
+      if (this.errorTimeout) {
+        clearTimeout(this.errorTimeout);
+      }
+      // Remove error state after animation completes
+      this.errorTimeout = setTimeout(() => {
+        this.hasError = false;
+      }, 400); // Match animation duration
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.errorTimeout) {
+      clearTimeout(this.errorTimeout);
+    }
   }
 
   getTotalFiles(): number {

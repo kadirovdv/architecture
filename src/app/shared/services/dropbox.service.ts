@@ -180,6 +180,16 @@ export class DropboxService {
 
   uploadFile(filePath: string = '', fileContent: Blob): Observable<string> {
     const url = 'https://content.dropboxapi.com/2/files/upload';
+    
+    // Add timestamp to filename to prevent conflicts
+    const timestamp = new Date().getTime();
+    const filePathParts = filePath.split('/');
+    const fileName = filePathParts.pop();
+    const fileNameParts = fileName?.split('.') || [];
+    const ext = fileNameParts.pop();
+    const newFileName = `${fileNameParts.join('.')}_${timestamp}.${ext}`;
+    const newFilePath = [...filePathParts, newFileName].join('/');
+
     return defer(() =>
       from(
         fetch(url, {
@@ -188,9 +198,10 @@ export class DropboxService {
             Authorization: `Bearer ${environment.token}`,
             'Content-Type': 'application/octet-stream',
             'Dropbox-API-Arg': JSON.stringify({
-              path: filePath,
+              path: newFilePath,
               mode: 'add',
-              autorename: false,
+              autorename: true, // Enable autorename to handle any remaining conflicts
+              mute: false
             }),
           },
           body: fileContent,
@@ -199,27 +210,16 @@ export class DropboxService {
     ).pipe(
       switchMap((response) => {
         if (!response.ok) {
-          return throwError(
-            () => new Error(`Failed to upload file: ${response.statusText}`)
-          );
+          return response.json().then(errorData => {
+            console.error('Dropbox API Error:', errorData);
+            throw new Error(`Failed to upload file: ${errorData?.error?.message || response.statusText}`);
+          });
         }
         return from(response.json());
       }),
       catchError((error) => {
-        if (error.response && error.response.body) {
-          error.response.body
-            .getReader()
-            .read()
-            .then((data: any) => {
-              console.error(
-                'Error body:',
-                new TextDecoder().decode(data.value)
-              );
-            });
-        } else {
-          console.error('Error:', error);
-        }
-        return throwError(() => error);
+        console.error('Upload Error:', error);
+        return throwError(() => new Error(`Failed to upload file: ${error.message}`));
       })
     );
   }

@@ -4,6 +4,7 @@ import { ToastrService } from 'ngx-toastr';
 import { Lesson, Task } from 'src/app/shared/interfaces/interfaces';
 import { CrudService } from 'src/app/shared/services/crud.service';
 import { DropboxService } from 'src/app/shared/services/dropbox.service';
+import { LoadingService } from 'src/app/shared/services/loading.service';
 
 @Component({
   selector: 'app-dashboard-lessons',
@@ -29,7 +30,8 @@ export class LessonsPage {
     private crudService: CrudService,
     private toastr: ToastrService,
     private dropboxService: DropboxService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private loadingService: LoadingService
   ) {}
 
   ngOnInit() {
@@ -61,6 +63,7 @@ export class LessonsPage {
   }
 
   addTaskToLesson() {
+    this.loadingService.show();
     if (!this.task) {
       this.toastr.warning('Grafik topshiriqni kiriting');
       return;
@@ -83,21 +86,24 @@ export class LessonsPage {
           this.tasksInLesson = [];
           this.selectedIndex = -1;
           this.selectedId = '';
+          this.loadingService.hide();
         });
     }
   }
 
   //make a function to delete task from lesson
   deleteTaskFromLesson(task: Task) {
-    const updatedTasks = this.tasksInLesson.filter(t => t.id !== task.id);
-    this.crudService.updateDocument('lessons', this.selectedId, {
-      tasks: updatedTasks
-    }).subscribe(() => {
-      this.task.title = '';
-      this.getLessons();
-      this.selectedIndex = -1;
-      this.selectedId = '';
-      this.tasksInLesson = [];
-    });
+    const updatedTasks = this.tasksInLesson.filter((t) => t.id !== task.id);
+    this.crudService
+      .updateDocument('lessons', this.selectedId, {
+        tasks: updatedTasks,
+      })
+      .subscribe(() => {
+        this.task.title = '';
+        this.getLessons();
+        this.selectedIndex = -1;
+        this.selectedId = '';
+        this.tasksInLesson = [];
+      });
   }
 }

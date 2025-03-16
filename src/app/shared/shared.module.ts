@@ -6,6 +6,7 @@ import { FooterComponent } from './components/footer/footer.component';
 import { RouterModule } from '@angular/router';
 import { HighlightPipe } from './pipes/highlight.pipe';
 import { TranslateModule } from '@ngx-translate/core';
+import { LoaderComponent } from './components/loader/loader.component';
 
 @NgModule({
   declarations: [
@@ -18,11 +19,13 @@ import { TranslateModule } from '@ngx-translate/core';
     FormsModule,
     CommonModule,
     RouterModule,
-    TranslateModule
+    TranslateModule,
+    LoaderComponent,
   ],
   exports: [
     NavbarComponent,
     FooterComponent,
+    LoaderComponent,
   ],
 })
 export class SharedModule {}

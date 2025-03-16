@@ -1,3 +1,9 @@
+<div class="loader-content" *ngIf="loader">
+  <div class="loader-box">
+    <small>Yuklanmoqda...</small>
+    <app-loader></app-loader>
+  </div>
+</div>
 <div class="create-lessons-content">
   <div class="create-lessons-card">
     <div class="create-lessons-card-header">
@@ -13,32 +19,93 @@
     <div class="create-lessons-card-body">
       <form [formGroup]="createLessonsForm" (submit)="save()">
         <div class="d-flex flex-column">
-          <div class="mb-4">
+          <div class="mb-4 position-relative">
             <span>UZ</span>
-            <input class="form-control" type="text" formControlName="uz" />
+            <input
+              class="form-control open-uz"
+              type="text"
+              formControlName="uz"
+              (focus)="openHelper('uz')"
+              (blur)="closeHelper('uz')"
+              (input)="findLesson($event, 'uz')"
+              [class.active]="showHelper.uz"
+            />
+            <div class="card helper-card" [class.active]="showHelper.uz">
+              <div class="card-item" *ngFor="let lesson of filteredLessonList" (click)="selectLesson(lesson, 'uz')">
+                <h5>{{lesson.uz}}</h5>
+              </div>
+              <div class="card-item" *ngIf="filteredLessonList.length === 0">
+                <h5>Hech narsa topilmadi</h5>
+              </div>
+            </div>
           </div>
-          <div class="mb-4">
+          <div class="mb-4 position-relative">
             <span>RU</span>
-            <input class="form-control" type="text" formControlName="ru" />
+            <input
+              class="form-control open-ru"
+              type="text"
+              formControlName="ru"
+              (focus)="openHelper('ru')"
+              (blur)="closeHelper('ru')"
+              (input)="findLesson($event, 'ru')"
+              [class.active]="showHelper.ru"
+            />
+            <div class="card helper-card" [class.active]="showHelper.ru">
+              <div class="card-item" *ngFor="let lesson of filteredLessonList" (click)="selectLesson(lesson, 'ru')">
+                <h5>{{lesson.ru}}</h5>
+              </div>
+              <div class="card-item" *ngIf="filteredLessonList.length === 0">
+                <h5>Hech narsa topilmadi</h5>
+              </div>
+            </div>
           </div>
-          <div class="mb-4">
+          <div class="mb-4 position-relative">
             <span>EN</span>
-            <input class="form-control" type="text" formControlName="en" />
+            <input
+              class="form-control open-en"
+              type="text"
+              formControlName="en"
+              (focus)="openHelper('en')"
+              (blur)="closeHelper('en')"
+              (input)="findLesson($event, 'en')"
+              [class.active]="showHelper.en"
+            />
+            <div class="card helper-card" [class.active]="showHelper.en">
+              <div class="card-item" *ngFor="let lesson of filteredLessonList" (click)="selectLesson(lesson, 'en')">
+                <h5>{{lesson.en}}</h5>
+              </div>
+              <div class="card-item" *ngIf="filteredLessonList.length === 0">
+                <h5>Hech narsa topilmadi</h5>
+              </div>
+            </div>
           </div>
         </div>
-        <input type="file" accept="image/*" (change)="onFileSelected($event)" hidden #input />
-        <div class="d-flex justify-content-center cursor-pointer" (click)="input.click()">
+        <input
+          type="file"
+          accept="image/*"
+          (change)="onFileSelected($event)"
+          hidden
+          #input
+        />
+        <div
+          class="d-flex justify-content-center cursor-pointer"
+          (click)="input.click()"
+        >
           <div class="create-lessons-card-img">
             <div class="header">FAN MUQOVASI UCHUN RASM TANLANG</div>
             <div class="body">
-              <img [src]="!imgDisplay ? '/assets/svg/plus.svg' : imgDisplay" [ngStyle]="{ 'width': !imgDisplay ? '50px' : '100%'}" alt="" />
+              <img
+                [src]="!imgDisplay ? '/assets/svg/plus.svg' : imgDisplay"
+                [ngStyle]="{ 'width': !imgDisplay ? '50px' : '100%'}"
+                alt=""
+              />
             </div>
           </div>
         </div>
 
         <div class="d-flex justify-content-end mt-4">
           <button class="btn" type="submit">
-            <img src="/assets/svg/save.svg" alt="">
+            <img src="/assets/svg/save.svg" alt="" />
           </button>
         </div>
       </form>

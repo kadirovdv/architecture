@@ -15,6 +15,7 @@ import { LessonsPage } from './lessons/lessons.page';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { CreateLessonsPage } from './create-lessons/create-lessons.page';
 import { NgbActiveModal, NgbDropdownModule, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
+import { LoaderComponent } from "../shared/components/loader/loader.component";
 @NgModule({
   declarations: [
     DashboardPage,
@@ -34,8 +35,9 @@ import { NgbActiveModal, NgbDropdownModule, NgbModalModule } from '@ng-bootstrap
     NgSelectModule,
     NgbDropdownModule,
     NgbModalModule,
-    CreateBuildModule
-  ],
+    CreateBuildModule,
+    LoaderComponent
+],
   providers: [NgbActiveModal],
   exports: [],
 })

@@ -1,3 +1,5 @@
+import { SafeResourceUrl } from "@angular/platform-browser";
+
 export interface FirstClassFileGroups {
   taskExampleFiles?: Files;
   taskSolutionFiles?: Files;
@@ -35,7 +37,7 @@ export interface FileItem {
 export interface Lesson {
   id?: string;
   lessonTitle?: LessonTitle;
-  thumbnail?: string;
+  thumbnail?: string | SafeResourceUrl;
   index?: number;
   createdAt?: string;
   tasks?: Task[] | any[];

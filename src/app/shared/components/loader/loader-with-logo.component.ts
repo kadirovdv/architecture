@@ -10,7 +10,7 @@ import { CommonModule } from '@angular/common';
     <div class="loader-overlay" *ngIf="loading$ | async">
       <div class="loader">
         <div class="spinner"></div>
-        <img src="assets/images/logo.png" alt="Logo" class="logo" *ngIf="hasLogo">
+        <img src="/assets/img/logo.png" alt="Logo" class="logo" *ngIf="hasLogo">
       </div>
     </div>
   `,
@@ -63,9 +63,8 @@ export class LoaderWithLogoComponent {
   hasLogo = false;
 
   constructor(private loadingService: LoadingService) {
-    // Check if logo exists
     const img = new Image();
-    img.src = 'assets/images/logo.png';
+    img.src = '/assets/img/logo.png';
     img.onload = () => this.hasLogo = true;
   }
 }

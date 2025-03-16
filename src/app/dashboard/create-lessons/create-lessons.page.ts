@@ -1,17 +1,25 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
+import { Router } from '@angular/router';
 import { of, switchMap } from 'rxjs';
 import { Lesson } from 'src/app/shared/interfaces/interfaces';
 import { CrudService } from 'src/app/shared/services/crud.service';
 import { DropboxService } from 'src/app/shared/services/dropbox.service';
+import { LoadingService } from 'src/app/shared/services/loading.service';
+
+interface LessonLangs {
+  uz: string;
+  ru: string;
+  en: string;
+}
 
 @Component({
   selector: 'app-create-lessons-page',
   templateUrl: './create-lessons.page.html',
   styleUrls: ['./create-lessons.page.scss'],
 })
-export class CreateLessonsPage implements OnInit {
+export class CreateLessonsPage implements OnInit, OnDestroy {
   img: File | null = null;
   imgDisplay: any = null;
   exists: boolean = false;
@@ -19,6 +27,64 @@ export class CreateLessonsPage implements OnInit {
   isLessonEdit: boolean = false;
   lessonIdToEdit: string = '';
   lessons: any[] = [];
+  loader: boolean = false;
+
+  showHelper = {
+    uz: false,
+    ru: false,
+    en: false
+  };
+
+  lessonList: Array<LessonLangs> = [
+    {
+      uz: 'CHIZMA GEOMETRIYA VA MUHANDISLIK GRAFIKASI',
+      ru: 'НАЧЕРТАТЕЛЬНАЯ ГЕОМЕТРИЯ И ИНЖЕНЕРНАЯ ГРАФИКА',
+      en: 'DESCRIPTIVE GEOMETRY AND ENGINEERING GRAPHICS',
+    },
+    {
+      uz: 'PERSPEKTIVA',
+      ru: 'ПЕРСПЕКТИВА',
+      en: 'PERSPECTIVE',
+    },
+    {
+      uz: 'GEOMETRIK CHIZMACHILIK',
+      ru: 'ГЕОМЕТРИЧЕСКОЕ ЧЕРЧЕНИЕ',
+      en: 'GEOMETRICAL DRAWING'
+    },
+    {
+      uz: 'PROYEKSION CHIZMACHILIK',
+      ru: 'ПРОЕКЦИОННОЕ ЧЕРЧЕНИЕ',
+      en: 'PROJECTION DRAWING'
+    },
+    {
+      uz: 'MASHINASOZLIK CHIZMACHILIGI',
+      ru: 'МАШИНОСТРОИТЕЛЬНОЕ ЧЕРЧЕНИЕ',
+      en: 'MECHANICAL DRAWING'
+    },
+    {
+      uz: 'TEXNIK CHIZMACHILIK',
+      ru: 'ТЕХНИЧЕСКОЕ ЧЕРЧЕНИЕ',
+      en: 'TECHNICAL DRAWING'
+    },
+    {
+      uz: 'TOPOGRAFIK CHIZMACHILIK',
+      ru: 'ТОПОГРАФИЧЕСКОЕ ЧЕРЧЕНИЕ',
+      en: 'TOPOGRAPHICAL DRAWING'
+    },
+    {
+      uz: 'ARXITEKTURA VA QURILISH CHIZMACHILIGI',
+      ru: 'АРХИТЕКТУРНО- СТРОИТЕЛЬНОЕ ЧЕРЧЕНИЕ',
+      en: 'ARCHITECTURE AND CONSTRUCTION DRAWING'
+    },
+    {
+      uz: 'KOMPYUTER GRAFIKASI',
+      ru: 'КОМПЬЮТЕРНАЯ ГРАФИКА',
+      en: 'COMPUTER GRAPHICS'
+    }
+  ];
+
+  filteredLessonList: Array<LessonLangs> = this.lessonList;
+
   public createLessonsForm = new FormGroup({
     uz: new FormControl('', [
       Validators.required,
@@ -37,7 +103,9 @@ export class CreateLessonsPage implements OnInit {
   constructor(
     private toastr: ToastrService,
     private dropboxService: DropboxService,
-    private crudService: CrudService
+    private crudService: CrudService,
+    private loadingService: LoadingService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -51,7 +119,21 @@ export class CreateLessonsPage implements OnInit {
     });
   }
 
+  ngOnDestroy(): void {
+    // this.loadingService.hide();
+    // this.img = null;
+    // this.imgDisplay = null;
+    // this.exists = false;
+    // this.loaderItem = false;
+    // this.isLessonEdit = false;
+    // this.lessonIdToEdit = '';
+    // this.lessons = [];
+    // this.loader = false;
+    // this.createLessonsForm.reset();
+  }
+
   save() {
+    this.loadingService.show();
     if (
       this.createLessonsForm.value.uz?.trim() === '' &&
       this.createLessonsForm.value.ru?.trim() === '' &&
@@ -133,11 +215,12 @@ export class CreateLessonsPage implements OnInit {
         } else {
           this.toastr.success("Fan muvaffaqiyatli qo'shildi!");
         }
-        this.loaderItem = false;
+        this.loadingService.hide();
+        this.router.navigate(['/dashboard/lessons']);
       },
       error: (err: any) => {
         this.toastr.error('Xatolik yuz berdi!');
-        this.loaderItem = false;
+        this.loadingService.hide();
       },
     });
   }
@@ -153,5 +236,31 @@ export class CreateLessonsPage implements OnInit {
       };
       reader.readAsDataURL(file);
     }
+  }
+
+  findLesson(event: any, lang: 'uz' | 'ru' | 'en') {
+    const searchValue = event.target.value.toLowerCase();
+    this.filteredLessonList = this.lessonList.filter(lesson => 
+      lesson[lang].toLowerCase().includes(searchValue)
+    );
+  }
+
+  selectLesson(lesson: LessonLangs, lang: 'uz' | 'ru' | 'en') {
+    this.createLessonsForm.get(lang)?.setValue(lesson[lang]);
+    this.showHelper[lang] = false;
+  }
+
+  objectKeys(obj: any) {
+    return Object.keys(obj);
+  }
+
+  openHelper(lang: 'uz' | 'ru' | 'en') {
+    this.showHelper[lang] = true;
+  }
+
+  closeHelper(lang: 'uz' | 'ru' | 'en') {
+    setTimeout(() => {
+      this.showHelper[lang] = false;
+    }, 200);
   }
 }

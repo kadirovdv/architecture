@@ -1,7 +1,9 @@
-.main-body {
+.img-wrapper {
   background: url(/assets/img/main-body.png);
   background-repeat: no-repeat;
   background-size: 100%;
+}
+.main-body {
   margin-top: -200px;
   padding-top: 100px;
 
@@ -27,20 +29,15 @@
     }
   }
 
-  .lessons-title {
-    font-family: "Inter";
-    font-style: normal;
-    font-weight: 700;
-    font-size: 22px;
-    color: #7d4233;
-  }
-
   .section-card .section-img {
     transition: 0.3s ease;
     box-shadow: 0px 16px 32px -8px rgba(12, 12, 13, 0.4);
   }
 
   .section-content {
+    overflow: hidden;
+    border-radius: 10px;
+    box-shadow: 0px 16px 32px -8px rgba(12, 12, 13, 0.4);
     overflow: hidden;
   }
 
@@ -49,169 +46,47 @@
       font-family: "Judson";
       font-style: normal;
       font-weight: 700;
-      font-size: 30px;
+      font-size: 20px;
       text-align: center;
       color: #393939;
       margin-bottom: 20px;
       text-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
+      margin-top: 10px;
     }
 
     &-card {
       cursor: pointer;
+      padding: 0px 40px;
+      &-row {
+        min-height: 100%;
+        position: relative;
+        margin-bottom: 100px;
+        &::before {
+          content: "";
+          display: block;
+          width: 100%;
+          min-height: 100%;
+          background-color: #ffdfae;
+          position: absolute;
+          top: 50px;
+          left: 0px;
+          z-index: -1;
+          border-radius: 5px;
+        }
+      }
+
+      .section-img {
+      }
+
+      .section-img img {
+        overflow: hidden;
+      }
     }
 
     &-card:hover {
       .section-img {
         scale: 1.3;
-        background-color: #fff;
       }
-    }
-  }
-
-  .about-platform {
-    width: 100%;
-    position: relative;
-    min-height: 1000px;
-    .before {
-      width: 100%;
-      min-height: 1200px;
-      display: block;
-      background: url(/assets/img/bg-group.png);
-      background-repeat: no-repeat;
-      background-size: 100%;
-      position: absolute;
-      left: 0px;
-    }
-
-    // .after {
-    //   width: 60%;
-    //   min-height: 1000px;
-    //   display: block;
-    //   background: url(/assets/img/swiper-2.png);
-    //   background-repeat: no-repeat;
-    //   background-size: cover;
-    //   position: absolute;
-    //   left: 670px;
-    //   top: 100px;
-    //   z-index: 99;
-    // }
-  }
-
-  .swiper {
-    padding-top: 80px;
-    width: 100%;
-    height: 100%;
-  }
-
-  .swiper-slide {
-    display: flex;
-    justify-content: center;
-
-    font-family: "Adamina";
-    font-style: normal;
-    font-weight: 400;
-    font-size: 30px;
-    line-height: 49px;
-    text-align: center;
-
-    color: #393939;
-    z-index: 999;
-  }
-
-  .swiper-slide img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .swiper .swiper-pagination {
-    top: 0px;
-    bottom: auto !important;
-  }
-
-  .about-platform-header {
-    font-family: "Josefin Sans";
-    font-style: normal;
-    font-weight: 700;
-    font-size: 50px;
-    color: #7d4233;
-    white-space: nowrap;
-    margin-bottom: 30px;
-    z-index: 999;
-  }
-
-  .about-people {
-    min-height: 1000px;
-    position: relative;
-    width: 100%;
-    padding-top: 200px;
-    &::after {
-      content: "";
-      display: block;
-      background-image: url(/assets/img/angles.png);
-      background-repeat: repeat-y;
-      background-size: 100%;
-      height: 2000px;
-      width: 800px;
-      position: absolute;
-      top: 0px;
-      right: 0px;
-      z-index: -1;
-    }
-
-    .about-people-card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      img {
-        width: 500px;
-      }
-
-      &-body {
-        width: 430px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-
-        h4 {
-          font-family: "Inter";
-          font-style: normal;
-          font-weight: 900;
-          font-size: 36px;
-          line-height: 44px;
-          color: rgba(57, 57, 57, 0.9);
-          margin: 20px 0px;
-        }
-
-        p {
-          margin-bottom: 0px;
-        }
-
-        p,
-        b {
-          font-family: "Inter";
-          font-style: normal;
-          font-size: 24px;
-          line-height: 29px;
-          display: flex;
-          align-items: center;
-          color: #393939;
-        }
-      }
-    }
-
-    h1 {
-      text-align: center;
-      font-family: "Inter";
-      font-style: normal;
-      font-weight: 900;
-      font-size: 36px;
-      line-height: 44px;
-      color: rgba(125, 66, 51, 0.9);
-      margin-bottom: 50px;
     }
   }
 
@@ -221,42 +96,22 @@
       margin-top: 5px;
     }
     h1 {
+      text-align: center;
       margin-top: 3.5rem !important;
     }
-    .about-platform {
-      min-height: 100% !important;
-    }
-    .about-platform .after {
-      display: none;
-    }
-
-    .about-platform .before {
-      min-height: 100% !important;
-    }
-
-    .about-people {
-      padding-top: 50px !important;
-    }
-
-    .about-people-card {
-      &-body {
-        width: 100% !important;
-      }
-      img {
-        width: 100% !important;
-      }
-    }
-
-    .about-platform-header {
-      white-space: inherit;
-      font-size: 30px;
-      padding-top: 0px !important;
-    }
-    h1 {
-      text-align: center;
-    }
-    .about-platform .before {
-      background: url(/assets/img/swiper-1.png) !important;
-    }
   }
+}
+
+.lessons-title,
+.about-platform-title {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 800;
+  font-size: 22px;
+  color: #7d4233;
+  margin-bottom: 25px;
+}
+
+.about-platform-title {
+  padding-bottom: 100px;
 }

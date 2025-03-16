@@ -8,6 +8,7 @@ import { FileListComponent } from './file-list/file-list.component';
 import { CreateBuildRoutingModule } from './create-build-routing.module';
 import { SharedModule } from '../../shared/shared.module';
 import { VideoUploadComponent } from './video-upload/video-upload.component';
+import { LoaderComponent } from "../../shared/components/loader/loader.component";
 
 @NgModule({
   declarations: [CreateBuildPage, FileListComponent, VideoUploadComponent],
@@ -17,7 +18,8 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
     NgSelectModule,
     NgbDropdownModule,
     CreateBuildRoutingModule,
-    SharedModule
-  ]
+    SharedModule,
+    LoaderComponent
+]
 })
 export class CreateBuildModule { }
