@@ -75,8 +75,6 @@
         }
       }
 
-      .section-img {
-      }
 
       .section-img img {
         overflow: hidden;
@@ -100,6 +98,10 @@
       margin-top: 3.5rem !important;
     }
   }
+}
+
+.about-platform {
+  min-height: 100vh;
 }
 
 .lessons-title,

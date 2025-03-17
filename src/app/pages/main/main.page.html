@@ -71,6 +71,181 @@
   <section class="about-platform">
     <div class="container">
       <h1 class="about-platform-title">{{ "about-platform" | translate }}</h1>
+
+      <div class="carousel" #carousel>
+        <ng-container *ngIf="loading; else content">
+          <div class="carousel-wrapper">
+            <div
+              class="carousel-slide active d-flex align-items-center justify-content-center"
+            >
+              <div class="rotating-spinner">
+                <img src="/assets/svg/spinner.svg" alt="" />
+              </div>
+            </div>
+          </div>
+        </ng-container>
+        <ng-template #content>
+          <!-- <button class="carousel-btn prev text-dark" (click)="prevSlide()">
+            prev
+          </button> -->
+          <div class="carousel-wrapper">
+            <div
+              class="carousel-slide"
+              [ngClass]="{ 
+                active: 0 === currentSlide,
+                prev: 0 === (currentSlide - 1 + 3) % 3,
+                next: 0 === (currentSlide + 1) % 3
+              }"
+            >
+              <h2>Kirish</h2>
+              <div class="carousel-slide-wrapper">
+                <p class="mb-0">
+                  Zamonaviy ta’lim tizimida raqamli texnologiyalarni qo‘llash
+                  muhim ahamiyat kasb etmoqda. Ayniqsa, texnik fanlarni
+                  o‘qitishda innovatsion yondashuvlar ta’lim samaradorligini
+                  oshirishga xizmat qiladi. Shu nuqtayi nazardan, muhandislik
+                  grafikasi fanining barcha bo‘limlarini qamrab oluvchi elektron
+                  platformani ishlab chiqish dolzarb masalalardan biridir.
+                </p>
+                <p>
+                  Mazkur platforma O‘zbekistonning barcha oliy va texnik ta’lim
+                  muassasalarida o‘qitilayotgan muhandislik grafikasi fanining
+                  grafik topshiriqlari variantlarini tizimlashtirishga
+                  mo‘ljallangan. Platforma foydalanuvchilarga quyidagi
+                  imkoniyatlarni taqdim etadi:
+                </p>
+                <ul>
+                  <li>
+                    Muhandislik grafikasi fanining barcha bo‘limlari bo‘yicha
+                    grafik topshiriqlar variantlari bilan tanishish va ularni
+                    yuklab olish;
+                  </li>
+                  <li>
+                    Grafik topshiriqlarni bajarish uchun didaktik materiallar va
+                    adabiyotlardan foydalanish;
+                  </li>
+                  <li>
+                    Raqamli ta’lim muhitida muhandislik grafikasi bo‘yicha bilim
+                    va ko‘nikmalarni mustahkamlash.
+                  </li>
+                </ul>
+                <p>
+                  Ushbu platforma talabalar va o‘qituvchilar uchun muhandislik
+                  grafikasi fanini o‘rganish jarayonini yengillashtirish va
+                  ta’lim sifatini oshirishga xizmat qiladi. Uning mazmuni
+                  interaktiv yondashuv asosida shakllantirilgan bo‘lib,
+                  foydalanuvchilar o‘zlariga zarur bo‘lgan ma’lumotlarni tezkor
+                  topish va ulardan samarali foydalanish imkoniyatiga ega
+                  bo‘ladilar.
+                </p>
+              </div>
+            </div>
+
+            <div
+              class="carousel-slide"
+              [ngClass]="{ 
+                active: 1 === currentSlide,
+                prev: 1 === (currentSlide - 1 + 3) % 3,
+                next: 1 === (currentSlide + 1) % 3
+              }"
+            >
+              <h2>Mualliflar</h2>
+              <div class="carousel-slide-wrapper"></div>
+            </div>
+
+            <div
+              class="carousel-slide"
+              [ngClass]="{ 
+                active: 2 === currentSlide,
+                prev: 2 === (currentSlide - 1 + 3) % 3,
+                next: 2 === (currentSlide + 1) % 3
+              }"
+            >
+              <div
+                class="custom-height d-flex justify-content-center align-items-center"
+              >
+                <div class="container">
+                  <h2 class="text-center mb-4">Student Benefits</h2>
+                  <div class="row justify-content-around">
+                    <div class="col-md-4 feature-item text-center">
+                      <div class="feature-icon mb-3">
+                        <img
+                          src="/assets/svg/benefit1.svg"
+                          alt="Flexible Schedule"
+                          class="img-fluid"
+                          style="width: 64px"
+                        />
+                      </div>
+                      <h4>Flexible Schedule</h4>
+                      <p>Learn at your own pace and convenience</p>
+                    </div>
+                    <div class="col-md-4 feature-item text-center">
+                      <div class="feature-icon mb-3">
+                        <img
+                          src="/assets/svg/benefit2.svg"
+                          alt="Practical Skills"
+                          class="img-fluid"
+                          style="width: 64px"
+                        />
+                      </div>
+                      <h4>Practical Skills</h4>
+                      <p>Develop industry-relevant competencies</p>
+                    </div>
+                    <div class="col-md-4 feature-item text-center">
+                      <div class="feature-icon mb-3">
+                        <img
+                          src="/assets/svg/benefit3.svg"
+                          alt="Career Growth"
+                          class="img-fluid"
+                          style="width: 64px"
+                        />
+                      </div>
+                      <h4>Career Growth</h4>
+                      <p>Enhance your professional prospects</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- <button class="carousel-btn next text-dark" (click)="nextSlide()">
+            next
+          </button> -->
+        </ng-template>
+
+        <div class="carousel-indicators">
+          <div
+            class="carousel-indicator-item"
+            [ngClass]="{ active: 0 === currentSlide }"
+            (click)="goToSlide(0)"
+          >
+            <div class="dot"></div>
+            <div class="carousel-indicator-item-body">
+              <img src="/assets/img/carousel-1.svg" alt="" />
+            </div>
+          </div>
+          <div
+            class="carousel-indicator-item"
+            [ngClass]="{ active: 1 === currentSlide }"
+            (click)="goToSlide(1)"
+          >
+            <div class="dot"></div>
+            <div class="carousel-indicator-item-body">
+              <img src="/assets/img/carousel-2.png" alt="" />
+            </div>
+          </div>
+          <div
+            class="carousel-indicator-item"
+            [ngClass]="{ active: 2 === currentSlide }"
+            (click)="goToSlide(2)"
+          >
+            <div class="dot"></div>
+            <div class="carousel-indicator-item-body">
+              <img src="/assets/img/carousel-3.png" alt="" />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 </div>
