@@ -100,19 +100,19 @@
 }
 
 @media screen and (min-width: 1735px) {
-  .bg {
-    background-size: 100% 1300px !important;
-    min-height: 1300px !important;
-    max-height: 1300px !important;
-    height: 1300px !important;
-    .container {
-      height: 1300px !important;
-      min-height: 1300px !important;
-      max-height: 1300px !important;
-    }
-  }
+  // .bg {
+  //   background-size: 100% 1300px !important;
+  //   min-height: 1300px !important;
+  //   max-height: 1300px !important;
+  //   height: 1300px !important;
+  //   .container {
+  //     height: 1300px !important;
+  //     min-height: 1300px !important;
+  //     max-height: 1300px !important;
+  //   }
+  // }
 
-  .landing-header {
-    top: calc(1300px - 650px) !important;
-  }
+  // .landing-header {
+  //   top: calc(1300px - 650px) !important;
+  // }
 }

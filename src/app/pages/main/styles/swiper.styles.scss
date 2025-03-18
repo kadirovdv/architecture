@@ -1,11 +1,11 @@
 .carousel {
   position: relative;
   width: 100%;
-  min-height: 100%;
+  min-height: 100vh;
   height: 100%;
   margin: auto;
   padding-top: 60px;
-  background: url("/assets/img/carousel-bg.png") no-repeat center left;
+  overflow: hidden;
 }
 
 .carousel-wrapper {
