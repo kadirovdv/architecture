@@ -104,7 +104,6 @@
 }
 
 .about-platform {
-  min-height: 100%;
   position: relative;
   &::before {
     content: "";
@@ -114,6 +113,73 @@
     height: 100%;
     background: url("/assets/img/carousel-bg.png") no-repeat;
     background-size: 500px;
+  }
+  &-people {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    &-item {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-gap: 0px 30px;
+      width: 100%;
+      align-items: center;
+      p {
+        font-size: 16px !important;
+      }
+      &:first-child p {
+        text-align: start;
+      }
+      &:last-child p {
+        text-align: end;
+      }
+      .w-70 {
+        width: 70% !important;
+      }
+      position: relative;
+        &::before {
+          content: "";
+          display: block;
+          width: 2px;
+          height: 100%;
+          background: #7d4233;
+          position: absolute;
+          transform: translateX(-50%);
+          left: 50%;
+          top: 0px;
+      }
+
+      &-img:first-child {
+        position: relative;
+        &::after {
+          content: "";
+          display: block;
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: #7d4233;
+          position: absolute;
+          right: -20px;
+          top: 50%;
+        }
+      }
+      &-img:last-child {
+        position: relative;
+        display: flex;
+        justify-content: end;
+        &::after {
+          content: "";
+          display: block;
+          width: 10px;
+          height: 10px;
+          border-radius: 50%;
+          background: #7d4233;
+          position: absolute;
+          left: -20px;
+          top: 50%;
+        }
+      }
+    }
   }
 }
 
