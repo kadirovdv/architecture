@@ -18,7 +18,11 @@
           class="create-build-ng-select mb-4"
           placeholder="Fanni tanlang..."
         >
-          <ng-option *ngFor="let lesson of lessons" [value]="lesson">
+          <ng-option 
+            *ngFor="let lesson of lessons" 
+            [value]="lesson"
+            [disabled]="isLessonDisabled(lesson)"
+          >
             {{ lesson.lessonTitle?.uz }} - {{ lesson.lessonTitle?.ru }} - {{
             lesson.lessonTitle?.en }}
           </ng-option>

@@ -78,6 +78,10 @@ li {
     text-align: center !important;
   }
 
+  .ng-option-disabled span {
+    color: #9f4a4a !important;
+  }
+
   &:nth-child(2) .ng-value-container {
     color: #fff;
   }

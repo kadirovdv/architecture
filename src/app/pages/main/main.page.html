@@ -47,8 +47,7 @@
         *ngIf="websiteLessons?.length; else noData"
       >
         <div class="col-md-4" *ngFor="let item of websiteLessons">
-          <!-- [routerLink]="['/pages/lessons', item.id]" -->
-          <div class="section-card">
+          <div class="section-card" [routerLink]="['/pages/lessons', item.id]">
             <div class="section-content">
               <div class="section-img">
                 <img

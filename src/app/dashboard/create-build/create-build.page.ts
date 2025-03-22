@@ -17,7 +17,7 @@ import {
   Videos,
 } from 'src/app/shared/interfaces/interfaces';
 import { DropboxService } from 'src/app/shared/services/dropbox.service';
-import { concatMap, delay, from, Observable, tap, timer } from 'rxjs';
+import { concatMap, delay, from, Observable, tap, timer, forkJoin } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { VideoUploadComponent } from './video-upload/video-upload.component';
 import { LoaderService } from 'src/app/shared/services/loader.service';
@@ -31,6 +31,7 @@ import { LoadingService } from 'src/app/shared/services/loading.service';
 export class CreateBuildPage implements OnInit {
   @ViewChildren('hiddenInput') hiddenInputs!: QueryList<ElementRef>;
   lessons: Lesson[] = [];
+  websiteLessons: Lesson[] = [];
   lesson: Lesson | null = null;
   task: Task | any = null;
   uploadedFilesByCategory: any = {};
@@ -51,6 +52,7 @@ export class CreateBuildPage implements OnInit {
 
   ngOnInit(): void {
     this.getLessons();
+    this.getWebsiteLessons();
   }
 
   getLessons() {
@@ -63,6 +65,16 @@ export class CreateBuildPage implements OnInit {
         return dateA - dateB;
       });
     });
+  }
+
+  getWebsiteLessons() {
+    this.crudService.getDocuments('website-lessons').subscribe((res) => {
+      this.websiteLessons = res as Lesson[];
+    });
+  }
+
+  isLessonDisabled(lesson: Lesson): boolean {
+    return this.websiteLessons.some(websiteLesson => websiteLesson.lessonTitle?.uz === lesson.lessonTitle?.uz);
   }
 
   onFileSelected(

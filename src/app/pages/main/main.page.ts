@@ -9,7 +9,7 @@ import { SwiperService } from 'src/app/shared/services/swiper.service';
 import { BehaviorSubject, forkJoin, of } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { LoadingService } from 'src/app/shared/services/loading.service';
-
+import { ToggleNavVisibilityService } from 'src/app/shared/services/toggle.nav.visibility.service';
 @Component({
   selector: 'app-main',
   templateUrl: './main.page.html',
@@ -34,6 +34,7 @@ export class MainPage {
 
   constructor(
     private swiperService: SwiperService,
+    private navService: ToggleNavVisibilityService,
     private crudService: CrudService,
     private i18n: i18nService,
     private loaderService: LoadingService,
@@ -44,6 +45,7 @@ export class MainPage {
   }
 
   ngOnInit() {
+    this.navService.updateNavState(false);
     this.loaderService.show();
     this.getData();
     this.i18n.currentData.subscribe((lang) => {

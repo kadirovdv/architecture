@@ -41,6 +41,7 @@ export interface Lesson {
   index?: number;
   createdAt?: string;
   tasks?: Task[] | any[];
+  filePath?: string;
 }
 
 export interface LessonTitle {
