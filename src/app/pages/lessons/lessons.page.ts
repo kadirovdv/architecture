@@ -7,7 +7,7 @@ import {
   OnInit,
   ViewChild,
 } from '@angular/core';
-import { DomSanitizer } from '@angular/platform-browser';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CrudService } from 'src/app/shared/services/crud.service';
 import { DropboxService } from 'src/app/shared/services/dropbox.service';
 import { ToggleNavVisibilityService } from 'src/app/shared/services/toggle.nav.visibility.service';
@@ -141,6 +141,15 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
                 const dateB = new Date(b.createdAt || '').getTime();
                 return dateA - dateB;
               });
+              this.activatedRoute.params.subscribe((params) => {
+                this.selectedLesson = this.websiteLessons.find(
+                  (lesson) => lesson.id === params['id']
+                ) || null;
+                if (this.selectedLesson) {
+                  this.selectSlide(this.websiteLessons.indexOf(this.selectedLesson));
+                }
+              });
+
               this.loaderService.hideLoader();
             })
           );
@@ -177,14 +186,22 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     });
 
     this.currentSlideIndex = index;
-    const maxTranslateIndex = this.websiteLessons.length - this.visibleItems;
+    
+    // Adjust visible items based on total items
+    this.visibleItems = Math.min(4, this.websiteLessons.length);
+    const maxTranslateIndex = Math.max(0, this.websiteLessons.length - this.visibleItems);
     const centerOffset = Math.floor(this.visibleItems / 2);
 
-    let idealTranslate = -(index - centerOffset) * (this.slideWidth + this.slideGap);
-    const minTranslate = -((this.websiteLessons.length - this.visibleItems) * (this.slideWidth + this.slideGap));
-    const maxTranslate = 0;
+    // If we have fewer items than visible items, don't translate
+    if (this.websiteLessons.length <= this.visibleItems) {
+      this.currentTranslate = 0;
+    } else {
+      let idealTranslate = -(index - centerOffset) * (this.slideWidth + this.slideGap);
+      const minTranslate = -(maxTranslateIndex * (this.slideWidth + this.slideGap));
+      const maxTranslate = 0;
+      this.currentTranslate = Math.max(minTranslate, Math.min(maxTranslate, idealTranslate));
+    }
 
-    this.currentTranslate = Math.max(minTranslate, Math.min(maxTranslate, idealTranslate));
     this.updateSlidePosition();
   }
 
@@ -271,4 +288,13 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
         this.loaderService.hideLoader(true);
       });
   }
+
+  sanitizeUrl(url: string): SafeResourceUrl {
+    url = url.replace("dl=0", "raw=1");
+    const safeUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`;
+    const actualUrl = this.sanitizer.bypassSecurityTrustResourceUrl(safeUrl);
+    console.log("Office Viewer URL:", safeUrl);
+    return actualUrl;
+  }
+  
 }

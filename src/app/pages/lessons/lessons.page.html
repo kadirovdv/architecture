@@ -1,71 +1,98 @@
 <div class="lessons">
-  <div class="container">
-    <div class="carousel" #carousel>
-      <button 
-        class="carousel-btn prev" 
-        (click)="prevSlide()"
-        [attr.aria-label]="'Previous slide'"
-      >
-        <img src="./assets/img/slide-left.png" alt="Previous slide">
-      </button>
+  <div class="lessons-header">
+    <div class="container">
+      <div class="lessons-header-title">
+        <h1>{{ selectedLesson ? getTitle(selectedLesson) : '' }}</h1>
+        <h3>Grafik topshiriq sahifasi</h3>
+      </div>
+      <div class="carousel" #carousel>
+        <button
+          class="carousel-btn prev"
+          (click)="prevSlide()"
+          [attr.aria-label]="'Previous slide'"
+        >
+          <img src="./assets/img/slide-left.png" alt="Previous slide" />
+        </button>
 
-      <div class="carousel-wrapper">
-        <div class="carousel-slide" [class.active]="true">
-          <div class="container">
-            <div class="slides-container">
-              <div
-                class="slides-wrapper d-flex"
-                [style.transform]="'translateX(' + currentTranslate + 'px)'"
-                role="list"
-                aria-label="Lesson slides"
-              >
+        <div class="carousel-wrapper">
+          <div class="carousel-slide" [class.active]="true">
+            <div class="container">
+              <div class="slides-container">
                 <div
-                  *ngFor="let lesson of websiteLessons; let i = index"
-                  class="media-item"
-                  [class.active]="isActiveSlide(i)"
-                  (click)="selectSlide(i)"
-                  role="listitem"
-                  [attr.aria-label]="getTitle(lesson)"
-                  [attr.aria-current]="isActiveSlide(i) ? 'true' : 'false'"
+                  class="slides-wrapper d-flex"
+                  [style.transform]="'translateX(' + currentTranslate + 'px)'"
+                  role="list"
+                  aria-label="Lesson slides"
                 >
-                  <div class="lesson-image">
-                    <img
-                      [src]="lesson.thumbnail"
-                      [alt]="getTitle(lesson)"
-                      class="lesson-thumbnail"
-                      loading="lazy"
-                    />
+                  <div
+                    *ngFor="let lesson of websiteLessons; let i = index"
+                    class="media-item"
+                    [class.active]="isActiveSlide(i)"
+                    (click)="selectSlide(i)"
+                    role="listitem"
+                    [attr.aria-label]="getTitle(lesson)"
+                    [attr.aria-current]="isActiveSlide(i) ? 'true' : 'false'"
+                  >
+                    <div class="lesson-image">
+                      <img
+                        [src]="lesson.thumbnail"
+                        [alt]="getTitle(lesson)"
+                        class="lesson-thumbnail"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div class="lesson-title">{{ getTitle(lesson) }}</div>
                   </div>
-                  <div class="lesson-title">{{ getTitle(lesson) }}</div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+        <button
+          class="carousel-btn next"
+          (click)="nextSlide()"
+          [attr.aria-label]="'Next slide'"
+        >
+          <img src="./assets/img/slide-right.png" alt="Next slide" />
+        </button>
       </div>
-
-      <button 
-        class="carousel-btn next" 
-        (click)="nextSlide()"
-        [attr.aria-label]="'Next slide'"
-      >
-        <img src="./assets/img/slide-right.png" alt="Next slide">
-      </button>
     </div>
+  </div>
+  <div class="container">
     <div class="row">
       <div class="col-md-8">
         <div class="file-content">
-          <h3>
-            Grafik topshiriq variantlari
-          </h3>
+          <h3>Grafik topshiriq variantlari</h3>
+          
           <div class="file-content-body">
-            
+            <ng-container *ngFor="let task of selectedLesson?.tasks">
+              
+              <iframe
+              [src]="sanitizeUrl(task.firstBasedFiles?.taskExampleFiles.uz[0].url)"
+              width="100%"
+              height="500px"
+            >
+            </iframe>
+            </ng-container>
           </div>
         </div>
       </div>
       <div class="col-md-4">
         <div class="file-selection">
-          
+          <div class="file-selection-card">
+            <div class="file-selection-card-item">
+              <div class="file-selection-card-img">
+                <img
+                  src="./assets/img/slide-left.png"
+                  width="20px"
+                  alt="Lesson 1"
+                />
+              </div>
+              <div class="file-selection-card-title">
+                <h5>Grafik topshiriqni tanlang....</h5>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -17,7 +17,7 @@ import {
   Videos,
 } from 'src/app/shared/interfaces/interfaces';
 import { DropboxService } from 'src/app/shared/services/dropbox.service';
-import { concatMap, delay, from, Observable, tap, timer, forkJoin } from 'rxjs';
+import { concatMap, delay, from, Observable, tap, timer, forkJoin, switchMap } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { VideoUploadComponent } from './video-upload/video-upload.component';
 import { LoaderService } from 'src/app/shared/services/loader.service';
@@ -329,7 +329,7 @@ export class CreateBuildPage implements OnInit {
           const filePath = `/${fileItem.name}`;
           
           const upload$ = this.dropboxService.uploadFile(filePath, actualFile).pipe(
-            tap((response: any) => {
+            switchMap((response: any) => {
               const categoryArray = categoryPath.split('.');
               let target: any = uploadedFiles;
 
@@ -337,24 +337,27 @@ export class CreateBuildPage implements OnInit {
                 target = target[key];
               }
 
-              target[lang].push({
-                name: fileItem.name,
-                size: fileItem.size,
-                url: response.url || '',
-                path: response.path || '',
-                id: response.id || ''
-              });
-              
-              categoryStatus[categoryPath][lang].uploaded++;
+              return this.dropboxService.createSharedLink(response.path_display).pipe(
+                tap((link: any) => {
+                  target[lang].push({
+                    name: fileItem.name,
+                    size: fileItem.size,
+                    url: link || '',
+                    path: response.path_display || '',
+                    id: response || ''
+                  });
+                  categoryStatus[categoryPath][lang].uploaded++;
 
-              if (
-                categoryStatus[categoryPath][lang].uploaded ===
-                categoryStatus[categoryPath][lang].total
-              ) {
-                this.toastr.success(
-                  `${categoryPath} (${lang}) da fayllar muvaffaqiyatli yuklandi.`
-                );
-              }
+                  if (
+                    categoryStatus[categoryPath][lang].uploaded ===
+                    categoryStatus[categoryPath][lang].total
+                  ) {
+                    this.toastr.success(
+                      `${categoryPath} (${lang}) da fayllar muvaffaqiyatli yuklandi.`
+                    );
+                  }
+                })
+              );
             }),
             delay(1000 * index)
           );

@@ -3,11 +3,31 @@
 }
 
 .lessons {
-  padding: 60px 0px;
-  background: url(/assets/img/lessons-bg.png) no-repeat;
-  min-height: 100%;
-  background-size: cover;
-  background-position: 0px -50px;
+  &-header {
+    background: url(/assets/img/lessons-bg.png) no-repeat;
+    width: 100%;
+    min-height: 100%;
+    background-size: cover;
+    background-position: 0px -100px;
+    &-title {
+      width: 75%;
+      padding: 100px 0px 20px 0px;
+      h1 {
+        font-family: "Merriweather Sans";
+        font-style: normal;
+        font-weight: 400;
+        color: #ffffff;
+        font-size: 35px;
+      }
+      h3 {
+        font-family: "Merriweather Sans";
+        font-style: normal;
+        font-size: 25px;
+        font-weight: 400;
+        color: #ffffff;
+      }
+    }
+  }
   min-height: 100vh;
   .file-content {
     width: 100%;
@@ -27,6 +47,39 @@
       font-size: 20px;
       font-family: "Judson";
       text-align: center;
+    }
+  }
+
+  .file-selection {
+    width: 100%;
+    min-height: 100vh;
+    height: 100%;
+    &-card {
+      width: 100%;
+      background-color: #ffdfae;
+      border-radius: 10px;
+      padding: 20px;
+      &-item {
+        width: 100%;
+        background-color: #ffffff;
+        border-radius: 10px;
+        padding: 10px 20px;
+        &:first-child {
+          display: flex;
+          align-items: center;
+          h5 {
+            font-family: "Ramaraja";
+            font-weight: 400;
+            font-size: 20px;
+            color: rgba(100, 46, 32, 0.62);
+            margin-bottom: 0px;
+          }
+          img {
+            border-right: 1px solid #878686;
+            margin-right: 30px;
+          }
+        }
+      }
     }
   }
 }

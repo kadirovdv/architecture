@@ -32,7 +32,7 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
   showHelper = {
     uz: false,
     ru: false,
-    en: false
+    en: false,
   };
 
   lessonList: Array<LessonLangs> = [
@@ -49,38 +49,38 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
     {
       uz: 'GEOMETRIK CHIZMACHILIK',
       ru: 'ГЕОМЕТРИЧЕСКОЕ ЧЕРЧЕНИЕ',
-      en: 'GEOMETRICAL DRAWING'
+      en: 'GEOMETRICAL DRAWING',
     },
     {
       uz: 'PROYEKSION CHIZMACHILIK',
       ru: 'ПРОЕКЦИОННОЕ ЧЕРЧЕНИЕ',
-      en: 'PROJECTION DRAWING'
+      en: 'PROJECTION DRAWING',
     },
     {
       uz: 'MASHINASOZLIK CHIZMACHILIGI',
       ru: 'МАШИНОСТРОИТЕЛЬНОЕ ЧЕРЧЕНИЕ',
-      en: 'MECHANICAL DRAWING'
+      en: 'MECHANICAL DRAWING',
     },
     {
       uz: 'TEXNIK CHIZMACHILIK',
       ru: 'ТЕХНИЧЕСКОЕ ЧЕРЧЕНИЕ',
-      en: 'TECHNICAL DRAWING'
+      en: 'TECHNICAL DRAWING',
     },
     {
       uz: 'TOPOGRAFIK CHIZMACHILIK',
       ru: 'ТОПОГРАФИЧЕСКОЕ ЧЕРЧЕНИЕ',
-      en: 'TOPOGRAPHICAL DRAWING'
+      en: 'TOPOGRAPHICAL DRAWING',
     },
     {
       uz: 'ARXITEKTURA VA QURILISH CHIZMACHILIGI',
       ru: 'АРХИТЕКТУРНО- СТРОИТЕЛЬНОЕ ЧЕРЧЕНИЕ',
-      en: 'ARCHITECTURE AND CONSTRUCTION DRAWING'
+      en: 'ARCHITECTURE AND CONSTRUCTION DRAWING',
     },
     {
       uz: 'KOMPYUTER GRAFIKASI',
       ru: 'КОМПЬЮТЕРНАЯ ГРАФИКА',
-      en: 'COMPUTER GRAPHICS'
-    }
+      en: 'COMPUTER GRAPHICS',
+    },
   ];
 
   filteredLessonList: Array<LessonLangs> = this.lessonList;
@@ -172,6 +172,8 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
 
     const saveLesson$ = (thumbnailPath: string) => {
       const lessonData = {
+        index: this.lessons.length + 1,
+        createdAt: new Date().toISOString(),
         lessonTitle: {
           uz: this.createLessonsForm.value.uz,
           ru: this.createLessonsForm.value.ru,
@@ -187,11 +189,7 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
           lessonData
         );
       } else {
-        return this.crudService.addDocument('lessons', {
-          ...lessonData,
-          createdAt: new Date().toISOString(),
-          index: this.lessons.length + 1,
-        });
+        return this.crudService.addDocument('lessons', lessonData);
       }
     };
 
@@ -240,7 +238,7 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
 
   findLesson(event: any, lang: 'uz' | 'ru' | 'en') {
     const searchValue = event.target.value.toLowerCase();
-    this.filteredLessonList = this.lessonList.filter(lesson => 
+    this.filteredLessonList = this.lessonList.filter((lesson) =>
       lesson[lang].toLowerCase().includes(searchValue)
     );
   }
