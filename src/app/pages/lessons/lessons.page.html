@@ -11,7 +11,7 @@
           (click)="prevSlide()"
           [attr.aria-label]="'Previous slide'"
         >
-          <img src="./assets/img/slide-left.png" alt="Previous slide" />
+          <img src="./assets/svg/slide-left.svg" alt="Previous slide" />
         </button>
 
         <div class="carousel-wrapper">
@@ -53,7 +53,7 @@
           (click)="nextSlide()"
           [attr.aria-label]="'Next slide'"
         >
-          <img src="./assets/img/slide-right.png" alt="Next slide" />
+          <img src="./assets/svg/slide-right.svg" alt="Next slide" />
         </button>
       </div>
     </div>
@@ -63,16 +63,15 @@
       <div class="col-md-8">
         <div class="file-content">
           <h3>Grafik topshiriq variantlari</h3>
-          
+
           <div class="file-content-body">
             <ng-container *ngFor="let task of selectedLesson?.tasks">
-              
               <iframe
-              [src]="sanitizeUrl(task.firstBasedFiles?.taskExampleFiles.uz[0].url)"
-              width="100%"
-              height="500px"
-            >
-            </iframe>
+                [src]="sanitizeUrl(task.firstBasedFiles?.taskExampleFiles.uz[0].url)"
+                width="100%"
+                height="500px"
+              >
+              </iframe>
             </ng-container>
           </div>
         </div>
@@ -80,11 +79,23 @@
       <div class="col-md-4">
         <div class="file-selection">
           <div class="file-selection-card">
+            <div class="file-selection-card-item file-selection-card-item-borderfull">
+              <div class="file-selection-card-img ">
+                <img
+                  src="./assets/svg/slide-left.svg"
+                  width="20px"
+                  alt="Lesson 1"
+                />
+              </div>
+              <div class="file-selection-card-title">
+                <h5>Grafik topshiriqni tanlang....</h5>
+              </div>
+            </div>
             <div class="file-selection-card-item">
               <div class="file-selection-card-img">
                 <img
-                  src="./assets/img/slide-left.png"
-                  width="20px"
+                  src="/assets/img/file-selection-1.png"
+                  width="100%"
                   alt="Lesson 1"
                 />
               </div>

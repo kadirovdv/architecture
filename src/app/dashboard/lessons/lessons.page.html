@@ -56,13 +56,13 @@
             <div class="my-1 ms-1" *ngFor="let item of lesson.tasks">
               <span class="d-flex align-items-center">
                 {{ item.index }}. {{ item.title }}
-                <!-- <img
+                <img
                   src="/assets/svg/trash.svg"
                   width="20px"
                   alt=""
                   class="cursor-pointer ms-1"
                   (click)="deleteTaskFromLesson(item)"
-                /> -->
+                />
               </span>
             </div>
           </div>
