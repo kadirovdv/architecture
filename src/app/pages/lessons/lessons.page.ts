@@ -15,7 +15,7 @@ import { switchMap, take, tap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { i18nService } from 'src/app/shared/services/i18n.service';
 import { LoaderService } from 'src/app/shared/services/loader.service';
-import { Lesson } from 'src/app/shared/interfaces/interfaces';
+import { Lesson, Task, FirstClassFileGroups, SecondClassFileGroups } from 'src/app/shared/interfaces/interfaces';
 import { BehaviorSubject, forkJoin, of, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -34,7 +34,6 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   private thumbnailsLoaded = new BehaviorSubject<number>(0);
   Math = Math;
 
-  // Carousel state
   currentSlideIndex = 0;
   slideWidth = 200;
   activeSlideWidth = 220;
@@ -45,6 +44,27 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   private endX = 0;
   private isDragging = false;
   selectedLesson: Lesson | null = null;
+
+  currentFileUrl: SafeResourceUrl | null = null;
+  isLoadingFile = false;
+
+  selectedFiles: {
+    firstBasedFiles: FirstClassFileGroups;
+    secondBasedFiles: SecondClassFileGroups;
+  } = {
+    firstBasedFiles: {
+      taskExampleFiles: { uz: [], ru: [], en: [] },
+      taskSolutionFiles: { uz: [], ru: [], en: [] }
+    },
+    secondBasedFiles: {
+      taskTitleFiles: { uz: [], ru: [], en: [] },
+      taskPresentationFiles: { uz: [], ru: [], en: [] },
+      taskLiteratureFiles: { uz: [], ru: [], en: [] },
+      taskVideoUrls: []
+    }
+  };
+
+  private sanitizedUrls = new Map<string, SafeResourceUrl>();
 
   constructor(
     private navService: ToggleNavVisibilityService,
@@ -76,7 +96,10 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
     this.i18n.currentData
       .pipe(takeUntil(this.destroy$))
-      .subscribe((lang) => (this.lang = lang));
+      .subscribe((lang) => {
+        this.lang = lang;
+        this.updateFilesOnLanguageChange();
+      });
 
     this.thumbnailsLoaded
       .pipe(takeUntil(this.destroy$))
@@ -142,11 +165,14 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
                 return dateA - dateB;
               });
               this.activatedRoute.params.subscribe((params) => {
-                this.selectedLesson = this.websiteLessons.find(
-                  (lesson) => lesson.id === params['id']
-                ) || null;
+                this.selectedLesson =
+                  this.websiteLessons.find(
+                    (lesson) => lesson.id === params['id']
+                  ) || null;
                 if (this.selectedLesson) {
-                  this.selectSlide(this.websiteLessons.indexOf(this.selectedLesson));
+                  this.selectSlide(
+                    this.websiteLessons.indexOf(this.selectedLesson)
+                  );
                 }
               });
 
@@ -176,30 +202,38 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   selectSlide(index: number): void {
-    if (index === this.currentSlideIndex || index < 0 || index >= this.websiteLessons.length) return;
-    
-    this.selectedLesson = this.websiteLessons[index];
-    console.log('Selected Lesson:', {
-      title: this.getTitle(this.selectedLesson),
-      index: index,
-      lesson: this.selectedLesson
-    });
+    if (
+      index === this.currentSlideIndex ||
+      index < 0 ||
+      index >= this.websiteLessons.length
+    )
+      return;
 
+    this.selectedLesson = this.websiteLessons[index];
     this.currentSlideIndex = index;
-    
-    // Adjust visible items based on total items
+    this.setLessonFiles('firstBasedFiles', 'taskExampleFiles');
+
     this.visibleItems = Math.min(4, this.websiteLessons.length);
-    const maxTranslateIndex = Math.max(0, this.websiteLessons.length - this.visibleItems);
+    const maxTranslateIndex = Math.max(
+      0,
+      this.websiteLessons.length - this.visibleItems
+    );
     const centerOffset = Math.floor(this.visibleItems / 2);
 
-    // If we have fewer items than visible items, don't translate
     if (this.websiteLessons.length <= this.visibleItems) {
       this.currentTranslate = 0;
     } else {
-      let idealTranslate = -(index - centerOffset) * (this.slideWidth + this.slideGap);
-      const minTranslate = -(maxTranslateIndex * (this.slideWidth + this.slideGap));
+      let idealTranslate =
+        -(index - centerOffset) * (this.slideWidth + this.slideGap);
+      const minTranslate = -(
+        maxTranslateIndex *
+        (this.slideWidth + this.slideGap)
+      );
       const maxTranslate = 0;
-      this.currentTranslate = Math.max(minTranslate, Math.min(maxTranslate, idealTranslate));
+      this.currentTranslate = Math.max(
+        minTranslate,
+        Math.min(maxTranslate, idealTranslate)
+      );
     }
 
     this.updateSlidePosition();
@@ -216,7 +250,6 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  // Touch Events
   @HostListener('touchstart', ['$event'])
   onTouchStart(event: TouchEvent): void {
     if (this.isClickableElement(event.target as HTMLElement)) return;
@@ -230,6 +263,7 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     this.isDragging = false;
     this.endX = event.changedTouches[0].clientX;
     this.handleSwipe();
+    this.setLessonFiles('firstBasedFiles', 'taskExampleFiles');
   }
 
   private isClickableElement(element: HTMLElement): boolean {
@@ -267,15 +301,13 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  // Utility Methods
   isActiveSlide(index: number): boolean {
     return index === this.currentSlideIndex;
   }
 
   getTitle(lesson: Lesson): string {
     if (!lesson.lessonTitle || !this.lang) return '';
-    const lang = this.lang as 'uz' | 'ru' | 'en';
-    return lesson.lessonTitle[lang] || '';
+    return lesson.lessonTitle[this.lang as keyof typeof lesson.lessonTitle] || '';
   }
 
   openFileInNewTab(filePath: string): void {
@@ -290,11 +322,54 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   sanitizeUrl(url: string): SafeResourceUrl {
+    if (!url) return '';
+    if (this.sanitizedUrls.has(url)) {
+      return this.sanitizedUrls.get(url)!;
+    }
+
     url = url.replace("dl=0", "raw=1");
-    const safeUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`;
-    const actualUrl = this.sanitizer.bypassSecurityTrustResourceUrl(safeUrl);
-    console.log("Office Viewer URL:", safeUrl);
-    return actualUrl;
+    const encodedUrl = encodeURIComponent(url);
+    const viewerUrl = `https://docs.google.com/viewer?url=${encodedUrl}&embedded=true`;
+    
+    const safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl);
+    this.sanitizedUrls.set(url, safeUrl);
+    return safeUrl;
   }
-  
+
+  setLessonFiles(category: 'firstBasedFiles' | 'secondBasedFiles', fileType: string): void {
+    if (!this.selectedLesson?.tasks) return;
+
+    // Clear the URL cache when changing files
+    this.sanitizedUrls.clear();
+
+    this.selectedFiles = {
+      firstBasedFiles: {
+        taskExampleFiles: { uz: [], ru: [], en: [] },
+        taskSolutionFiles: { uz: [], ru: [], en: [] }
+      },
+      secondBasedFiles: {
+        taskTitleFiles: { uz: [], ru: [], en: [] },
+        taskPresentationFiles: { uz: [], ru: [], en: [] },
+        taskLiteratureFiles: { uz: [], ru: [], en: [] },
+        taskVideoUrls: []
+      }
+    };
+
+    this.selectedLesson.tasks.forEach((task: Task) => {
+      const files = task[category]?.[fileType];
+      if (files) {
+        if (category === 'firstBasedFiles') {
+          this.selectedFiles.firstBasedFiles[fileType as keyof FirstClassFileGroups] = files;
+        } else {
+          this.selectedFiles.secondBasedFiles[fileType as keyof SecondClassFileGroups] = files;
+        }
+      }
+    });
+  }
+
+  private updateFilesOnLanguageChange(): void {
+    if (this.selectedLesson) {
+      this.setLessonFiles('firstBasedFiles', 'taskExampleFiles');
+    }
+  }
 }

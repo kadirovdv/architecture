@@ -32,6 +32,9 @@ export interface Videos {
 export interface FileItem {
   name: string;
   size: number;
+  url?: string;
+  path?: string;
+  id?: string;
 }
 
 export interface Lesson {

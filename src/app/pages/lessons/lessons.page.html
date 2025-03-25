@@ -63,24 +63,90 @@
       <div class="col-md-8">
         <div class="file-content">
           <h3>Grafik topshiriq variantlari</h3>
-
           <div class="file-content-body">
-            <ng-container *ngFor="let task of selectedLesson?.tasks">
-              <iframe
-                [src]="sanitizeUrl(task.firstBasedFiles?.taskExampleFiles.uz[0].url)"
-                width="100%"
-                height="500px"
-              >
-              </iframe>
+            <!-- First Based Files -->
+            <!-- <ng-container *ngIf="selectedFiles?.firstBasedFiles?.taskExampleFiles?.[lang]?.length">
+              <div class="file-section">
+                <h4>Task Files</h4>
+                <div class="file-preview" *ngFor="let file of selectedFiles?.firstBasedFiles?.taskExampleFiles?.[lang]">
+                  <div *ngIf="isLoadingFile" class="loading-spinner">
+                    Loading...
+                  </div>
+                  <iframe
+                    *ngIf="!isLoadingFile"
+                    [src]="file?.url || ''"
+                    width="100%"
+                    height="1000px"
+                    frameborder="0">
+                  </iframe>
+                </div>
+              </div>
+            </ng-container> -->
+
+            <!-- <ng-container *ngIf="selectedFiles?.firstBasedFiles?.taskSolutionFiles?.[lang]?.length">
+              <div class="file-section">
+                <h4>Solution Files</h4>
+                <div class="file-preview" *ngFor="let file of selectedFiles?.firstBasedFiles?.taskSolutionFiles?.[lang]">
+                  <div *ngIf="isLoadingFile" class="loading-spinner">
+                    Loading...
+                  </div>
+                  <iframe
+                    *ngIf="!isLoadingFile"
+                    [src]="file?.url || ''"
+                    width="100%"
+                    height="1000px"
+                    frameborder="0">
+                  </iframe>
+                </div>
+              </div>
+            </ng-container> -->
+
+            <!-- Second Based Files -->
+            <ng-container *ngIf="selectedFiles?.secondBasedFiles?.taskPresentationFiles?.[lang]?.length">
+              <div class="file-section">
+                <h4>Presentation Files</h4>
+                <div class="file-preview" *ngFor="let file of selectedFiles?.secondBasedFiles?.taskPresentationFiles?.[lang]">
+                  <div *ngIf="isLoadingFile" class="loading-spinner">
+                    Loading...
+                  </div>
+                  <iframe
+                    *ngIf="!isLoadingFile"
+                    [src]="sanitizeUrl(file?.url || '')"
+                    width="100%"
+                    height="1000px"
+                    frameborder="0">
+                  </iframe>
+                </div>
+              </div>
             </ng-container>
+
+            <!-- <ng-container *ngIf="selectedFiles?.secondBasedFiles?.taskTitleFiles?.[lang]?.length">
+              <div class="file-section">
+                <h4>Title Files</h4>
+                <div class="file-preview" *ngFor="let file of selectedFiles?.secondBasedFiles?.taskTitleFiles?.[lang]">
+                  <div *ngIf="isLoadingFile" class="loading-spinner">
+                    Loading...
+                  </div>
+                  <iframe
+                    *ngIf="!isLoadingFile"
+                    [src]="file?.url || ''"
+                    width="100%"
+                    height="1000px"
+                    frameborder="0">
+                  </iframe>
+                </div>
+              </div>
+            </ng-container> -->
           </div>
         </div>
       </div>
       <div class="col-md-4">
         <div class="file-selection">
           <div class="file-selection-card">
-            <div class="file-selection-card-item file-selection-card-item-borderfull">
-              <div class="file-selection-card-img ">
+            <div
+              class="file-selection-card-item file-selection-card-item-borderfull"
+            >
+              <div class="file-selection-card-img">
                 <img
                   src="./assets/svg/slide-left.svg"
                   width="20px"
@@ -91,16 +157,65 @@
                 <h5>Grafik topshiriqni tanlang....</h5>
               </div>
             </div>
-            <div class="file-selection-card-item">
+            <div
+              class="file-selection-card-item file-selection-card-item-wrap"
+              (click)="setLessonFiles('firstBasedFiles', 'taskExampleFiles')"
+            >
               <div class="file-selection-card-img">
-                <img
-                  src="/assets/img/file-selection-1.png"
-                  width="100%"
-                  alt="Lesson 1"
-                />
+                <img src="/assets/img/file-selection-1.png" alt="Lesson 1" />
               </div>
               <div class="file-selection-card-title">
-                <h5>Grafik topshiriqni tanlang....</h5>
+                <h5>Grafik topshiriq variantlari</h5>
+              </div>
+            </div>
+            <div
+              class="file-selection-card-item file-selection-card-item-wrap"
+              (click)="setLessonFiles('firstBasedFiles', 'taskSolutionFiles')"
+            >
+              <div class="file-selection-card-img">
+                <img src="/assets/img/file-selection-2.png" alt="Lesson 1" />
+              </div>
+              <div class="file-selection-card-title">
+                <h5>Grafik topshiriq yechimi namunasi</h5>
+              </div>
+            </div>
+          </div>
+          <div class="file-selection-card file-selection-card-bigger">
+            <div class="file-selection-card-item" (click)="setLessonFiles('secondBasedFiles', 'taskTitleFiles')">
+              <div class="file-selection-card-title">
+                <h5>Ma'ruza matni</h5>
+              </div>
+            </div>
+            <div class="file-selection-card-item" (click)="setLessonFiles('secondBasedFiles', 'taskPresentationFiles')">
+              <div class="file-selection-card-title">
+                <h5>Prezentasiya</h5>
+              </div>
+            </div>
+            <div class="file-selection-card-item" (click)="setLessonFiles('secondBasedFiles', 'taskVideoUrls')">
+              <div class="file-selection-card-title">
+                <h5>Video material</h5>
+              </div>
+            </div>
+          </div>
+          <div class="file-selection-card">
+            <div
+              class="file-selection-card-item file-selection-card-item-borderfull flex-column align-items-stretch"
+              (click)="setLessonFiles('secondBasedFiles', 'taskLiteratureFiles')"
+            >
+              <div class="file-selectrion-card-img">
+                <img src="/assets/img/file-selection-3.png" alt="" />
+              </div>
+              <div class="d-flex mt-3">
+                <div class="file-selection-card-img me-0">
+                  <img
+                    src="./assets/svg/slide-left.svg"
+                    width="20px"
+                    alt="Lesson 1"
+                  />
+                </div>
+                <div class="file-selection-card-title w-100">
+                  <h5 class="text-center">Adabiyotlar</h5>
+                </div>
               </div>
             </div>
           </div>
