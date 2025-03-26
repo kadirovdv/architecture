@@ -6,6 +6,8 @@ import {
   OnDestroy,
   OnInit,
   ViewChild,
+  ViewChildren,
+  QueryList,
 } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CrudService } from 'src/app/shared/services/crud.service';
@@ -28,11 +30,13 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
 
   @ViewChild('carousel') carousel!: ElementRef;
+  @ViewChildren('pdfViewer') pdfViewers!: QueryList<ElementRef>;
 
   lang = '';
   websiteLessons: Lesson[] = [];
   private thumbnailsLoaded = new BehaviorSubject<number>(0);
   Math = Math;
+  iframeErrors: { [key: string]: boolean } = {};
 
   currentSlideIndex = 0;
   slideWidth = 200;
@@ -48,10 +52,10 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   currentFileUrl: SafeResourceUrl | null = null;
   isLoadingFile = false;
 
-  selectedFiles: {
+  private selectedFilesSubject = new BehaviorSubject<{
     firstBasedFiles: FirstClassFileGroups;
     secondBasedFiles: SecondClassFileGroups;
-  } = {
+  }>({
     firstBasedFiles: {
       taskExampleFiles: { uz: [], ru: [], en: [] },
       taskSolutionFiles: { uz: [], ru: [], en: [] }
@@ -62,7 +66,14 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       taskLiteratureFiles: { uz: [], ru: [], en: [] },
       taskVideoUrls: []
     }
-  };
+  });
+
+  selectedFiles$ = this.selectedFilesSubject.asObservable();
+  selectedFiles = this.selectedFilesSubject.value;
+
+  private currentFileTypeSubject = new BehaviorSubject<string>('taskExampleFiles');
+  currentFileType$ = this.currentFileTypeSubject.asObservable();
+  currentFileType = this.currentFileTypeSubject.value;
 
   private sanitizedUrls = new Map<string, SafeResourceUrl>();
 
@@ -74,7 +85,21 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     private i18n: i18nService,
     private loaderService: LoaderService,
     private sanitizer: DomSanitizer
-  ) {}
+  ) {
+    // Subscribe to selectedFiles changes
+    this.selectedFiles$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(files => {
+      this.selectedFiles = files;
+    });
+
+    // Subscribe to currentFileType changes
+    this.currentFileType$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(type => {
+      this.currentFileType = type;
+    });
+  }
 
   ngOnInit(): void {
     this.initializeComponent();
@@ -173,6 +198,7 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
                   this.selectSlide(
                     this.websiteLessons.indexOf(this.selectedLesson)
                   );
+                  this.setLessonFiles('firstBasedFiles', this.currentFileType);
                 }
               });
 
@@ -211,8 +237,35 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
     this.selectedLesson = this.websiteLessons[index];
     this.currentSlideIndex = index;
-    this.setLessonFiles('firstBasedFiles', 'taskExampleFiles');
+    this.currentFileTypeSubject.next('taskExampleFiles');
+    
+    // Reset and load files immediately
+    const newFiles = {
+      firstBasedFiles: {
+        taskExampleFiles: { uz: [], ru: [], en: [] },
+        taskSolutionFiles: { uz: [], ru: [], en: [] }
+      },
+      secondBasedFiles: {
+        taskTitleFiles: { uz: [], ru: [], en: [] },
+        taskPresentationFiles: { uz: [], ru: [], en: [] },
+        taskLiteratureFiles: { uz: [], ru: [], en: [] },
+        taskVideoUrls: []
+      }
+    };
 
+    // Load files for the selected lesson
+    if (this.selectedLesson?.tasks) {
+      this.selectedLesson.tasks.forEach((task: Task) => {
+        const files = task.firstBasedFiles?.taskExampleFiles;
+        if (files) {
+          newFiles.firstBasedFiles.taskExampleFiles = files;
+        }
+      });
+    }
+
+    this.selectedFilesSubject.next(newFiles);
+
+    // Update carousel position
     this.visibleItems = Math.min(4, this.websiteLessons.length);
     const maxTranslateIndex = Math.max(
       0,
@@ -263,7 +316,6 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     this.isDragging = false;
     this.endX = event.changedTouches[0].clientX;
     this.handleSwipe();
-    this.setLessonFiles('firstBasedFiles', 'taskExampleFiles');
   }
 
   private isClickableElement(element: HTMLElement): boolean {
@@ -337,18 +389,31 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
   sanitizeUrl(url: string): SafeResourceUrl {
     if (!url) return '';
+    
+    // Check if we already have this URL cached
+    if (this.sanitizedUrls.has(url)) {
+      return this.sanitizedUrls.get(url)!;
+    }
+
     const sanitizedUrl = this.sanitizePdfUrl(url);
     const encodedUrl = encodeURIComponent(sanitizedUrl);
-    const safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(`https://docs.google.com/viewer?url=${encodedUrl}&embedded=true`);
+    const safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+      `https://docs.google.com/viewer?url=${encodedUrl}&embedded=true`
+    );
+
+    // Cache the result
+    this.sanitizedUrls.set(url, safeUrl);
     return safeUrl;
   }
 
   setLessonFiles(category: 'firstBasedFiles' | 'secondBasedFiles', fileType: string): void {
     if (!this.selectedLesson?.tasks) return;
 
-    this.sanitizedUrls.clear();
+    this.isLoadingFile = true;
+    this.currentFileTypeSubject.next(fileType);
+    this.sanitizedUrls.clear(); // Clear cache when changing files
 
-    this.selectedFiles = {
+    const newFiles = {
       firstBasedFiles: {
         taskExampleFiles: { uz: [], ru: [], en: [] },
         taskSolutionFiles: { uz: [], ru: [], en: [] }
@@ -365,19 +430,39 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       const files = task[category]?.[fileType];
       if (files) {
         if (category === 'firstBasedFiles') {
-          this.selectedFiles.firstBasedFiles[fileType as keyof FirstClassFileGroups] = files;
+          newFiles.firstBasedFiles[fileType as keyof FirstClassFileGroups] = files;
         } else {
-          this.selectedFiles.secondBasedFiles[fileType as keyof SecondClassFileGroups] = files;
+          newFiles.secondBasedFiles[fileType as keyof SecondClassFileGroups] = files;
         }
       }
     });
+
+    this.selectedFilesSubject.next(newFiles);
+    setTimeout(() => {
+      this.isLoadingFile = false;
+    }, Math.abs(this.currentSlideIndex - this.websiteLessons.length) * 1000);
   }
 
   private updateFilesOnLanguageChange(): void {
     if (this.selectedLesson) {
-      this.setLessonFiles('firstBasedFiles', 'taskExampleFiles');
+      this.setLessonFiles('firstBasedFiles', this.currentFileType);
     }
   }
 
-  
+  onIframeLoad(fileId: string | undefined) {
+    if (!fileId) return;
+    console.log('✅ PDF loaded successfully!');
+    this.iframeErrors[fileId] = false;
+  }
+
+  onIframeError(fileId: string | undefined) {
+    if (!fileId) return;
+    console.log('❌ Error loading PDF');
+    this.iframeErrors[fileId] = true;
+  }
+
+  hasIframeError(url: string | undefined): boolean {
+    if (!url) return false;
+    return this.iframeErrors[url] || false;
+  }
 }

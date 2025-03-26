@@ -64,76 +64,81 @@
         <div class="file-content">
           <h3>Grafik topshiriq variantlari</h3>
           <div class="file-content-body">
+            <div *ngIf="isLoadingFile" class="skeleton-loader"></div>
             <!-- First Based Files -->
-            <ng-container *ngIf="selectedFiles?.firstBasedFiles?.taskExampleFiles?.[lang]?.length">
+            <ng-container *ngIf="!isLoadingFile && selectedFiles?.firstBasedFiles?.taskExampleFiles?.[lang]?.length">
               <div class="file-section">
-                <h4>Task Files</h4>
                 <div class="file-preview" *ngFor="let file of selectedFiles?.firstBasedFiles?.taskExampleFiles?.[lang]">
-                  <div *ngIf="isLoadingFile" class="loading-spinner">
-                    Loading...
-                  </div>
                   <iframe
-                    *ngIf="!isLoadingFile"
+                    #pdfViewer
                     [src]="sanitizeUrl(file?.url || '')"
                     width="100%"
                     height="1000px"
-                    frameborder="0">
+                    frameborder="0"
+                    (load)="onIframeLoad(file?.url)"
+                    (error)="onIframeError(file?.url)">
                   </iframe>
+                  <div *ngIf="hasIframeError(file?.url)" class="error-message">
+                    ❌ PDF failed to load. Please check the file link.
+                  </div>
                 </div>
               </div>
             </ng-container>
 
-            <ng-container *ngIf="selectedFiles?.firstBasedFiles?.taskSolutionFiles?.[lang]?.length">
+            <ng-container *ngIf="!isLoadingFile && selectedFiles?.firstBasedFiles?.taskSolutionFiles?.[lang]?.length">
               <div class="file-section">
-                <h4>Solution Files</h4>
                 <div class="file-preview" *ngFor="let file of selectedFiles?.firstBasedFiles?.taskSolutionFiles?.[lang]">
-                  <div *ngIf="isLoadingFile" class="loading-spinner">
-                    Loading...
-                  </div>
                   <iframe
-                    *ngIf="!isLoadingFile"
+                    #pdfViewer
                     [src]="sanitizeUrl(file?.url || '')"
                     width="100%"
                     height="1000px"
-                    frameborder="0">
+                    frameborder="0"
+                    (load)="onIframeLoad(file?.url)"
+                    (error)="onIframeError(file?.url)">
                   </iframe>
+                  <div *ngIf="hasIframeError(file?.url)" class="error-message">
+                    ❌ PDF failed to load. Please check the file link.
+                  </div>
                 </div>
               </div>
             </ng-container>
 
             <!-- Second Based Files -->
-            <ng-container *ngIf="selectedFiles?.secondBasedFiles?.taskPresentationFiles?.[lang]?.length">
+            <ng-container *ngIf="!isLoadingFile && selectedFiles?.secondBasedFiles?.taskPresentationFiles?.[lang]?.length">
               <div class="file-section">
-                <h4>Presentation Files</h4>
                 <div class="file-preview" *ngFor="let file of selectedFiles?.secondBasedFiles?.taskPresentationFiles?.[lang]">
-                  <div *ngIf="isLoadingFile" class="loading-spinner">
-                    Loading...
-                  </div>
                   <iframe
-                    *ngIf="!isLoadingFile"
+                    #pdfViewer
                     [src]="sanitizeUrl(file?.url || '')"
                     width="100%"
                     height="1000px"
-                    frameborder="0">
+                    frameborder="0"
+                    (load)="onIframeLoad(file?.url)"
+                    (error)="onIframeError(file?.url)">
                   </iframe>
+                  <div *ngIf="hasIframeError(file?.url)" class="error-message">
+                    ❌ PDF failed to load. Please check the file link.
+                  </div>
                 </div>
               </div>
             </ng-container>
 
-            <ng-container *ngIf="selectedFiles?.secondBasedFiles?.taskTitleFiles?.[lang]?.length">
+            <ng-container *ngIf="!isLoadingFile && selectedFiles?.secondBasedFiles?.taskTitleFiles?.[lang]?.length">
               <div class="file-section">
-                <h4>Title Files</h4>
                 <div class="file-preview" *ngFor="let file of selectedFiles?.secondBasedFiles?.taskTitleFiles?.[lang]">
-                  <div *ngIf="isLoadingFile" class="loading-spinner">
-                    Loading...
-                  </div>
                   <iframe
-                    *ngIf="!isLoadingFile"
+                    #pdfViewer
                     [src]="sanitizeUrl(file?.url || '')"
                     width="100%"
                     height="1000px"
-                    frameborder="0">
+                    frameborder="0"
+                    (load)="onIframeLoad(file?.url)"
+                    (error)="onIframeError(file?.url)">
                   </iframe>
+                  <div *ngIf="hasIframeError(file?.url)" class="error-message">
+                    ❌ PDF failed to load. Please check the file link.
+                  </div>
                 </div>
               </div>
             </ng-container>
@@ -159,6 +164,7 @@
             </div>
             <div
               class="file-selection-card-item file-selection-card-item-wrap"
+              [class.active]="selectedFiles.firstBasedFiles.taskExampleFiles && selectedFiles.firstBasedFiles.taskExampleFiles[lang]?.length"
               (click)="setLessonFiles('firstBasedFiles', 'taskExampleFiles')"
             >
               <div class="file-selection-card-img">
@@ -170,6 +176,7 @@
             </div>
             <div
               class="file-selection-card-item file-selection-card-item-wrap"
+              [class.active]="selectedFiles.firstBasedFiles.taskSolutionFiles && selectedFiles.firstBasedFiles.taskSolutionFiles[lang]?.length"
               (click)="setLessonFiles('firstBasedFiles', 'taskSolutionFiles')"
             >
               <div class="file-selection-card-img">
