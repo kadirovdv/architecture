@@ -37,7 +37,7 @@ export class CreateBuildPage implements OnInit {
   uploadedFilesByCategory: any = {};
   loading: boolean = false;
   uploadedFiles: any;
-  selectedLanguage: string = 'uz';
+  selectedLanguage: 'uz' | 'ru' | 'en' = 'uz';
   currentCategory: string = '';
   errorCategories: string[] = [];
 
@@ -458,7 +458,7 @@ export class CreateBuildPage implements OnInit {
   }
 
   onFileTypeSelect(lang: string, category: string) {
-    this.selectedLanguage = lang;
+    this.selectedLanguage = lang as 'uz' | 'ru' | 'en';
     this.currentCategory = category;
     const inputs = this.hiddenInputs.toArray();
     const input = inputs.find(

@@ -321,25 +321,31 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       });
   }
 
+  sanitizeDropboxUrl(url: string): string {
+    if (!url) return '';
+    return url.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace('dl=0', 'raw=1');
+  }
+
+  sanitizePdfUrl(url: string): string {
+    if (!url) return '';
+    const sanitizedUrl = this.sanitizeDropboxUrl(url);
+    if (sanitizedUrl.toLowerCase().endsWith('.pdf')) {
+      return sanitizedUrl;
+    }
+    return sanitizedUrl;
+  }
+
   sanitizeUrl(url: string): SafeResourceUrl {
     if (!url) return '';
-    if (this.sanitizedUrls.has(url)) {
-      return this.sanitizedUrls.get(url)!;
-    }
-
-    url = url.replace("dl=0", "raw=1");
-    const encodedUrl = encodeURIComponent(url);
-    const viewerUrl = `https://docs.google.com/viewer?url=${encodedUrl}&embedded=true`;
-    
-    const safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(viewerUrl);
-    this.sanitizedUrls.set(url, safeUrl);
+    const sanitizedUrl = this.sanitizePdfUrl(url);
+    const encodedUrl = encodeURIComponent(sanitizedUrl);
+    const safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(`https://docs.google.com/viewer?url=${encodedUrl}&embedded=true`);
     return safeUrl;
   }
 
   setLessonFiles(category: 'firstBasedFiles' | 'secondBasedFiles', fileType: string): void {
     if (!this.selectedLesson?.tasks) return;
 
-    // Clear the URL cache when changing files
     this.sanitizedUrls.clear();
 
     this.selectedFiles = {
@@ -372,4 +378,6 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       this.setLessonFiles('firstBasedFiles', 'taskExampleFiles');
     }
   }
+
+  
 }

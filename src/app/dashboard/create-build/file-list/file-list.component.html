@@ -50,9 +50,19 @@
 
       <ng-container *ngIf="isVideos(files)">
         <div class="select-option" *ngFor="let video of files; let i = index">
-          <span class="option-name">{{ video.name }}</span>
+          <div class="video-info">
+            <div class="video-name">
+              <span class="lang-label">UZ:</span> {{ video.name.uz }}
+            </div>
+            <div class="video-name">
+              <span class="lang-label">RU:</span> {{ video.name.ru }}
+            </div>
+            <div class="video-name">
+              <span class="lang-label">EN:</span> {{ video.name.en }}
+            </div>
+          </div>
           <div class="video-actions">
-            <a [href]="video.url" target="_blank" class="video-link">
+            <a [href]="video.url[selectedLang]" target="_blank" class="video-link">
               <img src="/assets/svg/play.svg" alt="Play" width="16" />
             </a>
             <span class="remove-video" (click)="onRemoveFile('', i)">×</span>

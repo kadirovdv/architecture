@@ -25,8 +25,16 @@ export interface File {
 }
 
 export interface Videos {
-  url: string;
-  name: string;
+  name: {
+    uz: string;
+    ru: string;
+    en: string;
+  };
+  url: {
+    uz: string;
+    ru: string;
+    en: string;
+  };
 }
 
 export interface FileItem {

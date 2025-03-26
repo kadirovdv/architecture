@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, HostListener, ElementRef, ViewChild } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
 import { FileItem, Videos, Files } from '../../../shared/interfaces/interfaces';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-file-list',
@@ -8,12 +9,16 @@ import { FileItem, Videos, Files } from '../../../shared/interfaces/interfaces';
   styleUrls: ['./file-list.component.scss']
 })
 export class FileListComponent {
-  constructor(private toast: ToastrService) {}
+  constructor(
+    private toast: ToastrService,
+    private sanitizer: DomSanitizer
+  ) {}
   @Input() files: Files | Videos[] = {};
   @Input() placeholder: string = '';
   @Input() category: string = '';
   @Input() isLoading: boolean = false;
   @Input() hasError: boolean = false;
+  @Input() selectedLang: 'uz' | 'ru' | 'en' = 'uz';
   @Output() fileSelected = new EventEmitter<File>();
   @Output() removeFile = new EventEmitter<{ category: string; lang: string; index: number }>();
   @Output() replaceFile = new EventEmitter<{category: string, lang: string, index: number, file: File}>();
@@ -113,5 +118,21 @@ export class FileListComponent {
 
   isVideos(files: Files | Videos[]): files is Videos[] {
     return this.category === 'taskVideoUrls';
+  }
+
+  private sanitizeDropboxUrl(url: string): string {
+    if (!url) return '';
+    return url.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace('dl=0', 'raw=1');
+  }
+
+  private sanitizeUrl(url: string): SafeResourceUrl {
+    if (!url) return '';
+    const encodedUrl = encodeURIComponent(this.sanitizeDropboxUrl(url));
+    return this.sanitizer.bypassSecurityTrustResourceUrl(`https://docs.google.com/viewer?url=${encodedUrl}&embedded=true`);
+  }
+
+  getFileUrl(file: FileItem): SafeResourceUrl {
+    if (!file.url) return '';
+    return this.sanitizeUrl(file.url);
   }
 }

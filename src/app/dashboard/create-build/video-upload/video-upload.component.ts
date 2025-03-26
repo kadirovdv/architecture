@@ -9,15 +9,34 @@ import { Videos } from 'src/app/shared/interfaces/interfaces';
 })
 export class VideoUploadComponent {
   video: Videos = {
-    url: '',
-    name: ''
+    name: {
+      uz: '',
+      ru: '',
+      en: ''
+    },
+    url: {
+      uz: '',
+      ru: '',
+      en: ''
+    }
   };
 
   constructor(public activeModal: NgbActiveModal) {}
 
   onSubmit() {
-    if (this.video.url && this.video.name) {
+    if (this.isValid()) {
       this.activeModal.close(this.video);
     }
+  }
+
+  isValid(): boolean {
+    return (
+      this.video.name.uz.trim() !== '' &&
+      this.video.name.ru.trim() !== '' &&
+      this.video.name.en.trim() !== '' &&
+      this.video.url.uz.trim() !== '' &&
+      this.video.url.ru.trim() !== '' &&
+      this.video.url.en.trim() !== ''
+    );
   }
 }
