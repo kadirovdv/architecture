@@ -97,14 +97,20 @@ export class LessonsPage implements OnInit {
       this.task.index = this.tasksInLesson.length + 1;
       this.task.createdAt = new Date().toISOString();
       this.task.id = this.crudService.generateId();
+      const collectionName = this.activeTab === 'lessons' ? 'lessons' : 'website-lessons';
+      
       this.crudService
-        .updateDocument('lessons', this.selectedId, {
+        .updateDocument(collectionName, this.selectedId, {
           tasks: [...this.tasksInLesson, this.task],
         })
         .subscribe(() => {
           this.toastr.success("Grafik topshiriq qo'shildi");
           this.task.title = '';
-          this.getLessons();
+          if (this.activeTab === 'lessons') {
+            this.getLessons();
+          } else {
+            this.getWebsiteLessons();
+          }
           this.tasksInLesson = [];
           this.selectedIndex = -1;
           this.selectedId = '';
@@ -115,13 +121,19 @@ export class LessonsPage implements OnInit {
 
   deleteTaskFromLesson(task: Task) {
     const updatedTasks = this.tasksInLesson.filter((t) => t.id !== task.id);
+    const collectionName = this.activeTab === 'lessons' ? 'lessons' : 'website-lessons';
+
     this.crudService
-      .updateDocument('lessons', this.selectedId, {
+      .updateDocument(collectionName, this.selectedId, {
         tasks: updatedTasks,
       })
       .subscribe(() => {
         this.task.title = '';
-        this.getLessons();
+        if (this.activeTab === 'lessons') {
+          this.getLessons();
+        } else {
+          this.getWebsiteLessons();
+        }
         this.selectedIndex = -1;
         this.selectedId = '';
         this.tasksInLesson = [];
@@ -131,6 +143,7 @@ export class LessonsPage implements OnInit {
   editTask(task: Task) {
     this.editingTaskId = task.id || '';
     this.task.title = task.title;
+    console.log(this.task);
   }
 
   saveTaskEdit() {
@@ -139,20 +152,48 @@ export class LessonsPage implements OnInit {
       return;
     }
 
-    const updatedTasks = this.tasksInLesson.map(t => 
-      t.id === this.editingTaskId ? { ...t, title: this.task.title } : t
-    );
+    const collectionName = this.activeTab === 'lessons' ? 'lessons' : 'website-lessons';
+    
+    if (this.activeTab === 'website-lessons') {
+      const currentLesson = this.websiteLessons.find(l => l.id === this.selectedId);
+      if (!currentLesson || !currentLesson.tasks) return;
 
-    this.crudService
-      .updateDocument('lessons', this.selectedId, {
-        tasks: updatedTasks,
-      })
-      .subscribe(() => {
-        this.getLessons();
-        this.tasksInLesson = updatedTasks;
-        this.editingTaskId = null;
-        this.task.title = '';
-      });
+      const taskToUpdate = currentLesson.tasks.find(t => t.id === this.editingTaskId);
+      if (!taskToUpdate) return;
+
+      const updatedTasks = currentLesson.tasks.map(t => 
+        t.id === this.editingTaskId 
+          ? { ...taskToUpdate, title: this.task.title }
+          : t
+      );
+
+      this.crudService
+        .updateDocument(collectionName, this.selectedId, {
+          ...currentLesson,
+          tasks: updatedTasks
+        })
+        .subscribe(() => {
+          this.getWebsiteLessons();
+          this.tasksInLesson = updatedTasks;
+          this.editingTaskId = null;
+          this.task.title = '';
+        });
+    } else {
+      const updatedTasks = this.tasksInLesson.map(t => 
+        t.id === this.editingTaskId ? { ...t, title: this.task.title } : t
+      );
+
+      this.crudService
+        .updateDocument(collectionName, this.selectedId, {
+          tasks: updatedTasks,
+        })
+        .subscribe(() => {
+          this.getLessons();
+          this.tasksInLesson = updatedTasks;
+          this.editingTaskId = null;
+          this.task.title = '';
+        });
+    }
   }
 
   cancelTaskEdit() {
