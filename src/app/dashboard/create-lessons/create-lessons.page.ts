@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { of, switchMap } from 'rxjs';
 import { Lesson } from 'src/app/shared/interfaces/interfaces';
 import { CrudService } from 'src/app/shared/services/crud.service';
@@ -105,7 +105,8 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
     private dropboxService: DropboxService,
     private crudService: CrudService,
     private loadingService: LoadingService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
@@ -115,6 +116,33 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
         const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
         const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
         return dateA - dateB;
+      });
+
+      // Check if we're in edit mode using query params
+      this.route.queryParams.subscribe(params => {
+        if (params['id']) {
+          this.isLessonEdit = true;
+          this.lessonIdToEdit = params['id'];
+          const lessonToEdit = this.lessons.find(l => l.id === params['id']);
+          if (lessonToEdit) {
+            this.createLessonsForm.patchValue({
+              uz: lessonToEdit.lessonTitle?.uz || '',
+              ru: lessonToEdit.lessonTitle?.ru || '',
+              en: lessonToEdit.lessonTitle?.en || ''
+            });
+            
+            // Get the thumbnail URL from Dropbox
+            if (lessonToEdit.thumbnail) {
+              this.dropboxService.getThumbnail(lessonToEdit.thumbnail).subscribe(
+                (response: any) => {
+                  let img = new File([response], 'thumbnail.jpg', { type: 'image/jpeg' });
+                  this.onFileSelected({ target: { files: [img] } });
+                }
+              );
+            }
+
+          }
+        }
       });
     });
   }
@@ -147,21 +175,22 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
       (item) =>
         item.lessonTitle.uz === this.createLessonsForm.value.uz &&
         item.lessonTitle.ru === this.createLessonsForm.value.ru &&
-        item.lessonTitle.en === this.createLessonsForm.value.en
+        item.lessonTitle.en === this.createLessonsForm.value.en &&
+        item.id !== this.lessonIdToEdit // Exclude current lesson when editing
     );
 
-    if (isLessonExists && !this.isLessonEdit) {
+    if (isLessonExists) {
       this.toastr.warning("Fan ro'yhatda mavjud!");
       this.exists = true;
       return;
     }
 
-    if (!this.img) {
+    if (!this.img && !this.imgDisplay) {
       this.toastr.warning('Rasmni tanlang!');
       return;
     }
 
-    let thumbnailPath = '';
+    let thumbnailPath = this.imgDisplay || '';
 
     const uploadFile$ = this.img
       ? this.dropboxService.uploadFile('/' + this.img.name, this.img)
@@ -171,9 +200,10 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
       this.dropboxService.createSharedLink(path);
 
     const saveLesson$ = (thumbnailPath: string) => {
+      const lessonToEdit = this.lessons.find(l => l.id === this.lessonIdToEdit);
       const lessonData = {
-        index: this.lessons.length + 1,
-        createdAt: new Date().toISOString(),
+        index: this.isLessonEdit ? lessonToEdit?.index : this.lessons.length + 1,
+        createdAt: this.isLessonEdit ? lessonToEdit?.createdAt : new Date().toISOString(),
         lessonTitle: {
           uz: this.createLessonsForm.value.uz,
           ru: this.createLessonsForm.value.ru,
@@ -182,7 +212,7 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
         thumbnail: thumbnailPath,
       };
 
-      if (this.isLessonEdit && !this.exists && this.isLessonEdit) {
+      if (this.isLessonEdit) {
         return this.crudService.updateDocument(
           'lessons',
           this.lessonIdToEdit,
@@ -223,19 +253,6 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
     });
   }
 
-  onFileSelected(event: any) {
-    const file = event.target.files[0];
-
-    if (file) {
-      this.img = file;
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.imgDisplay = reader.result;
-      };
-      reader.readAsDataURL(file);
-    }
-  }
-
   findLesson(event: any, lang: 'uz' | 'ru' | 'en') {
     const searchValue = event.target.value.toLowerCase();
     this.filteredLessonList = this.lessonList.filter((lesson) =>
@@ -260,5 +277,17 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
     setTimeout(() => {
       this.showHelper[lang] = false;
     }, 200);
+  }
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.img = file;
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.imgDisplay = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
   }
 }

@@ -232,3 +232,133 @@
   margin: 10px 0;
   border: 1px solid #ffcdd2;
 }
+
+.video-preview {
+  margin-bottom: 30px;
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  .video-title {
+    font-family: "Ramaraja";
+    font-size: 1.2rem;
+    color: #642e20;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+
+  iframe {
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.tasks-modal {
+  position: absolute;
+  right: calc(100% + 20px);
+  top: 0;
+  width: 400px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 10px;
+  padding: 15px;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  z-index: 1000;
+  transform-origin: right center;
+  animation: slideIn 0.3s ease-out forwards;
+
+  .task-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    opacity: 0;
+    animation: fadeIn 0.3s ease-out 0.1s forwards;
+
+    .task-item {
+      padding: 15px 20px;
+      margin-bottom: 12px;
+      background: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 1px solid #ffdfae;
+      font-family: "Ramaraja";
+      color: #642e20;
+      font-size: 18px;
+      display: flex;
+      align-items: flex-start;
+
+      &:hover {
+        background: #ffdfae;
+        transform: translateX(-5px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      &.active {
+        background: rgba(196, 151, 151, 0.75);
+        color: #fff;
+        pointer-events: none;
+        transform: none;
+
+        .task-number {
+          background: #fff;
+        }
+
+        .task-id {
+          color: rgba(255, 255, 255, 0.8);
+        }
+      }
+
+      .task-number {
+        font-weight: 600;
+        margin-right: 12px;
+        min-width: 24px;
+        height: 24px;
+        background: #ffdfae;
+        color: #642e20;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+      }
+
+      .task-info {
+        flex: 1;
+
+        .task-title {
+          font-size: 18px;
+          margin-bottom: 4px;
+        }
+
+        .task-id {
+          font-size: 12px;
+          color: #666;
+          font-family: monospace;
+        }
+      }
+    }
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

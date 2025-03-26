@@ -142,6 +142,23 @@
                 </div>
               </div>
             </ng-container>
+
+            <!-- Video Section -->
+            <ng-container *ngIf="!isLoadingFile && selectedFiles?.secondBasedFiles?.taskVideoUrls?.length">
+              <div class="file-section">
+                <div class="video-preview" *ngFor="let video of selectedFiles?.secondBasedFiles?.taskVideoUrls">
+                  <h4 class="video-title">{{ getVideoName(video) }}</h4>
+                  <iframe
+                    [src]="getEmbeddedVideoUrl(getVideoUrl(video))"
+                    width="100%"
+                    height="500"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen>
+                  </iframe>
+                </div>
+              </div>
+            </ng-container>
           </div>
         </div>
       </div>
@@ -150,6 +167,8 @@
           <div class="file-selection-card">
             <div
               class="file-selection-card-item file-selection-card-item-borderfull"
+              (click)="toggleTaskModal($event)"
+              style="position: relative;"
             >
               <div class="file-selection-card-img">
                 <img
@@ -160,6 +179,22 @@
               </div>
               <div class="file-selection-card-title">
                 <h5>Grafik topshiriqni tanlang....</h5>
+              </div>
+
+              <!-- Tasks Modal -->
+              <div *ngIf="isTaskModalVisible && selectedLesson?.tasks?.length" class="tasks-modal" (click)="$event.stopPropagation()">
+                <ul class="task-list">
+                  <li *ngFor="let task of selectedLesson?.tasks || []; let i = index"
+                      class="task-item"
+                      [class.active]="isTaskSelected(task)"
+                      (click)="selectTask($event, task)">
+                    <span class="task-number">{{ i + 1 }}</span>
+                    <div class="task-info">
+                      <div class="task-title">{{ getTaskTitle(task, i) }}</div>
+                      <div class="task-id" *ngIf="task.id">ID: {{ task.id }}</div>
+                    </div>
+                  </li>
+                </ul>
               </div>
             </div>
             <div

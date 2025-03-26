@@ -17,7 +17,7 @@ import { switchMap, take, tap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { i18nService } from 'src/app/shared/services/i18n.service';
 import { LoaderService } from 'src/app/shared/services/loader.service';
-import { Lesson, Task, FirstClassFileGroups, SecondClassFileGroups } from 'src/app/shared/interfaces/interfaces';
+import { Lesson, Task, FirstClassFileGroups, SecondClassFileGroups, Videos } from 'src/app/shared/interfaces/interfaces';
 import { BehaviorSubject, forkJoin, of, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -76,6 +76,9 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   currentFileType = this.currentFileTypeSubject.value;
 
   private sanitizedUrls = new Map<string, SafeResourceUrl>();
+
+  isTaskModalVisible = false;
+  selectedTaskId: string | null = null;
 
   constructor(
     private navService: ToggleNavVisibilityService,
@@ -392,6 +395,7 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     
     // Check if we already have this URL cached
     if (this.sanitizedUrls.has(url)) {
+      console.log('🔄 Using cached URL:', url);
       return this.sanitizedUrls.get(url)!;
     }
 
@@ -404,6 +408,34 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     // Cache the result
     this.sanitizedUrls.set(url, safeUrl);
     return safeUrl;
+  }
+
+  getVideoUrl(video: Videos): string {
+    if (!video?.url || !this.lang) return '';
+    return video.url[this.lang as keyof typeof video.url] || '';
+  }
+
+  getVideoName(video: Videos): string {
+    if (!video?.name || !this.lang) return '';
+    return video.name[this.lang as keyof typeof video.name] || '';
+  }
+
+  getEmbeddedVideoUrl(url: string): SafeResourceUrl {
+    if (!url) return '';
+    
+    // Extract YouTube video ID
+    const videoId = this.extractYoutubeId(url);
+    if (!videoId) return '';
+    
+    // Create embedded URL
+    const embeddedUrl = `https://www.youtube.com/embed/${videoId}`;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(embeddedUrl);
+  }
+
+  private extractYoutubeId(url: string): string | null {
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
   }
 
   setLessonFiles(category: 'firstBasedFiles' | 'secondBasedFiles', fileType: string): void {
@@ -426,8 +458,13 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       }
     };
 
-    this.selectedLesson.tasks.forEach((task: Task) => {
-      const files = task[category]?.[fileType];
+    // Find the selected task
+    const selectedTask = this.selectedTaskId 
+      ? this.selectedLesson.tasks.find(task => task.id === this.selectedTaskId)
+      : this.selectedLesson.tasks[0]; // Default to first task if none selected
+
+    if (selectedTask) {
+      const files = selectedTask[category]?.[fileType];
       if (files) {
         if (category === 'firstBasedFiles') {
           newFiles.firstBasedFiles[fileType as keyof FirstClassFileGroups] = files;
@@ -435,7 +472,7 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
           newFiles.secondBasedFiles[fileType as keyof SecondClassFileGroups] = files;
         }
       }
-    });
+    }
 
     this.selectedFilesSubject.next(newFiles);
     setTimeout(() => {
@@ -464,5 +501,51 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   hasIframeError(url: string | undefined): boolean {
     if (!url) return false;
     return this.iframeErrors[url] || false;
+  }
+
+  toggleTaskModal(event: Event): void {
+    event.stopPropagation();
+    this.isTaskModalVisible = !this.isTaskModalVisible;
+    if (!this.isTaskModalVisible) {
+      this.selectedTaskId = null;
+    }
+  }
+
+  selectTask(event: Event, task: Task): void {
+    event.stopPropagation();
+    if (!task.id) return;
+    
+    this.selectedTaskId = task.id;
+    this.isTaskModalVisible = false;
+    
+    // Update files based on selected task
+    if (this.selectedLesson?.tasks) {
+      const newFiles = {
+        firstBasedFiles: {
+          taskExampleFiles: task.firstBasedFiles?.taskExampleFiles || { uz: [], ru: [], en: [] },
+          taskSolutionFiles: task.firstBasedFiles?.taskSolutionFiles || { uz: [], ru: [], en: [] }
+        },
+        secondBasedFiles: {
+          taskTitleFiles: task.secondBasedFiles?.taskTitleFiles || { uz: [], ru: [], en: [] },
+          taskPresentationFiles: task.secondBasedFiles?.taskPresentationFiles || { uz: [], ru: [], en: [] },
+          taskLiteratureFiles: task.secondBasedFiles?.taskLiteratureFiles || { uz: [], ru: [], en: [] },
+          taskVideoUrls: task.secondBasedFiles?.taskVideoUrls || []
+        }
+      };
+      this.selectedFilesSubject.next(newFiles);
+    }
+  }
+
+  isTaskSelected(task: Task): boolean {
+    return task.id === this.selectedTaskId;
+  }
+
+  getTaskTitle(task: Task, index: number): string {
+    return task.title || `Task ${index + 1}`;
+  }
+
+  @HostListener('document:click')
+  closeTaskModal(): void {
+    this.isTaskModalVisible = false;
   }
 }

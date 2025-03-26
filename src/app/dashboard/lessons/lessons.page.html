@@ -1,74 +1,196 @@
 <div class="container">
   <div class="position-relative min-h-80 w-100 overflow-hidden lessons-card">
+    <div class="tabs mb-4">
+      <div
+        class="tab"
+        [class.active]="activeTab === 'lessons'"
+        (click)="switchTab('lessons')"
+      >
+        Fanlar
+      </div>
+      <div
+        class="tab"
+        [class.active]="activeTab === 'website-lessons'"
+        (click)="switchTab('website-lessons')"
+      >
+        Website Fanlar
+      </div>
+    </div>
+
     <div class="lesson-items lesson-items-top">
       <div class="lesson-item d-flex py-4">
         <div>FANLAR</div>
       </div>
       <div class="lessons-item"></div>
     </div>
-    <div
-      class="lesson-items lesson-items-bottom"
-      *ngFor="let lesson of lessons; let i = index"
-    >
-      <div class="lesson-item d-flex">
-        <div class="px-3">{{ lesson.index }}</div>
-        <div class="px-4">
-          {{ lesson.lessonTitle?.uz }}
-          <!-- , {{
-                lesson.lessonTitle.ru.length >= 18 ? lesson.lessonTitle.ru.slice(0,
-                18) + '...' : lesson.lessonTitle.ru }}, {{
-                lesson.lessonTitle.en.length >= 18 ? lesson.lessonTitle.en.slice(0,
-                18) + '...' : lesson.lessonTitle.en }} -->
+
+    <ng-container *ngIf="activeTab === 'lessons'">
+      <div
+        class="lesson-items lesson-items-bottom"
+        *ngFor="let lesson of lessons; let i = index"
+      >
+        <div class="lesson-item d-flex">
+          <div class="px-3">{{ lesson.index }}</div>
+          <div class="px-4">{{ lesson.lessonTitle?.uz }}</div>
         </div>
-      </div>
-      <div class="lesson-item position-relative">
-        <div class="text-center">Grafik topshiriqlar</div>
-        <div class="d-flex position-absolute right-0 top-0 action-btns">
-          <div
-            class="action-btn cursor-pointer"
-            (click)="openDropdown(i, lesson)"
-          >
-            <img src="/assets/svg/arrow-down.svg" width="30px" alt="" />
+        <div class="lesson-item position-relative">
+          <div class="text-center">Grafik topshiriqlar</div>
+          <div class="d-flex position-absolute right-0 top-0 action-btns">
+            <div
+              class="action-btn cursor-pointer"
+              (click)="openDropdown(i, lesson)"
+            >
+              <img src="/assets/svg/arrow-down.svg" width="30px" alt="" />
+            </div>
+            <div class="action-btn cursor-pointer" (click)="editLesson(lesson)">
+              <img src="/assets/img/edit.png" width="30px" alt="" />
+            </div>
           </div>
-          <!-- <div
-            class="action-btn cursor-pointer"
-            [routerLink]="['/dashboard/create-build/', lesson.id]"
-          >
-            <img src="/assets/svg/plus.svg" width="30px" alt="" />
-          </div> -->
-        </div>
-        <div class="action-dropdown" *ngIf="selectedIndex === i">
-          <div class="d-flex align-items-center">
-            <input
-              class="form-control me-2"
-              type="text"
-              [(ngModel)]="task.title"
-            />
-            <img
-              src="/assets/svg/plus.svg"
-              class="cursor-pointer"
-              width="30px"
-              alt=""
-              (click)="addTaskToLesson()"
-            />
-          </div>
-          <div>
-            <div class="my-1 ms-1" *ngFor="let item of lesson.tasks">
-              <span class="d-flex align-items-center">
-                {{ item.index }}. {{ item.title }}
+          <div class="action-dropdown" *ngIf="selectedIndex === i">
+            <div class="d-flex align-items-center">
+              <input
+                class="form-control me-2"
+                type="text"
+                [(ngModel)]="task.title"
+                [placeholder]="editingTaskId ? 'Grafik topshiriqni tahrirlash' : 'Yangi grafik topshiriq'"
+              />
+              <img
+                *ngIf="!editingTaskId"
+                src="/assets/svg/plus.svg"
+                class="cursor-pointer"
+                width="30px"
+                alt=""
+                (click)="addTaskToLesson()"
+              />
+              <ng-container *ngIf="editingTaskId">
                 <img
-                  src="/assets/svg/trash.svg"
-                  width="20px"
+                  src="/assets/svg/save.svg"
+                  width="30px"
                   alt=""
                   class="cursor-pointer ms-1"
-                  (click)="deleteTaskFromLesson(item)"
+                  (click)="saveTaskEdit()"
                 />
-              </span>
+                <img
+                  src="/assets/svg/cancel.svg"
+                  width="30px"
+                  alt=""
+                  class="cursor-pointer ms-1"
+                  (click)="cancelTaskEdit()"
+                />
+              </ng-container>
+            </div>
+            <div>
+              <div class="my-2 ms-1" *ngFor="let item of lesson.tasks">
+                <span class="d-flex align-items-center justify-content-between">
+                  {{ item.index }}. {{ item.title }}
+                  <div class="d-flex align-items-center">
+                    <img
+                      src="/assets/img/edit.png"
+                      width="20px"
+                      alt=""
+                      class="cursor-pointer ms-1"
+                      (click)="editTask(item)"
+                    />
+                    <img
+                      src="/assets/svg/trash.svg"
+                      width="20px"
+                      alt=""
+                      class="cursor-pointer ms-1"
+                      (click)="deleteTaskFromLesson(item)"
+                    />
+                  </div>
+                </span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </ng-container>
+
+    <ng-container *ngIf="activeTab === 'website-lessons'">
+      <div
+        class="lesson-items lesson-items-bottom"
+        *ngFor="let lesson of websiteLessons; let i = index"
+      >
+        <div class="lesson-item d-flex">
+          <div class="px-3">{{ lesson.index }}</div>
+          <div class="px-4">{{ lesson.lessonTitle?.uz }}</div>
+        </div>
+        <div class="lesson-item position-relative">
+          <div class="text-center">Grafik topshiriqlar</div>
+          <div class="d-flex position-absolute right-0 top-0 action-btns">
+            <div
+              class="action-btn cursor-pointer"
+              (click)="openDropdown(i, lesson)"
+            >
+              <img src="/assets/svg/arrow-down.svg" width="30px" alt="" />
+            </div>
+            <div
+              class="action-btn cursor-pointer"
+              (click)="editCreatedLesson(lesson)"
+            >
+              <img src="/assets/img/edit.png" width="30px" alt="" />
+            </div>
+          </div>
+          <div class="action-dropdown" *ngIf="selectedIndex === i">
+            <div class="d-flex align-items-center">
+              <input
+                class="form-control me-2"
+                type="text"
+                [(ngModel)]="task.title"
+                [placeholder]="editingTaskId ? 'Grafik topshiriqni tahrirlash' : 'Yangi grafik topshiriq'"
+              />
+              <img
+                *ngIf="!editingTaskId"
+                src="/assets/svg/plus.svg"
+                class="cursor-pointer"
+                width="30px"
+                alt=""
+                (click)="addTaskToLesson()"
+              />
+              <ng-container *ngIf="editingTaskId">
+                <img
+                  src="/assets/svg/save.svg"
+                  width="30px"
+                  alt=""
+                  class="cursor-pointer ms-1"
+                  (click)="saveTaskEdit()"
+                />
+                <img
+                  src="/assets/svg/cancel.svg"
+                  width="30px"
+                  alt=""
+                  class="cursor-pointer ms-1"
+                  (click)="cancelTaskEdit()"
+                />
+              </ng-container>
+            </div>
+            <div>
+              <div class="my-1 ms-1" *ngFor="let item of lesson.tasks">
+                <span class="d-flex align-items-center">
+                  {{ item.index }}. {{ item.title }}
+                  <img
+                    src="/assets/img/edit.png"
+                    width="20px"
+                    alt=""
+                    class="cursor-pointer ms-1"
+                    (click)="editTask(item)"
+                  />
+                  <img
+                    src="/assets/svg/trash.svg"
+                    width="20px"
+                    alt=""
+                    class="cursor-pointer ms-1"
+                    (click)="deleteTaskFromLesson(item)"
+                  />
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
     <div
       class="add-lesson pt-4 pb-3 cursor-pointer text-center"
       routerLink="/dashboard/create-lesson"
@@ -80,7 +202,7 @@
       class="add-lesson py-3 cursor-pointer text-center"
       routerLink="/dashboard/create-build"
     >
-      <span class="me-2">Fanlarga resurs qo’shish</span>
+      <span class="me-2">Fanlarga resurs qo'shish</span>
       <img src="/assets/svg/plus.svg" width="30px" alt="" />
     </div>
   </div>

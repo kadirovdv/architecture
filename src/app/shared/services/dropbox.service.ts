@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { Observable, from, throwError, defer } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
+import { catchError, map, shareReplay, share, switchMap } from 'rxjs/operators';
 
 declare var Dropbox: any;
 
@@ -270,6 +270,7 @@ export class DropboxService {
       .post(DROPBOX_THUMBNAIL_URL, null, { headers, responseType: 'blob' })
       .pipe(
         map((blob: Blob) => blob),
+        shareReplay(1),
         catchError((error) => {
           console.error('Error fetching thumbnail:', error);
           return throwError(() => new Error('Failed to fetch thumbnail'));
