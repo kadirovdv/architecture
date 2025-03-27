@@ -41,6 +41,30 @@
   margin-right: 1rem;
 }
 
+.file-existing {
+  color: #555;
+}
+
+.file-new {
+  color: #007bff;
+  font-weight: 500;
+}
+
+.file-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  padding: 0.1rem 0.3rem;
+  margin-left: 0.5rem;
+  border-radius: 4px;
+  background-color: #28a745;
+  color: white;
+  vertical-align: middle;
+  
+  &.new {
+    background-color: #007bff;
+  }
+}
+
 .file-actions {
   display: flex;
   align-items: center;

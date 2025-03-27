@@ -2,6 +2,8 @@ import { Component, Input, Output, EventEmitter, HostListener, ElementRef, ViewC
 import { ToastrService } from 'ngx-toastr';
 import { FileItem, Videos, Files } from '../../../shared/interfaces/interfaces';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { DeleteConfirmationComponent } from '../../create-build/delete-confirmation/delete-confirmation.component';
 
 @Component({
   selector: 'app-file-list',
@@ -11,7 +13,8 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 export class FileListComponent {
   constructor(
     private toast: ToastrService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private modalService: NgbModal
   ) {}
   @Input() files: Files | Videos[] = {};
   @Input() placeholder: string = '';
@@ -75,7 +78,44 @@ export class FileListComponent {
   }
 
   onRemoveFile(lang: string, index: number): void {
-    this.removeFile.emit({ category: this.category, lang, index });
+    // Open confirmation modal
+    const modalRef = this.modalService.open(DeleteConfirmationComponent);
+    
+    // Get the file name to show in the modal
+    let fileName = '';
+    if (this.isVideos(this.files)) {
+      const videos = this.files as Videos[];
+      if (index < videos.length) {
+        fileName = videos[index].name[this.selectedLang] || '';
+      }
+    } else {
+      const fileObj = this.files as Files;
+      if (fileObj[lang] && index < fileObj[lang].length) {
+        fileName = fileObj[lang][index].name || '';
+      }
+    }
+    
+    // Set modal data
+    modalRef.componentInstance.fileName = fileName;
+    
+    // Handle the result
+    modalRef.result.then((result) => {
+      if (result === 'confirm') {
+        // For videos, we need to pass the correct category
+        if (this.isVideos(this.files)) {
+          this.removeFile.emit({ 
+            category: 'taskVideoUrls', 
+            lang: '', 
+            index 
+          });
+        } else {
+          this.removeFile.emit({ category: this.category, lang, index });
+        }
+        this.toast.success('Fayl o\'chirildi');
+      }
+    }, () => {
+      // Modal dismissed
+    });
   }
 
   onReplaceFile(lang: string, index: number, event: Event) {

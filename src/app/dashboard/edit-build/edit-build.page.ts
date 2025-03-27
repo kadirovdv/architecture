@@ -320,16 +320,24 @@ export class EditBuildPage implements OnInit {
 
   onRemoveFile(event: { category: string; lang: string; index: number }): void {
     if (this.task) {
-      if (this.isFirstClassFileCategory(event.category)) {
+      if (event.category === 'taskVideoUrls') {
+        // Handle video deletion
+        if (this.task.secondBasedFiles?.taskVideoUrls) {
+          this.task.secondBasedFiles.taskVideoUrls.splice(event.index, 1);
+          this.toastr.success('Video muvaffaqiyatli o\'chirildi');
+        }
+      } else if (this.isFirstClassFileCategory(event.category)) {
         this.task.firstBasedFiles[event.category][event.lang]?.splice(
           event.index,
           1
         );
+        this.toastr.success('Fayl muvaffaqiyatli o\'chirildi');
       } else if (this.isSecondClassFileCategory(event.category)) {
         this.task.secondBasedFiles[event.category][event.lang]?.splice(
           event.index,
           1
         );
+        this.toastr.success('Fayl muvaffaqiyatli o\'chirildi');
       }
     }
   }
@@ -353,7 +361,22 @@ export class EditBuildPage implements OnInit {
         if (!this.task.secondBasedFiles.taskVideoUrls) {
           this.task.secondBasedFiles.taskVideoUrls = [];
         }
+        
+        // Check if this video already exists to prevent duplicates
+        const isDuplicate = this.task.secondBasedFiles.taskVideoUrls.some((video: Videos) => 
+          (video.url.uz === result.url.uz && video.url.uz !== '') ||
+          (video.url.ru === result.url.ru && video.url.ru !== '') ||
+          (video.url.en === result.url.en && video.url.en !== '')
+        );
+        
+        if (isDuplicate) {
+          this.toastr.warning('Bu video allaqachon mavjud!');
+          return;
+        }
+        
+        // Add the video if it's not a duplicate
         this.task.secondBasedFiles.taskVideoUrls.push(result);
+        this.toastr.success('Video muvaffaqiyatli qo\'shildi');
       })
       .catch(() => {});
   }

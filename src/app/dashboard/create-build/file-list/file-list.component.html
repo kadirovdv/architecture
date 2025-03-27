@@ -36,7 +36,11 @@
                 alt="{{ lang }}"
                 class="lang-icon"
               />
-              <span class="option-name">{{ item.name }}</span>
+              <span class="option-name" [class]="getFileStatusClass(lang, i)">
+                {{ item.name }}
+                <span class="file-badge" *ngIf="isExistingFile(lang, i)">saved</span>
+                <span class="file-badge new" *ngIf="!isExistingFile(lang, i)">new</span>
+              </span>
               <div class="option-actions">
                 <span class="option-replace" (click)="onReplaceFile(lang, i, $event)" [class.replacing]="isReplacing(lang, i)">
                   <img src="/assets/svg/replace.svg" width="18px" alt="replace"/>

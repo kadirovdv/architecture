@@ -379,34 +379,51 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
   sanitizeDropboxUrl(url: string): string {
     if (!url) return '';
-    return url.replace('www.dropbox.com', 'dl.dropboxusercontent.com').replace('dl=0', 'raw=1');
+  
+    // Replace 'www.dropbox.com' with 'dl.dropboxusercontent.com'
+    let sanitizedUrl = url.replace('www.dropbox.com', 'dl.dropboxusercontent.com');
+  
+    // Ensure correct query parameters
+    sanitizedUrl = sanitizedUrl.replace(/\?dl=0/, '?raw=1').replace(/&dl=0/, '&raw=1');
+  
+    return sanitizedUrl;
   }
+  
 
   sanitizePdfUrl(url: string): string {
     if (!url) return '';
-    const sanitizedUrl = this.sanitizeDropboxUrl(url);
+  
+    // Fixing Dropbox URL formatting
+    let sanitizedUrl = this.sanitizeDropboxUrl(url);
+    sanitizedUrl = sanitizedUrl.replace(/\?([^=]+=[^&]*)\?/g, '?$1&'); // Fix multiple '?'
+    
     if (sanitizedUrl.toLowerCase().endsWith('.pdf')) {
       return sanitizedUrl;
     }
     return sanitizedUrl;
   }
+  
 
   sanitizeUrl(url: string): SafeResourceUrl | null {
-    if (!url) return '';
+    if (!url) return null;
     
     if (this.sanitizedUrls.has(url)) {
       return this.sanitizedUrls.get(url)!;
     }
-
+  
     const sanitizedUrl = this.sanitizePdfUrl(url);
     const encodedUrl = encodeURIComponent(sanitizedUrl);
+  
+    // Ensure it remains a proper URL
     const safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
       `https://docs.google.com/viewer?url=${encodedUrl}&embedded=true`
     );
-
+  
     this.sanitizedUrls.set(url, safeUrl);
+    console.log('safeUrl', safeUrl);
     return safeUrl;
   }
+  
 
   getVideoUrl(video: Videos): string {
     if (!video?.url || !this.lang) return '';

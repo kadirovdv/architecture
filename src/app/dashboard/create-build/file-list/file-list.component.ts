@@ -2,6 +2,8 @@ import { Component, Input, Output, EventEmitter, HostListener, ElementRef, ViewC
 import { ToastrService } from 'ngx-toastr';
 import { FileItem, Videos, Files } from '../../../shared/interfaces/interfaces';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { DeleteConfirmationComponent } from '../delete-confirmation/delete-confirmation.component';
 
 @Component({
   selector: 'app-file-list',
@@ -11,7 +13,8 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 export class FileListComponent {
   constructor(
     private toast: ToastrService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private modalService: NgbModal
   ) {}
   @Input() files: Files | Videos[] = {};
   @Input() placeholder: string = '';
@@ -19,8 +22,9 @@ export class FileListComponent {
   @Input() isLoading: boolean = false;
   @Input() hasError: boolean = false;
   @Input() selectedLang: 'uz' | 'ru' | 'en' = 'uz';
+  @Input() autoSaveOnDelete: boolean = false;
   @Output() fileSelected = new EventEmitter<File>();
-  @Output() removeFile = new EventEmitter<{ category: string; lang: string; index: number }>();
+  @Output() removeFile = new EventEmitter<{ category: string; lang: string; index: number; autoSave?: boolean }>();
   @Output() replaceFile = new EventEmitter<{category: string, lang: string, index: number, file: File}>();
   @Output() addFile = new EventEmitter<{ category: string, lang: string }>();
   
@@ -86,7 +90,92 @@ export class FileListComponent {
   }
 
   onRemoveFile(lang: string, index: number): void {
-    this.removeFile.emit({ category: this.category, lang, index });
+    const isExistingFile = this.isExistingFile(lang, index);
+    
+    if (isExistingFile) {
+      // Open confirmation modal instead of using window.confirm
+      const modalRef = this.modalService.open(DeleteConfirmationComponent);
+      
+      // Get the file name to show in the modal
+      let fileName = '';
+      if (this.isVideos(this.files)) {
+        const videos = this.files as Videos[];
+        if (index < videos.length) {
+          fileName = videos[index].name[this.selectedLang] || '';
+        }
+      } else {
+        const fileObj = this.files as Files;
+        if (fileObj[lang] && index < fileObj[lang].length) {
+          fileName = fileObj[lang][index].name || '';
+        }
+      }
+      
+      // Set modal data
+      modalRef.componentInstance.fileName = fileName;
+      
+      // Handle the result
+      modalRef.result.then((result) => {
+        if (result === 'confirm') {
+          if (this.isVideos(this.files)) {
+            // For videos, we need to pass the correct category
+            this.removeFile.emit({ 
+              category: 'taskVideoUrls', 
+              lang: '', 
+              index,
+              autoSave: this.autoSaveOnDelete
+            });
+          } else {
+            // For regular files
+            this.removeFile.emit({ 
+              category: this.category, 
+              lang, 
+              index,
+              autoSave: this.autoSaveOnDelete
+            });
+          }
+          this.toast.success('Fayl o\'chirildi va o\'zgarishlar saqlandi');
+        }
+      }, () => {
+        // Modal dismissed
+      });
+    } else {
+      // For non-existing files, just remove without confirmation
+      if (this.isVideos(this.files)) {
+        // For videos, we need to pass the correct category
+        this.removeFile.emit({ 
+          category: 'taskVideoUrls', 
+          lang: '', 
+          index 
+        });
+      } else {
+        this.removeFile.emit({ category: this.category, lang, index });
+      }
+    }
+  }
+
+  isExistingFile(lang: string, index: number): boolean {
+    if (this.isVideos(this.files)) {
+      const videos = this.files as Videos[];
+      return index < videos.length && !!videos[index].url;
+    } else {
+      const fileObj = this.files as Files;
+      if (!fileObj[lang] || index >= fileObj[lang].length) {
+        return false;
+      }
+      
+      // Check if the file has a URL (existing file from DB) 
+      // and doesn't have a File object (which would indicate a newly added file)
+      const item = fileObj[lang][index];
+      return !!item.url && !(item as any).file;
+    }
+  }
+
+  getFileStatusClass(lang: string, index: number): string {
+    if (this.isExistingFile(lang, index)) {
+      return 'file-existing';
+    } else {
+      return 'file-new';
+    }
   }
 
   onReplaceFile(lang: string, index: number, event: Event) {
