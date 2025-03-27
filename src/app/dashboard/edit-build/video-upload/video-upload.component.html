@@ -1,0 +1,34 @@
+<div class="modal-header">
+  <h4 class="modal-title">Video qo'shish</h4>
+  <button type="button" class="btn-close" (click)="activeModal.dismiss()"></button>
+</div>
+<div class="modal-body">
+  <div class="mb-3">
+    <label class="form-label">Video nomi (O'zbek)</label>
+    <input type="text" class="form-control" [(ngModel)]="video.name.uz" placeholder="Video nomini o'zbek tilida kiriting">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Video nomi (Русский)</label>
+    <input type="text" class="form-control" [(ngModel)]="video.name.ru" placeholder="Введите название видео на русском">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Video nomi (English)</label>
+    <input type="text" class="form-control" [(ngModel)]="video.name.en" placeholder="Enter video name in English">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Video URL (O'zbek)</label>
+    <input type="url" class="form-control" [(ngModel)]="video.url.uz" placeholder="Video URLini o'zbek tilida kiriting">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Video URL (Русский)</label>
+    <input type="url" class="form-control" [(ngModel)]="video.url.ru" placeholder="Введите URL видео на русском">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Video URL (English)</label>
+    <input type="url" class="form-control" [(ngModel)]="video.url.en" placeholder="Enter video URL in English">
+  </div>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-secondary" (click)="activeModal.dismiss()">Yopish</button>
+  <button type="button" class="btn btn-primary" [disabled]="!isValid()" (click)="onSubmit()">Saqlash</button>
+</div> 

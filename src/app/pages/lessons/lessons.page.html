@@ -62,13 +62,18 @@
     <div class="row">
       <div class="col-md-8">
         <div class="file-content">
-          <h3>Grafik topshiriq variantlari</h3>
+          <h3>{{ getSelectedFilesTitle() }}</h3>
           <div class="file-content-body">
             <div *ngIf="isLoadingFile" class="skeleton-loader"></div>
             <!-- First Based Files -->
-            <ng-container *ngIf="!isLoadingFile && selectedFiles?.firstBasedFiles?.taskExampleFiles?.[lang]?.length">
+            <ng-container
+              *ngIf="!isLoadingFile && selectedFiles?.firstBasedFiles?.taskExampleFiles?.[lang]?.length"
+            >
               <div class="file-section">
-                <div class="file-preview" *ngFor="let file of selectedFiles?.firstBasedFiles?.taskExampleFiles?.[lang]">
+                <div
+                  class="file-preview"
+                  *ngFor="let file of selectedFiles?.firstBasedFiles?.taskExampleFiles?.[lang]"
+                >
                   <iframe
                     #pdfViewer
                     [src]="sanitizeUrl(file?.url || '')"
@@ -76,7 +81,8 @@
                     height="1000px"
                     frameborder="0"
                     (load)="onIframeLoad(file?.url)"
-                    (error)="onIframeError(file?.url)">
+                    (error)="onIframeError(file?.url)"
+                  >
                   </iframe>
                   <div *ngIf="hasIframeError(file?.url)" class="error-message">
                     ❌ PDF failed to load. Please check the file link.
@@ -85,9 +91,14 @@
               </div>
             </ng-container>
 
-            <ng-container *ngIf="!isLoadingFile && selectedFiles?.firstBasedFiles?.taskSolutionFiles?.[lang]?.length">
+            <ng-container
+              *ngIf="!isLoadingFile && selectedFiles?.firstBasedFiles?.taskSolutionFiles?.[lang]?.length"
+            >
               <div class="file-section">
-                <div class="file-preview" *ngFor="let file of selectedFiles?.firstBasedFiles?.taskSolutionFiles?.[lang]">
+                <div
+                  class="file-preview"
+                  *ngFor="let file of selectedFiles?.firstBasedFiles?.taskSolutionFiles?.[lang]"
+                >
                   <iframe
                     #pdfViewer
                     [src]="sanitizeUrl(file?.url || '')"
@@ -95,7 +106,8 @@
                     height="1000px"
                     frameborder="0"
                     (load)="onIframeLoad(file?.url)"
-                    (error)="onIframeError(file?.url)">
+                    (error)="onIframeError(file?.url)"
+                  >
                   </iframe>
                   <div *ngIf="hasIframeError(file?.url)" class="error-message">
                     ❌ PDF failed to load. Please check the file link.
@@ -105,9 +117,14 @@
             </ng-container>
 
             <!-- Second Based Files -->
-            <ng-container *ngIf="!isLoadingFile && selectedFiles?.secondBasedFiles?.taskPresentationFiles?.[lang]?.length">
+            <ng-container
+              *ngIf="!isLoadingFile && selectedFiles?.secondBasedFiles?.taskPresentationFiles?.[lang]?.length"
+            >
               <div class="file-section">
-                <div class="file-preview" *ngFor="let file of selectedFiles?.secondBasedFiles?.taskPresentationFiles?.[lang]">
+                <div
+                  class="file-preview"
+                  *ngFor="let file of selectedFiles?.secondBasedFiles?.taskPresentationFiles?.[lang]"
+                >
                   <iframe
                     #pdfViewer
                     [src]="sanitizeUrl(file?.url || '')"
@@ -115,7 +132,8 @@
                     height="1000px"
                     frameborder="0"
                     (load)="onIframeLoad(file?.url)"
-                    (error)="onIframeError(file?.url)">
+                    (error)="onIframeError(file?.url)"
+                  >
                   </iframe>
                   <div *ngIf="hasIframeError(file?.url)" class="error-message">
                     ❌ PDF failed to load. Please check the file link.
@@ -124,9 +142,14 @@
               </div>
             </ng-container>
 
-            <ng-container *ngIf="!isLoadingFile && selectedFiles?.secondBasedFiles?.taskTitleFiles?.[lang]?.length">
+            <ng-container
+              *ngIf="!isLoadingFile && selectedFiles?.secondBasedFiles?.taskTitleFiles?.[lang]?.length"
+            >
               <div class="file-section">
-                <div class="file-preview" *ngFor="let file of selectedFiles?.secondBasedFiles?.taskTitleFiles?.[lang]">
+                <div
+                  class="file-preview"
+                  *ngFor="let file of selectedFiles?.secondBasedFiles?.taskTitleFiles?.[lang]"
+                >
                   <iframe
                     #pdfViewer
                     [src]="sanitizeUrl(file?.url || '')"
@@ -134,7 +157,8 @@
                     height="1000px"
                     frameborder="0"
                     (load)="onIframeLoad(file?.url)"
-                    (error)="onIframeError(file?.url)">
+                    (error)="onIframeError(file?.url)"
+                  >
                   </iframe>
                   <div *ngIf="hasIframeError(file?.url)" class="error-message">
                     ❌ PDF failed to load. Please check the file link.
@@ -144,9 +168,14 @@
             </ng-container>
 
             <!-- Video Section -->
-            <ng-container *ngIf="!isLoadingFile && selectedFiles?.secondBasedFiles?.taskVideoUrls?.length">
+            <ng-container
+              *ngIf="!isLoadingFile && selectedFiles?.secondBasedFiles?.taskVideoUrls?.length"
+            >
               <div class="file-section">
-                <div class="video-preview" *ngFor="let video of selectedFiles?.secondBasedFiles?.taskVideoUrls">
+                <div
+                  class="video-preview"
+                  *ngFor="let video of selectedFiles?.secondBasedFiles?.taskVideoUrls"
+                >
                   <h4 class="video-title">{{ getVideoName(video) }}</h4>
                   <iframe
                     [src]="getEmbeddedVideoUrl(getVideoUrl(video))"
@@ -154,7 +183,8 @@
                     height="500"
                     frameborder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen>
+                    allowfullscreen
+                  >
                   </iframe>
                 </div>
               </div>
@@ -168,7 +198,7 @@
             <div
               class="file-selection-card-item file-selection-card-item-borderfull"
               (click)="toggleTaskModal($event)"
-              style="position: relative;"
+              style="position: relative"
             >
               <div class="file-selection-card-img">
                 <img
@@ -182,16 +212,24 @@
               </div>
 
               <!-- Tasks Modal -->
-              <div *ngIf="isTaskModalVisible && selectedLesson?.tasks?.length" class="tasks-modal" (click)="$event.stopPropagation()">
+              <div
+                *ngIf="isTaskModalVisible && selectedLesson?.tasks?.length"
+                class="tasks-modal"
+                (click)="$event.stopPropagation()"
+              >
                 <ul class="task-list">
-                  <li *ngFor="let task of selectedLesson?.tasks || []; let i = index"
-                      class="task-item"
-                      [class.active]="isTaskSelected(task)"
-                      (click)="selectTask($event, task)">
+                  <li
+                    *ngFor="let task of selectedLesson?.tasks || []; let i = index"
+                    class="task-item"
+                    [class.active]="isTaskSelected(task)"
+                    (click)="selectTask($event, task)"
+                  >
                     <span class="task-number">{{ i + 1 }}</span>
                     <div class="task-info">
                       <div class="task-title">{{ getTaskTitle(task, i) }}</div>
-                      <div class="task-id" *ngIf="task.id">ID: {{ task.id }}</div>
+                      <div class="task-id" *ngIf="task.id">
+                        ID: {{ task.id }}
+                      </div>
                     </div>
                   </li>
                 </ul>
@@ -223,17 +261,29 @@
             </div>
           </div>
           <div class="file-selection-card file-selection-card-bigger">
-            <div class="file-selection-card-item" (click)="setLessonFiles('secondBasedFiles', 'taskTitleFiles')">
+            <div
+              class="file-selection-card-item"
+              (click)="setLessonFiles('secondBasedFiles', 'taskTitleFiles')"
+              [class.active]="selectedFiles.secondBasedFiles.taskTitleFiles && selectedFiles.secondBasedFiles.taskTitleFiles[lang]?.length"
+            >
               <div class="file-selection-card-title">
                 <h5>Ma'ruza matni</h5>
               </div>
             </div>
-            <div class="file-selection-card-item" (click)="setLessonFiles('secondBasedFiles', 'taskPresentationFiles')">
+            <div
+              class="file-selection-card-item"
+              (click)="setLessonFiles('secondBasedFiles', 'taskPresentationFiles')"
+              [class.active]="selectedFiles.secondBasedFiles.taskPresentationFiles && selectedFiles.secondBasedFiles.taskPresentationFiles[lang]?.length"
+            >
               <div class="file-selection-card-title">
                 <h5>Prezentasiya</h5>
               </div>
             </div>
-            <div class="file-selection-card-item" (click)="setLessonFiles('secondBasedFiles', 'taskVideoUrls')">
+            <div
+              class="file-selection-card-item"
+              (click)="setLessonFiles('secondBasedFiles', 'taskVideoUrls')"
+              [class.active]="selectedFiles.secondBasedFiles.taskVideoUrls?.length"
+            >
               <div class="file-selection-card-title">
                 <h5>Video material</h5>
               </div>
@@ -242,7 +292,9 @@
           <div class="file-selection-card">
             <div
               class="file-selection-card-item file-selection-card-item-borderfull flex-column align-items-stretch"
-              (click)="setLessonFiles('secondBasedFiles', 'taskLiteratureFiles')"
+              (click)="setLessonFiles('secondBasedFiles', 'taskLiteratureFiles'); isLiteratureDropdownVisible = !isLiteratureDropdownVisible;  $event.stopPropagation()"
+              style="position: relative"
+              [class.active]="selectedFiles.secondBasedFiles.taskLiteratureFiles?.[lang]?.length && isLiteratureDropdownVisible"
             >
               <div class="file-selectrion-card-img">
                 <img src="/assets/img/file-selection-3.png" alt="" />
@@ -251,12 +303,38 @@
                 <div class="file-selection-card-img me-0">
                   <img
                     src="./assets/svg/slide-left.svg"
+                    [class.rotate-180]="isLiteratureDropdownVisible"
                     width="20px"
-                    alt="Lesson 1"
+                    alt="Toggle literature"
                   />
                 </div>
                 <div class="file-selection-card-title w-100">
-                  <h5 class="text-center">Adabiyotlar</h5>
+                  <h5 class="text-center">{{ getSelectedFilesTitle() }}</h5>
+                </div>
+              </div>
+
+              <!-- Literature Files Dropdown -->
+              <div
+                *ngIf="isLiteratureDropdownVisible && selectedFiles?.secondBasedFiles?.taskLiteratureFiles?.[lang]?.length"
+                class="literature-dropdown"
+                (click)="$event.stopPropagation()"
+              >
+                <div class="literature-list">
+                  <div
+                    *ngFor="let file of selectedFiles?.secondBasedFiles?.taskLiteratureFiles?.[lang]"
+                    class="literature-item"
+                  >
+                    <div class="d-flex align-items-center">
+                      <img src="./assets/svg/pdf-icon.svg" alt="PDF" class="me-2" style="width: 20px;" />
+                      <span class="file-name">{{ file.name || 'Literature file' }}</span>
+                      <div class="ms-auto">
+                        <span class="file-size">{{ file.size || '2.2 MB' }}</span>
+                        <button class="btn btn-link p-0 ms-2" (click)="file.url && openFileInNewTab(file.url)">
+                          <img src="./assets/svg/download.svg" alt="Download" style="width: 16px;" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

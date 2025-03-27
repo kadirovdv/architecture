@@ -182,11 +182,13 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
     if (isLessonExists) {
       this.toastr.warning("Fan ro'yhatda mavjud!");
       this.exists = true;
+      this.loadingService.hide();
       return;
     }
 
     if (!this.img && !this.imgDisplay) {
       this.toastr.warning('Rasmni tanlang!');
+      this.loadingService.hide();
       return;
     }
 

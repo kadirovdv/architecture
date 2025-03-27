@@ -79,6 +79,7 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
   isTaskModalVisible = false;
   selectedTaskId: string | null = null;
+  isLiteratureDropdownVisible = false;
 
   constructor(
     private navService: ToggleNavVisibilityService,
@@ -390,12 +391,10 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     return sanitizedUrl;
   }
 
-  sanitizeUrl(url: string): SafeResourceUrl {
+  sanitizeUrl(url: string): SafeResourceUrl | null {
     if (!url) return '';
     
-    // Check if we already have this URL cached
     if (this.sanitizedUrls.has(url)) {
-      console.log('🔄 Using cached URL:', url);
       return this.sanitizedUrls.get(url)!;
     }
 
@@ -405,7 +404,6 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       `https://docs.google.com/viewer?url=${encodedUrl}&embedded=true`
     );
 
-    // Cache the result
     this.sanitizedUrls.set(url, safeUrl);
     return safeUrl;
   }
@@ -423,13 +421,16 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   getEmbeddedVideoUrl(url: string): SafeResourceUrl {
     if (!url) return '';
     
-    // Extract YouTube video ID
     const videoId = this.extractYoutubeId(url);
     if (!videoId) return '';
     
-    // Create embedded URL
     const embeddedUrl = `https://www.youtube.com/embed/${videoId}`;
-    return this.sanitizer.bypassSecurityTrustResourceUrl(embeddedUrl);
+    if (this.sanitizedUrls.has(embeddedUrl)) {
+      return this.sanitizedUrls.get(embeddedUrl)!;
+    }
+    const safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(embeddedUrl);
+    this.sanitizedUrls.set(embeddedUrl, safeUrl);
+    return safeUrl;
   }
 
   private extractYoutubeId(url: string): string | null {
@@ -472,6 +473,8 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
           newFiles.secondBasedFiles[fileType as keyof SecondClassFileGroups] = files;
         }
       }
+
+      console.log('newFiles', newFiles);
     }
 
     this.selectedFilesSubject.next(newFiles);
@@ -518,7 +521,6 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     this.selectedTaskId = task.id;
     this.isTaskModalVisible = false;
     
-    // Update files based on selected task
     if (this.selectedLesson?.tasks) {
       const newFiles = {
         firstBasedFiles: {
@@ -544,8 +546,53 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     return task.title || `Task ${index + 1}`;
   }
 
+  getSelectedFilesTitle(): string {
+    const titles: { [key: string]: { [key: string]: string } } = {
+      taskExampleFiles: {
+        uz: 'Grafik topshiriq variantlari',
+        ru: 'Варианты графического задания',
+        en: 'Graphic task variants'
+      },
+      taskSolutionFiles: {
+        uz: 'Grafik topshiriq yechimi namunasi',
+        ru: 'Пример решения графического задания',
+        en: 'Graphic task solution example'
+      },
+      taskTitleFiles: {
+        uz: 'Ma\'ruza matni',
+        ru: 'Текст лекции',
+        en: 'Lecture text'
+      },
+      taskPresentationFiles: {
+        uz: 'Prezentasiya',
+        ru: 'Презентация',
+        en: 'Presentation'
+      },
+      taskVideoUrls: {
+        uz: 'Video material',
+        ru: 'Видео материал',
+        en: 'Video material'
+      },
+      taskLiteratureFiles: {
+        uz: 'Adabiyotlar',
+        ru: 'Литература',
+        en: 'Literature'
+      }
+    };
+    return titles[this.currentFileType]?.[this.lang] || '';
+  }
+
   @HostListener('document:click')
   closeTaskModal(): void {
     this.isTaskModalVisible = false;
+  }
+
+  @HostListener('document:click', ['$event'])
+  handleDocumentClick(event: MouseEvent): void {
+    const literatureSection = (event.target as HTMLElement).closest('.file-selection-card-item');
+    if (!literatureSection) {
+      this.isTaskModalVisible = false;
+      this.isLiteratureDropdownVisible = false;
+    }
   }
 }

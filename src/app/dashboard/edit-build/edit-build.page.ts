@@ -1,11 +1,17 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit, ElementRef, ViewChildren, QueryList } from '@angular/core';
 import { CrudService } from 'src/app/shared/services/crud.service';
 import { DropboxService } from 'src/app/shared/services/dropbox.service';
 import { FormGroup, FormControl } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
-import { concatMap, from, tap, timer } from 'rxjs';
-import { ActivatedRoute } from '@angular/router';
+import { catchError, concatMap, from, tap, timer, Observable, Subscription } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
+import { LoadingService } from 'src/app/shared/services/loading.service';
+import { Lesson, LessonTitle, Task, FirstClassFileGroups, SecondClassFileGroups, Files, Videos } from 'src/app/shared/interfaces/interfaces';
+import { DomSanitizer, SafeUrl, SafeResourceUrl } from '@angular/platform-browser';
+import { firstValueFrom } from 'rxjs';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { VideoUploadComponent } from '../create-build/video-upload/video-upload.component';
 
 @Component({
   selector: 'app-edit-build',
@@ -13,10 +19,18 @@ import { Location } from '@angular/common';
   styleUrls: ['./edit-build.page.scss'],
 })
 export class EditBuildPage implements OnInit {
-  lessonIdToEdit: any;
-  lesson: any = {
+  @ViewChildren('hiddenInput') hiddenInputs!: QueryList<ElementRef>;
+  lessonIdToEdit: string = '';
+  lesson: Lesson = {
     id: '',
-    lessonTitle: {},
+    lessonTitle: {
+      uz: '',
+      ru: '',
+      en: ''
+    },
+    tasks: [],
+    thumbnail: '',
+    createdAt: new Date().toISOString()
   };
   semester: any = {
     id: '',
@@ -95,17 +109,34 @@ export class EditBuildPage implements OnInit {
 
   public globalVarHold: any = [];
 
+  imgDisplay: SafeUrl | null = null;
+  file: File | null = null;
+
+  lessons: Lesson[] = [];
+  websiteLessons: Lesson[] = [];
+  task: Task | any = null;
+  selectedLanguage: 'uz' | 'ru' | 'en' = 'uz';
+  currentCategory: string = '';
+  errorCategories: string[] = [];
+
   constructor(
     private crudService: CrudService,
     private dropboxService: DropboxService,
     private toastr: ToastrService,
     private activatedRoute: ActivatedRoute,
-    private navigate: Location
+    private navigate: Location,
+    private router: Router,
+    private loadingService: LoadingService,
+    private sanitizer: DomSanitizer,
+    private modalService: NgbModal
   ) {}
 
   ngOnInit(): void {
-    this.getAll();
+    this.loadLesson();
+    this.getLessons();
+    this.getWebsiteLessons();
   }
+
   getAll() {
     this.loading = true;
     this.activatedRoute.params.subscribe((params) => {
@@ -113,34 +144,38 @@ export class EditBuildPage implements OnInit {
       this.crudService
         .getDocumentById('globalVar', this.lessonIdToEdit)
         .subscribe((res: any) => {
-          this.globalVarHold = res;
-          this.lesson.id = this.globalVarHold?.id;
-          this.semester = this.globalVarHold?.semesters[0];
-          this.theme = this.semester.themes[0];
+          if (res?.lessonTitle && res?.semesters?.[0]) {
+            this.globalVarHold = res;
+            this.lesson.id = this.globalVarHold.id;
+            this.semester = this.globalVarHold.semesters[0];
+            this.theme = this.semester.themes[0];
 
-          Object.keys(this.globalVarHold?.lessonTitle).forEach((key: any) => {
-            this.lesson.lessonTitle[key] = this.globalVarHold?.lessonTitle[key];
-          });
-          Object.keys(this.globalVarHold?.semesters[0].semesterTitle).forEach(
-            (key: any) => {
-              this.semester.semesterTitle[key] =
-                this.globalVarHold?.semesters[0].semesterTitle[key];
-              this.newSemesterTitle[key] =
-                this.globalVarHold?.semesters[0].semesterTitle[key];
-            }
-          );
+            Object.keys(this.globalVarHold.lessonTitle).forEach((key: string) => {
+              if (this.lesson.lessonTitle && this.globalVarHold.lessonTitle) {
+                this.lesson.lessonTitle[key as keyof LessonTitle] = this.globalVarHold.lessonTitle[key as keyof LessonTitle];
+              }
+            });
+            Object.keys(this.globalVarHold?.semesters[0].semesterTitle).forEach(
+              (key: any) => {
+                this.semester.semesterTitle[key] =
+                  this.globalVarHold?.semesters[0].semesterTitle[key];
+                this.newSemesterTitle[key] =
+                  this.globalVarHold?.semesters[0].semesterTitle[key];
+              }
+            );
 
-          Object.keys(this.theme.themeTitle).forEach((key: any) => {
-            this.theme.themeTitle[key] =
-              this.semester.themes[0].themeTitle[key];
-            this.newThemeTitle[key] = this.semester.themes[0].themeTitle[key];
-          });
-          Object.keys(this.theme.files).forEach((key) => {
-            this.fileGroups[key] = this.theme.files[key];
-          });
+            Object.keys(this.theme.themeTitle).forEach((key: any) => {
+              this.theme.themeTitle[key] =
+                this.semester.themes[0].themeTitle[key];
+              this.newThemeTitle[key] = this.semester.themes[0].themeTitle[key];
+            });
+            Object.keys(this.theme.files).forEach((key) => {
+              this.fileGroups[key] = this.theme.files[key];
+            });
 
-          this.calculateTotalSize();
-          this.loading = false;
+            this.calculateTotalSize();
+            this.loading = false;
+          }
         });
     });
   }
@@ -151,11 +186,15 @@ export class EditBuildPage implements OnInit {
       console.log(this.globalVarHold);
       this.crudService
         .updateDocument('globalVar', this.lessonIdToEdit, this.globalVarHold)
-        .then(() => {
+        .pipe(
+          catchError((error: Error) => {
+            console.error(error);
+            throw error;
+          })
+        )
+        .subscribe(() => {
           this.loading = false;
-          this.toastr.success(
-            'All files across categories were uploaded and updated successfully.'
-          );
+          this.toastr.success('All files across categories were uploaded and updated successfully.');
           this.uploadedFiles = [];
           this.uploadedFilesByCategory = {
             materials: [],
@@ -187,9 +226,6 @@ export class EditBuildPage implements OnInit {
             },
           };
           this.totalSize = 0;
-        })
-        .catch((e) => {
-          console.error(e);
         });
     }
   }
@@ -202,188 +238,128 @@ export class EditBuildPage implements OnInit {
     }
   }
 
-  onFileSelected(event: Event, category: string, lang: string): void {
-    const fileInput: any = event.target as HTMLInputElement;
-    if (!this.fileGroups[category] || !this.fileGroups[category][lang]) {
-      this.toastr.error('Invalid category or language');
+  onFileSelected(
+    event: Event,
+    category: keyof FirstClassFileGroups | keyof SecondClassFileGroups,
+    language: string
+  ) {
+    if (!this.task) {
+      this.toastr.error('Iltimos, topshiriqni tanlang!');
       return;
     }
 
-    for (let i = 0; i < fileInput?.files?.length; i++) {
-      const file = fileInput.files[i];
-      file.customType = 'file';
-      if (file.size / 1024 > 150000) {
-        this.sizeExceeded = true;
-        file.sizeExceeded = true;
-        this.toastr.error('File size is too big');
-      } else {
-        this.fileGroups[category][lang].push(file);
-      }
+    const input = event.target as HTMLInputElement;
+    if (!input.files) return;
+
+    const files = Array.from(input.files);
+
+    const oversizedFiles = files.filter(
+      (file) => file.size / (1024 * 1024) > 150
+    ); 
+    if (oversizedFiles.length > 0) {
+      this.toastr.error("Fayl hajmi 150MB dan o'tib ketdi!");
+      return;
     }
 
-    this.calculateTotalSize();
+    const filesArray = files.map((file) => ({
+      name: file.name,
+      size: file.size,
+      file: file,
+    }));
+
+    this.task.firstBasedFiles ??= {
+      taskExampleFiles: { uz: [], ru: [], en: [] },
+      taskSolutionFiles: { uz: [], ru: [], en: [] },
+    } as FirstClassFileGroups;
+
+    this.task.secondBasedFiles ??= {
+      taskTitleFiles: { uz: [], ru: [], en: [] },
+      taskPresentationFiles: { uz: [], ru: [], en: [] },
+      taskLiteratureFiles: { uz: [], ru: [], en: [] },
+      taskVideoUrls: [],
+    } as SecondClassFileGroups;
+
+    if (this.isFirstClassFileCategory(category)) {
+      this.task.firstBasedFiles[category] ??= { uz: [], ru: [], en: [] };
+      this.task.firstBasedFiles[category][language] ??= [];
+      this.task.firstBasedFiles[category][language] = [
+        ...this.task.firstBasedFiles[category][language]!,
+        ...filesArray,
+      ];
+    } else if (this.isSecondClassFileCategory(category)) {
+      this.task.secondBasedFiles[category] ??= { uz: [], ru: [], en: [] };
+      this.task.secondBasedFiles[category][language] ??= [];
+      this.task.secondBasedFiles[category][language] = [
+        ...this.task.secondBasedFiles[category][language]!,
+        ...filesArray,
+      ];
+    }
+
+    input.value = '';
+
+    this.toastr.success(
+      `Fayllar ${language.toUpperCase()} tilida muvaffaqiyatli qo'shildi`
+    );
   }
 
-  removeFile(category: string, lang: string, index: number): void {
-    if (this.fileGroups[category] && this.fileGroups[category][lang]) {
-      this.fileGroups[category][lang].splice(index, 1);
-      this.calculateTotalSize();
-      this.toastr.success('File removed successfully.');
-    } else {
-      this.toastr.error('Invalid category or language');
-    }
+  private isFirstClassFileCategory(
+    category: string
+  ): category is keyof FirstClassFileGroups {
+    return ['taskExampleFiles', 'taskSolutionFiles'].includes(category);
   }
 
-  replaceFile(
-    event: Event,
-    category: string,
-    lang: string,
-    index: number
-  ): void {
-    const fileInput: any = event.target as HTMLInputElement;
-    if (fileInput?.files?.length > 0) {
-      const newFile = fileInput.files[0];
-      newFile.customType = 'file';
-      this.fileReplaced = true;
-      if (newFile.size / 1024 > 150000) {
-        this.sizeExceeded = true;
-        newFile.sizeExceeded = true;
-        this.toastr.error('File size is too big');
-      } else {
-        this.fileGroups[category][lang][index] = newFile;
-        this.calculateTotalSize();
-        this.toastr.success('File replaced successfully.');
-      }
-    }
+  private isSecondClassFileCategory(
+    category: string
+  ): category is keyof SecondClassFileGroups {
+    return [
+      'taskTitleFiles',
+      'taskPresentationFiles',
+      'taskLiteratureFiles',
+    ].includes(category);
   }
 
-  saveAll(): void {
-    this.exists = false;
-
-    Object.keys(this.lesson.lessonTitle).forEach((key: any) => {
-      if (this.lesson.lessonTitle[key] === '' && !this.fileReplaced) {
-        this.toastr.error("Lesson qatori bo'sh!");
-        this.exists = true;
-        return;
-      }
-    });
-
-    if (!this.exists) {
-      this.loading = true;
-    }
-
-    const categoryStatus: any = {};
-
-    for (const category in this.fileGroups) {
-      categoryStatus[category] = { total: 0, uploaded: 0 };
-
-      for (const lang in this.fileGroups[category]) {
-        const validFiles = this.fileGroups[category][lang].filter(
-          (file: any) => file !== null && file.customType === 'file'
+  onRemoveFile(event: { category: string; lang: string; index: number }): void {
+    if (this.task) {
+      if (this.isFirstClassFileCategory(event.category)) {
+        this.task.firstBasedFiles[event.category][event.lang]?.splice(
+          event.index,
+          1
         );
-
-        categoryStatus[category].total += validFiles.length;
+      } else if (this.isSecondClassFileCategory(event.category)) {
+        this.task.secondBasedFiles[event.category][event.lang]?.splice(
+          event.index,
+          1
+        );
       }
     }
+  }
 
-    const uploadObservables: any = [];
-
-    for (const category in this.fileGroups) {
-      for (const lang in this.fileGroups[category]) {
-        this.fileGroups[category][lang]
-          .filter((file: any) => file !== null && file.customType === 'file')
-          .forEach((file: any) => {
-            uploadObservables.push(
-              this.dropboxService.uploadFile('/' + file.name, file).pipe(
-                tap((response) => {
-                  this.uploadedFilesByCategory[category][lang].push(response);
-                  categoryStatus[category].uploaded++;
-
-                  if (
-                    categoryStatus[category].uploaded ===
-                    categoryStatus[category].total
-                  ) {
-                    this.toastr.success(
-                      `All files in ${category} uploaded successfully.`
-                    );
-                  }
-                })
-              )
-            );
-          });
-      }
+  onFileTypeSelect(lang: string, category: string) {
+    this.selectedLanguage = lang as 'uz' | 'ru' | 'en';
+    this.currentCategory = category;
+    const inputs = this.hiddenInputs.toArray();
+    const input = inputs.find(
+      (input) => input.nativeElement.getAttribute('data-category') === category
+    );
+    if (input) {
+      input.nativeElement.click();
     }
+  }
 
-    from(uploadObservables)
-      .pipe(
-        concatMap((observable: any, index) => {
-          const delayTime = index === 0 ? 0 : 1000;
-          return timer(delayTime).pipe(concatMap(() => observable));
-        })
-      )
-      .subscribe({
-        next: (results: any) => {
-          this.uploadedFiles.push(results);
-          this.dropboxService
-            .createSharedLink(results.path_display)
-            .subscribe(() => {});
-        },
-        complete: () => {
-          // Update existing themes with uploaded files
-          this.globalVarHold.semesters
-            .find((semester: any) => semester.id === this.semester.id)
-            ?.themes.some((theme: any) => {
-              if (theme.id === this.theme.id) {
-                // Object.keys(theme.files).forEach((key) => {
-                //   theme.files[key] = [
-                //     ...theme.files[key].filter(
-                //       (file: any) => file?.customType !== 'file'
-                //     ),
-                //     ...this.uploadedFilesByCategory[key],
-                //   ];
-                // });
-                this.helperKeys(theme.files).forEach((key) => {
-                  this.helperKeys(theme.files[key]).forEach((lang) => {
-                    theme.files[key][lang] = [
-                      ...(theme.files[key][lang] || []).filter(
-                        (file: any) => file?.customType !== 'file'
-                      ),
-                      ...(this.uploadedFilesByCategory[key]?.[lang] ?? []),
-                    ];
-                  });
-                });
-              }
-            });
+  addVideo() {
+    const modalRef = this.modalService.open(VideoUploadComponent);
+    modalRef.result
+      .then((result: Videos) => {
+        if (!this.task.secondBasedFiles.taskVideoUrls) {
+          this.task.secondBasedFiles.taskVideoUrls = [];
+        }
+        this.task.secondBasedFiles.taskVideoUrls.push(result);
+      })
+      .catch(() => {});
+  }
 
-          // Update semester and theme titles
-          const semester = this.globalVarHold.semesters.find(
-            (s: any) => s.id === this.semester.id
-          );
-          if (semester) {
-            Object.keys(semester.semesterTitle).forEach(
-              (key) =>
-                (semester.semesterTitle[key] = this.newSemesterTitle[key])
-            );
-
-            const theme = semester.themes.find(
-              (t: any) => t.id === this.theme.id
-            );
-            if (theme) {
-              Object.keys(theme.themeTitle).forEach(
-                (key) => (theme.themeTitle[key] = this.newThemeTitle[key])
-              );
-            }
-          }
-
-          setTimeout(() => {
-            this.build();
-          }, 1000);
-        },
-        error: () => {
-          this.loading = false;
-          this.toastr.error('An error occurred during file upload.');
-        },
-      });
+  hasError(category: string): boolean {
+    return this.errorCategories.includes(category);
   }
 
   formatFileSize(sizeInBytes: number): string {
@@ -445,7 +421,7 @@ export class EditBuildPage implements OnInit {
   }
 
   goBack() {
-    this.navigate.historyGo(-1);
+    this.navigate.back();
   }
 
   changeObjectKeyName(group: any): any {
@@ -460,6 +436,151 @@ export class EditBuildPage implements OnInit {
         return 'Video darslar';
       default:
         return group;
+    }
+  }
+
+  async loadLesson(): Promise<void> {
+    try {
+      this.loading = true;
+      const id = this.activatedRoute.snapshot.queryParams['id'];
+      if (!id) {
+        this.toastr.error('Invalid lesson ID');
+        this.router.navigate(['/dashboard/build']);
+        return;
+      }
+
+      const lessons = await firstValueFrom(this.crudService.getDocuments('website-lessons')) as Lesson[];
+      const lesson = lessons.find(l => l.id === id);
+      
+      if (!lesson) {
+        this.toastr.error('Lesson not found');
+        this.router.navigate(['/dashboard/build']);
+        return;
+      }
+
+      this.lesson = {
+        ...lesson,
+        lessonTitle: {
+          uz: lesson.lessonTitle?.uz || '',
+          ru: lesson.lessonTitle?.ru || '',
+          en: lesson.lessonTitle?.en || ''
+        }
+      };
+
+      if (this.lesson.thumbnail) {
+        const thumbnailUrl = typeof this.lesson.thumbnail === 'string' ? this.lesson.thumbnail : '';
+        if (thumbnailUrl) {
+          const thumbnailBlob = await firstValueFrom(this.dropboxService.getThumbnail(thumbnailUrl));
+          this.imgDisplay = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(thumbnailBlob));
+        }
+      }
+    } catch (error) {
+      console.error('Error loading lesson:', error);
+      this.toastr.error('Error loading lesson');
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  handleFileSelection(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      this.file = input.files[0];
+      this.imgDisplay = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(this.file));
+    }
+  }
+
+  async uploadAllFilesAndSaveData(): Promise<void> {
+    try {
+      this.loading = true;
+      this.loadingService.show();
+
+      // Upload thumbnail if changed
+      let thumbnailPath = typeof this.lesson.thumbnail === 'string' ? this.lesson.thumbnail : '';
+      if (this.file) {
+        const uploadPath = `/website-lessons/${this.lesson.id}/thumbnail`;
+        thumbnailPath = await firstValueFrom(this.dropboxService.uploadFile(uploadPath, this.file));
+      }
+
+      // Update lesson data
+      const updatedLesson: Partial<Lesson> = {
+        lessonTitle: this.lesson.lessonTitle,
+        thumbnail: thumbnailPath,
+        tasks: this.lesson.tasks
+      };
+
+      // Update lesson document
+      await firstValueFrom(this.crudService.updateDocument('website-lessons', this.lesson.id || '', updatedLesson));
+
+      this.toastr.success('Lesson updated successfully');
+      this.router.navigate(['/dashboard/build']);
+    } catch (error) {
+      console.error('Error saving lesson:', error);
+      this.toastr.error('Error saving lesson');
+    } finally {
+      this.loading = false;
+      this.loadingService.hide();
+    }
+  }
+
+  cancel(): void {
+    this.router.navigate(['/dashboard/build']);
+  }
+
+  getLessons() {
+    this.lessons = [];
+    this.crudService.getDocuments('lessons').subscribe((res) => {
+      this.lessons = res as Lesson[];
+      this.lessons.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateA - dateB;
+      });
+    });
+  }
+
+  getWebsiteLessons() {
+    this.crudService.getDocuments('website-lessons').subscribe((res) => {
+      this.websiteLessons = res as Lesson[];
+    });
+  }
+
+  isLessonDisabled(lesson: Lesson): boolean {
+    return this.websiteLessons.some(websiteLesson => websiteLesson.lessonTitle?.uz === lesson.lessonTitle?.uz);
+  }
+
+  onReplaceFile(event: {
+    category: string;
+    lang: string;
+    index: number;
+    file: File;
+  }): void {
+    if (!this.task) {
+      this.toastr.error('Please select a task first');
+      return;
+    }
+
+    const { category, lang, index, file } = event;
+
+    if (file.size / (1024 * 1024) > 150) {
+      this.toastr.error("Fayl 150MB dan o'tib ketdi");
+      return;
+    }
+
+    const newFile = {
+      name: file.name,
+      size: file.size,
+      file: file,
+    };
+
+    if (this.isFirstClassFileCategory(category)) {
+      if (this.task.firstBasedFiles[category]?.[lang]) {
+        this.task.firstBasedFiles[category][lang][index] = newFile;
+      }
+    } else if (this.isSecondClassFileCategory(category)) {
+      if (this.task.secondBasedFiles[category]?.[lang]) {
+        this.task.secondBasedFiles[category][lang][index] = newFile;
+      }
     }
   }
 }

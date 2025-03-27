@@ -206,7 +206,7 @@ export class LessonsPage implements OnInit {
   }
 
   editCreatedLesson(lesson: Lesson) {
-    this.router.navigate(['/dashboard/create-lesson'], { queryParams: { id: lesson.id } });
+    this.router.navigate(['/dashboard/edit-build'], { queryParams: { id: lesson.id } });
   }
 
   switchTab(tab: 'lessons' | 'website-lessons') {

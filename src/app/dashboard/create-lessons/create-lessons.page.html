@@ -31,8 +31,8 @@
               [class.active]="showHelper.uz"
             />
             <div class="card helper-card" [class.active]="showHelper.uz">
-              <div class="card-item" *ngFor="let lesson of filteredLessonList" (click)="selectLesson(lesson, 'uz')">
-                <h5>{{lesson.uz}}</h5>
+              <div class="card-item" *ngFor="let lesson of filteredLessonList; let i = index" (click)="selectLesson(lesson, 'uz')">
+                <h5>{{i + 1}}. {{lesson.uz}}</h5>
               </div>
               <div class="card-item" *ngIf="filteredLessonList.length === 0">
                 <h5>Hech narsa topilmadi</h5>
@@ -51,8 +51,8 @@
               [class.active]="showHelper.ru"
             />
             <div class="card helper-card" [class.active]="showHelper.ru">
-              <div class="card-item" *ngFor="let lesson of filteredLessonList" (click)="selectLesson(lesson, 'ru')">
-                <h5>{{lesson.ru}}</h5>
+              <div class="card-item" *ngFor="let lesson of filteredLessonList; let i = index" (click)="selectLesson(lesson, 'ru')">
+                <h5>{{i + 1}}. {{lesson.ru}}</h5>
               </div>
               <div class="card-item" *ngIf="filteredLessonList.length === 0">
                 <h5>Hech narsa topilmadi</h5>
@@ -71,8 +71,8 @@
               [class.active]="showHelper.en"
             />
             <div class="card helper-card" [class.active]="showHelper.en">
-              <div class="card-item" *ngFor="let lesson of filteredLessonList" (click)="selectLesson(lesson, 'en')">
-                <h5>{{lesson.en}}</h5>
+              <div class="card-item" *ngFor="let lesson of filteredLessonList; let i = index" (click)="selectLesson(lesson, 'en')">
+                <h5>{{i + 1}}. {{lesson.en}}</h5>
               </div>
               <div class="card-item" *ngIf="filteredLessonList.length === 0">
                 <h5>Hech narsa topilmadi</h5>

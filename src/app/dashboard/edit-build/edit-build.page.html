@@ -4,188 +4,409 @@
     <app-loader></app-loader>
   </div>
 </div>
-<div class="container my-5">
-  <button class="btn btn-primary mb-3" style="border: none" (click)="goBack()">
-    <i class="bi bi-arrow-left"></i>
-  </button>
-  <div class="row">
-    <div class="col-md-12 mb-3">
-      <h1>Mavzuni tanlang</h1>
-      <ng-container *ngFor="let title of helperKeys(lesson?.lessonTitle)">
-        <div class="d-flex align-items-center mb-2">
-          <b class="me-2"
-            ><h4 class="mb-0">
-              {{ title === "uz" ? "UZ" : title === "ru" ? "RU" : "EN" |
-              uppercase }}:
-            </h4></b
-          >
-          <input
-            class="form-control"
-            type="text"
-            [(ngModel)]="lesson.lessonTitle[title]"
-          />
-        </div>
-      </ng-container>
-    </div>
-    <div class="col-md-6">
-      <h1>Semester tanlang</h1>
-      <select
-        class="form-control mb-1"
-        [(ngModel)]="semester"
-        (change)="changeSemester(semester)"
-      >
-        <option
-          *ngFor="let semester of globalVarHold.semesters"
-          [ngValue]="semester"
+
+<div class="create-build-content">
+  <div class="create-build-card">
+    <button class="mb-3 bg-none border-0" style="width: 50px" (click)="goBack()">
+      <img src="/assets/svg/arrow-left.svg" class="w-100" alt="arrow-left" />
+    </button>
+
+    <div class="row">
+      <div class="col-md-12 mb-3 d-flex justify-content-center align-items-center flex-column">
+        <ng-select
+          [(ngModel)]="lesson"
+          class="create-build-ng-select mb-4"
+          placeholder="Fanni tanlang..."
         >
-          {{ semester.semesterTitle.uz?.length >= 18 ?
-          semester.semesterTitle.uz?.slice(0, 18) + '...' :
-          semester.semesterTitle.uz }}, {{
-          semester.semesterTitle.ru?.length >= 18 ?
-          semester.semesterTitle.ru?.slice(0, 18) + '...' :
-          semester.semesterTitle.ru }}, {{
-          semester.semesterTitle.en?.length >= 18 ?
-          semester.semesterTitle.en?.slice(0, 18) + '...' :
-          semester.semesterTitle.en }}
-        </option>
-      </select>
-      <div class="w-100 d-flex justify-content-center align-items-center">
-        <i class="bi bi-arrow-down-short fs-2"></i>
-      </div>
-      <div>
-        <ng-container *ngFor="let title of helperKeys(semester?.semesterTitle)">
-          <div class="d-flex align-items-center">
-            <b class="me-2"
-              ><h4 class="mb-0">
-                {{ title === "uz" ? "UZ" : title === "ru" ? "RU" : "EN" |
-                uppercase }}:
-              </h4></b
-            >
-            <input
-              class="form-control mt-1"
-              type="text"
-              [(ngModel)]="newSemesterTitle[title]"
-            />
-          </div>
-        </ng-container>
-      </div>
-    </div>
-    <div class="col-md-6">
-      <h1>Mavzuni tanlang</h1>
-      <select
-        class="form-control mb-1"
-        [(ngModel)]="theme"
-        (change)="changeTheme(theme)"
-      >
-        <option *ngFor="let theme of semester.themes" [ngValue]="theme">
-          {{ theme.themeTitle?.uz?.length >= 18 ? theme.themeTitle?.uz?.slice(0,
-          18) + '...' : theme.themeTitle?.uz }}, {{
-          theme.themeTitle?.ru?.length >= 18 ?
-          theme.themeTitle?.ru?.slice(0, 18) + '...' : theme.themeTitle?.ru
-          }}, {{ theme.themeTitle?.en?.length >= 18 ?
-          theme.themeTitle?.en?.slice(0, 18) + '...' : theme.themeTitle?.en
-          }}
-        </option>
-      </select>
-      <div class="w-100 d-flex justify-content-center align-items-center">
-        <i class="bi bi-arrow-down-short fs-2"></i>
-      </div>
-      <div>
-        <ng-container *ngFor="let title of helperKeys(theme?.themeTitle)">
-          <div class="d-flex align-items-center">
-            <b class="me-2"
-              ><h4 class="mb-0">
-                {{ title === "uz" ? "UZ" : title === "ru" ? "RU" : "EN" |
-                uppercase }}:
-              </h4></b
-            >
-            <input
-              class="form-control mt-1"
-              type="text"
-              [(ngModel)]="newThemeTitle[title]"
-            />
-          </div>
-        </ng-container>
-      </div>
-    </div>
-    <div class="col">
-      <h1 class="mt-4">Faylni tanlang</h1>
-      <div class="container my-4">
-        <div class="row" *ngIf="theme && theme?.files">
-          <div *ngFor="let category of helperKeys(theme?.files)" class="category-section mb-4 col">
-            <h5>{{ changeObjectKeyName(category) | titlecase }}</h5>
-        
-            <div *ngFor="let lang of helperKeys(fileGroups[category])">
-              <h6 class="text-muted">{{ lang.toUpperCase() }}</h6>
-        
-              <div
-                *ngFor="let file of fileGroups[category][lang]; let fileIndex = index"
-                class="file-item"
-              >
-                <div class="card mb-3" *ngIf="file" [class.bg-warning]="file.sizeExceeded">
-                  <div class="card-body">
-                    <div class="row">
-                      <div class="col">
-                        <span class="fw-bold">{{ fileIndex + 1 }}. {{ file.name }}</span>
-                      </div>
-                      <div class="col">
-                        <b>{{ formatFileSize(file.size) }}</b>
-                      </div>
-                      <div class="col">
-                        <button class="btn btn-warning" (click)="replaceInput.click()">
-                          <i class="bi bi-pencil-square text-white"></i>
-                        </button>
-                        <button class="btn btn-danger ms-2" (click)="removeFile(category, lang, fileIndex)">
-                          <i class="bi bi-trash text-white"></i>
-                        </button>
-                      </div>
+          <ng-option 
+            *ngFor="let lesson of lessons" 
+            [value]="lesson"
+          >
+            {{ lesson.lessonTitle?.uz }} - {{ lesson.lessonTitle?.ru }} - {{
+            lesson.lessonTitle?.en }}
+          </ng-option>
+        </ng-select>
+        <ng-select
+          [(ngModel)]="task"
+          class="create-build-ng-select bg-yellow mb-4"
+          [placeholder]="'Grafik topshiriqni tanlang'"
+          [clearable]="true"
+        >
+          <ng-option *ngFor="let taskItem of lesson?.tasks" [value]="taskItem">
+            {{ taskItem.title }}
+          </ng-option>
+        </ng-select>
+        <div class="container my-4">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="position-relative">
+                <input
+                  type="file"
+                  hidden
+                  #hiddenInput
+                  data-category="taskExampleFiles"
+                  multiple
+                  (change)="onFileSelected($event, 'taskExampleFiles', selectedLanguage)"
+                />
+                <div class="bg-none p-0 position-absolute-btn">
+                  <div ngbDropdown class="d-inline-block">
+                    <img
+                      src="/assets/svg/plus.svg"
+                      width="30px"
+                      alt="upload"
+                      ngbDropdownToggle
+                    />
+                    <div ngbDropdownMenu>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('uz', 'taskExampleFiles')"
+                      >
+                        <img
+                          src="/assets/svg/uz.svg"
+                          alt=""
+                          class="me-1"
+                        />O'zbek
+                      </button>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('ru', 'taskExampleFiles')"
+                      >
+                        <img
+                          src="/assets/svg/ru.svg"
+                          alt=""
+                          class="me-1"
+                        />Русский
+                      </button>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('en', 'taskExampleFiles')"
+                      >
+                        <img
+                          src="/assets/svg/en.svg"
+                          alt=""
+                          class="me-1"
+                        />English
+                      </button>
                     </div>
                   </div>
                 </div>
+                <app-file-list
+                  [files]="task?.firstBasedFiles?.taskExampleFiles"
+                  [category]="'taskExampleFiles'"
+                  [placeholder]="'GRAFIK TOPSHIRIQ YECHIMI NAMUNALARI (PDF),(PPT)'"
+                  [hasError]="hasError('taskExampleFiles')"
+                  (removeFile)="onRemoveFile($event)"
+                  (replaceFile)="onReplaceFile($event)"
+                ></app-file-list>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="position-relative">
                 <input
                   type="file"
-                  class="d-none"
-                  #replaceInput
-                  (change)="replaceFile($event, category, lang, fileIndex)"
+                  hidden
+                  #hiddenInput
+                  data-category="taskSolutionFiles"
+                  multiple
+                  (change)="onFileSelected($event, 'taskSolutionFiles', selectedLanguage)"
                 />
+                <div class="bg-none p-0 position-absolute-btn">
+                  <div ngbDropdown class="d-inline-block">
+                    <img
+                      src="/assets/svg/plus.svg"
+                      width="30px"
+                      alt="upload"
+                      ngbDropdownToggle
+                    />
+                    <div ngbDropdownMenu>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('uz', 'taskSolutionFiles')"
+                      >
+                        <img
+                          src="/assets/svg/uz.svg"
+                          alt=""
+                          class="me-1"
+                        />O'zbek
+                      </button>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('ru', 'taskSolutionFiles')"
+                      >
+                        <img
+                          src="/assets/svg/ru.svg"
+                          alt=""
+                          class="me-1"
+                        />Русский
+                      </button>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('en', 'taskSolutionFiles')"
+                      >
+                        <img
+                          src="/assets/svg/en.svg"
+                          alt=""
+                          class="me-1"
+                        />English
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <app-file-list
+                  [files]="task?.firstBasedFiles?.taskSolutionFiles"
+                  [category]="'taskSolutionFiles'"
+                  [placeholder]="'GRAFIK TOPSHIRIQLAR VARIANTLARI'"
+                  [hasError]="hasError('taskSolutionFiles')"
+                  (removeFile)="onRemoveFile($event)"
+                  (replaceFile)="onReplaceFile($event)"
+                ></app-file-list>
               </div>
-        
-              <!-- File Upload & Remove Buttons -->
-              <input
-                type="file"
-                class="form-control"
-                (change)="onFileSelected($event, category, lang)"
-                hidden
-                #hiddenInput
-                multiple
-              />
-              <small class="fw-bold" *ngIf="fileGroups[category][lang].length > 0">
-                Tanlangan fayllar soni: {{ fileGroups[category][lang].length }}
-              </small>
-              <br />
-              <button
-                class="btn btn-danger w-100 mb-1"
-                *ngIf="fileGroups[category][lang].length > 0"
-                (click)="removeAllFromGroup(category, lang)"
-              >
-                Hammasini o'chirish
-              </button>
-              <button class="btn btn-primary w-100" (click)="hiddenInput.click()">
-                Yangi {{ changeObjectKeyName(category) | titlecase }} qo'shish ({{ lang.toUpperCase() }})
-              </button>
             </div>
           </div>
         </div>
-        
+        <div class="create-build-ng-card">Didaktik materiallar</div>
+        <div class="container my-4">
+          <div class="row">
+            <div class="col-md-3 mb-3"></div>
+            <div class="col-md-6 mb-3">
+              <div class="position-relative">
+                <input
+                  type="file"
+                  hidden
+                  #hiddenInput
+                  data-category="taskTitleFiles"
+                  multiple
+                  (change)="onFileSelected($event, 'taskTitleFiles', selectedLanguage)"
+                />
+                <div class="bg-none p-0 position-absolute-btn">
+                  <div ngbDropdown class="d-inline-block">
+                    <img
+                      src="/assets/svg/plus.svg"
+                      width="30px"
+                      alt="upload"
+                      ngbDropdownToggle
+                    />
+                    <div ngbDropdownMenu>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('uz', 'taskTitleFiles')"
+                      >
+                        <img
+                          src="/assets/svg/uz.svg"
+                          alt=""
+                          class="me-1"
+                        />O'zbek
+                      </button>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('ru', 'taskTitleFiles')"
+                      >
+                        <img
+                          src="/assets/svg/ru.svg"
+                          alt=""
+                          class="me-1"
+                        />Русский
+                      </button>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('en', 'taskTitleFiles')"
+                      >
+                        <img
+                          src="/assets/svg/en.svg"
+                          alt=""
+                          class="me-1"
+                        />English
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <app-file-list
+                  [files]="task?.secondBasedFiles?.taskTitleFiles"
+                  [category]="'taskTitleFiles'"
+                  [placeholder]="'MA\'RUZA MATNI'"
+                  [hasError]="hasError('taskTitleFiles')"
+                  (removeFile)="onRemoveFile($event)"
+                  (replaceFile)="onReplaceFile($event)"
+                ></app-file-list>
+              </div>
+            </div>
+            <div class="col-md-3"></div>
+            <div class="col-md-6 mb-3">
+              <div class="position-relative">
+                <input
+                  type="file"
+                  hidden
+                  #hiddenInput
+                  data-category="taskPresentationFiles"
+                  multiple
+                  (change)="onFileSelected($event, 'taskPresentationFiles', selectedLanguage)"
+                />
+                <div class="bg-none p-0 position-absolute-btn">
+                  <div ngbDropdown class="d-inline-block">
+                    <img
+                      src="/assets/svg/plus.svg"
+                      width="30px"
+                      alt="upload"
+                      ngbDropdownToggle
+                    />
+                    <div ngbDropdownMenu>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('uz', 'taskPresentationFiles')"
+                      >
+                        <img
+                          src="/assets/svg/uz.svg"
+                          alt=""
+                          class="me-1"
+                        />O'zbek
+                      </button>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('ru', 'taskPresentationFiles')"
+                      >
+                        <img
+                          src="/assets/svg/ru.svg"
+                          alt=""
+                          class="me-1"
+                        />Русский
+                      </button>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('en', 'taskPresentationFiles')"
+                      >
+                        <img
+                          src="/assets/svg/en.svg"
+                          alt=""
+                          class="me-1"
+                        />English
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <app-file-list
+                  [files]="task?.secondBasedFiles?.taskPresentationFiles"
+                  [category]="'taskPresentationFiles'"
+                  [placeholder]="'PREZENTATSIYA'"
+                  [hasError]="hasError('taskPresentationFiles')"
+                  (removeFile)="onRemoveFile($event)"
+                  (replaceFile)="onReplaceFile($event)"
+                ></app-file-list>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="position-relative">
+                <div class="bg-none p-0 position-absolute-btn">
+                  <img src="/assets/svg/plus.svg" width="30px" alt="upload" (click)="addVideo()" style="cursor: pointer;" />
+                </div>
+                <app-file-list
+                  [files]="task?.secondBasedFiles?.taskVideoUrls"
+                  [category]="'taskVideoUrls'"
+                  [placeholder]="'VIDEO DARS'"
+                  [hasError]="hasError('taskVideoUrls')"
+                  [selectedLang]="selectedLanguage"
+                  (removeFile)="onRemoveFile($event)"
+                  (replaceFile)="onReplaceFile($event)"
+                ></app-file-list>
+              </div>
+            </div>
+            <div class="col-md-3"></div>
+            <div class="col-md-6 mb-3">
+              <div class="position-relative">
+                <input
+                  type="file"
+                  hidden
+                  #hiddenInput
+                  data-category="taskLiteratureFiles"
+                  multiple
+                  (change)="onFileSelected($event, 'taskLiteratureFiles', selectedLanguage)"
+                />
+                <div class="bg-none p-0 position-absolute-btn">
+                  <div ngbDropdown class="d-inline-block">
+                    <img
+                      src="/assets/svg/plus.svg"
+                      width="30px"
+                      alt="upload"
+                      ngbDropdownToggle
+                    />
+                    <div ngbDropdownMenu>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('uz', 'taskLiteratureFiles')"
+                      >
+                        <img
+                          src="/assets/svg/uz.svg"
+                          alt=""
+                          class="me-1"
+                        />O'zbek
+                      </button>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('ru', 'taskLiteratureFiles')"
+                      >
+                        <img
+                          src="/assets/svg/ru.svg"
+                          alt=""
+                          class="me-1"
+                        />Русский
+                      </button>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('en', 'taskLiteratureFiles')"
+                      >
+                        <img
+                          src="/assets/svg/en.svg"
+                          alt=""
+                          class="me-1"
+                        />English
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <app-file-list
+                  [files]="task?.secondBasedFiles?.taskLiteratureFiles"
+                  [category]="'taskLiteratureFiles'"
+                  [placeholder]="'FAN BO\'YICHA ADABIYOTLAR'"
+                  [hasError]="hasError('taskLiteratureFiles')"
+                  (removeFile)="onRemoveFile($event)"
+                  (replaceFile)="onReplaceFile($event)"
+                ></app-file-list>
+              </div>
+            </div>
+            <div class="col-md-3"></div>
+          </div>
+        </div>
       </div>
-      <h4>Jami fayllar hajmi: {{ formatFileSize(totalSize) }}</h4>
-      <button
-        type="button"
-        class="btn btn-warning btn-lg w-100 mt-4"
-        (click)="saveAll()"
-      >
-        Upload All
-      </button>
+    </div>
+    <div class="d-flex justify-content-end pe-3">
+      <img
+        src="/assets/svg/save.svg"
+        class="cursor-pointer"
+        width="30px"
+        alt="next"
+        (click)="uploadAllFilesAndSaveData()"
+      />
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
     </div>
   </div>
 </div>

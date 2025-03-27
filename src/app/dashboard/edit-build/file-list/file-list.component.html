@@ -71,7 +71,14 @@
       </ng-container>
     </ng-container>
 
-    <div class="no-options" *ngIf="hasNoFiles()">
+    <div
+      class="no-options"
+      *ngIf="
+        !files ||
+        (!isVideos(files) && objectKeys(files).length === 0) ||
+        (isVideos(files) && files.length === 0)
+      "
+    >
       Fayllar yuklanmagan
     </div>
   </div>

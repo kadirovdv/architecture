@@ -9,7 +9,6 @@
   align-items: center;
   z-index: 99;
   background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(5px);
 }
 
 .loader-content .loader-box {
@@ -17,6 +16,103 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+.create-build-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #ffedd3;
+  box-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
+}
+
+.create-build-card {
+  width: 90%;
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
+  border-radius: 15px;
+}
+
+.create-build-ng-card {
+  width: 610px;
+  height: 55px;
+  border-radius: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: "Merriweather Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 25px;
+  color: #6e6e6e;
+  background: #d0853b;
+  box-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
+  border-radius: 10px;
+  color: #fff;
+}
+
+.position-absolute-btn {
+  position: absolute;
+  top: 15px;
+  right: 40px;
+  z-index: 999 !important;
+  cursor: pointer;
+}
+
+.custom-dropdown {
+  width: 100%;
+  max-width: 200px;
+  min-width: 200px;
+  padding: 10px;
+  z-index: 9999;
+  border-radius: 10px;
+  box-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
+  position: absolute;
+  background-color: #fff;
+  border: 1px solid #dfdfdf;
+  border-radius: 10px;
+}
+
+.custom-dropdown-item {
+  background-color: #fff;
+  border: 1px solid #dfdfdf;
+  border-radius: 10px;
+}
+
+.custom-dropdown-item:hover {
+  background-color: #dfdfdf;
+}
+
+.thumbnail-preview {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form-control {
+  box-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
+  border-radius: 10px;
+  height: 45px;
+  border-color: transparent;
+}
+
+.form-control:focus,
+.form-control:active {
+  box-shadow: 0 0 0 0.15rem rgba(255, 223, 174, 0.5);
+}
+
+.form-label {
+  font-family: "Merriweather Sans";
+  font-style: normal;
+  font-weight: 800;
+  font-size: 20px;
+  color: #b94c31;
+  margin-bottom: 10px;
 }
 
 .file-item .card .card-body .col:nth-child(2) {
@@ -27,4 +123,9 @@
 .file-item .card .card-body .col:nth-child(3) {
   display: flex;
   justify-content: end;
+}
+
+.card {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: none;
 }

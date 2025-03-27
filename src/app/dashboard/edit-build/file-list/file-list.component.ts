@@ -64,16 +64,6 @@ export class FileListComponent {
     return Object.values(filesObj).reduce((total, arr) => total + (arr?.length || 0), 0);
   }
 
-  hasNoFiles(): boolean {
-    if (!this.files) return true;
-    
-    if (this.isVideos(this.files)) {
-      return (this.files as Videos[]).length === 0;
-    }
-    
-    return this.getTotalFiles() === 0;
-  }
-
   objectKeys(obj: any): string[] {
     if (this.category === 'taskVideoUrls') return [];
     return Object.keys(obj || {});

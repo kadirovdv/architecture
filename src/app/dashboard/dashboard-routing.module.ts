@@ -6,7 +6,7 @@ import { DashboardPage } from './dashboard.page';
 // import { ThemesPage } from './themes/themes.page';
 // import { BuildPage } from './build/build.page';
 import { CreateBuildPage } from './create-build/create-build.page';
-// import { EditBuildPage } from './edit-build/edit-build.page';
+import { EditBuildPage } from './edit-build/edit-build.page';
 // import { UsersPage } from './users/users.page';
 import { LessonsPage } from './lessons/lessons.page';
 import { CreateLessonsPage } from './create-lessons/create-lessons.page';
@@ -50,6 +50,10 @@ const routes: Routes = [
       {
         path: 'create-build',
         component: CreateBuildPage,
+      },
+      {
+        path: 'edit-build',
+        component: EditBuildPage,
       },
       // {
       //   path: 'edit-build/:id',
