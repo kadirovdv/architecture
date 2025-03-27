@@ -28,6 +28,9 @@ import {
   switchMap,
   finalize,
   take,
+  map,
+  catchError,
+  of,
 } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { VideoUploadComponent } from './video-upload/video-upload.component';
@@ -53,8 +56,14 @@ export class CreateBuildPage implements OnInit {
   errorCategories: string[] = [];
   existingLesson: Lesson | null = null;
   lessonTitleString = 'lessonTitleString';
-  uploading: boolean = false;
-  progress: number = 0;
+  uploading = false;
+  progress = 0;
+  uploadedCount = 0;
+  totalUploads = 0;
+  currentUploadFile: { name: string; size: number } | null = null;
+  categoryStatus: Record<string, Record<string, { total: number; uploaded: number }>> = {};
+  username: string = '';
+  title: string = '';
 
   constructor(
     private crudService: CrudService,
@@ -100,6 +109,8 @@ export class CreateBuildPage implements OnInit {
     category: keyof FirstClassFileGroups | keyof SecondClassFileGroups,
     language: string
   ) {
+    console.log(`File selected for category: ${category}, language: ${language}`);
+    
     if (!this.task) {
       this.toastr.error('Iltimos, topshiriqni tanlang!');
       return;
@@ -109,6 +120,7 @@ export class CreateBuildPage implements OnInit {
     if (!input.files) return;
 
     const files = Array.from(input.files);
+    console.log(`Number of files selected: ${files.length}`);
 
     const oversizedFiles = files.filter(
       (file) => file.size / (1024 * 1024) > 150
@@ -124,6 +136,7 @@ export class CreateBuildPage implements OnInit {
       file: file,
     }));
 
+    // Initialize file structures if they don't exist
     this.task.firstBasedFiles ??= {
       taskExampleFiles: { uz: [], ru: [], en: [] },
       taskSolutionFiles: { uz: [], ru: [], en: [] },
@@ -136,22 +149,38 @@ export class CreateBuildPage implements OnInit {
       taskVideoUrls: [],
     } as SecondClassFileGroups;
 
+    // Add files to the appropriate category and language
     if (this.isFirstClassFileCategory(category)) {
+      // Ensure category and language arrays exist
       this.task.firstBasedFiles[category] ??= { uz: [], ru: [], en: [] };
       this.task.firstBasedFiles[category][language] ??= [];
+      
+      // Append new files to existing array (don't replace)
+      const existingFiles = this.task.firstBasedFiles[category][language] || [];
       this.task.firstBasedFiles[category][language] = [
-        ...this.task.firstBasedFiles[category][language]!,
+        ...existingFiles,
         ...filesArray,
       ];
+      
+      console.log(`Added ${filesArray.length} files to ${category}.${language}`);
+      console.log(`Total files in category now: ${this.task.firstBasedFiles[category][language].length}`);
     } else if (this.isSecondClassFileCategory(category)) {
+      // Ensure category and language arrays exist
       this.task.secondBasedFiles[category] ??= { uz: [], ru: [], en: [] };
       this.task.secondBasedFiles[category][language] ??= [];
+      
+      // Append new files to existing array (don't replace)
+      const existingFiles = this.task.secondBasedFiles[category][language] || [];
       this.task.secondBasedFiles[category][language] = [
-        ...this.task.secondBasedFiles[category][language]!,
+        ...existingFiles,
         ...filesArray,
       ];
+      
+      console.log(`Added ${filesArray.length} files to ${category}.${language}`);
+      console.log(`Total files in category now: ${this.task.secondBasedFiles[category][language].length}`);
     }
 
+    // Reset the input
     input.value = '';
 
     this.toastr.success(
@@ -329,9 +358,13 @@ export class CreateBuildPage implements OnInit {
       return;
     }
 
-    this.loaderService.show();
-    this.uploading = true;
+    // Reset tracking fields
+    this.uploadedCount = 0;
+    this.totalUploads = 0;
+    this.currentUploadFile = null;
     this.progress = 0;
+    this.uploading = true; 
+    this.loaderService.show();
     
     // Create a deep copy of the task to preserve existing files
     const taskCopy = JSON.parse(JSON.stringify(this.task));
@@ -357,154 +390,122 @@ export class CreateBuildPage implements OnInit {
     console.log('Initial uploadedFiles with existing files:', uploadedFiles);
     
     const uploadObservables: Observable<any>[] = [];
-    const categoryStatus: Record<string, Record<string, { total: number; uploaded: number }>> = {};
-    
-    const uploadCategoryFiles = (categoryPath: string, categoryObj: any) => {
-      for (const lang in categoryObj) {
-        // Only upload files that don't already have a URL (new files)
-        const files = categoryObj[lang].filter(
-          (file: any) => file !== null && file.file && !file.url
-        );
-        if (!categoryStatus[categoryPath]) categoryStatus[categoryPath] = {};
-        categoryStatus[categoryPath][lang] = {
-          total: files.length,
-          uploaded: 0,
-        };
+    let uploadedCount = 0;
 
-        // Skip if there are no files to upload for this language
-        if (files.length === 0) {
-          console.log(`No new files to upload for ${categoryPath}.${lang}`);
-          
-          // Make sure existing files are preserved
-          const categoryArray = categoryPath.split('.');
-          let target: any = uploadedFiles;
-          for (const key of categoryArray) {
-            target = target[key];
-          }
-          
-          // Copy existing files that already have URLs
-          const existingFiles = categoryObj[lang].filter(
-            (file: any) => file !== null && file.url
-          );
-          if (existingFiles.length > 0) {
-            if (!target[lang]) {
-              target[lang] = [];
-            }
-            existingFiles.forEach((fileItem: any) => {
-              if (!target[lang].some((f: any) => f.url === fileItem.url)) {
-                target[lang].push(fileItem);
-              }
-            });
-          }
-          continue;
-        }
-
-        files.forEach((fileItem: any, index: number) => {
-          const actualFile = fileItem.file;
-          const filePath = `/${fileItem.name}`;
-
-          const upload$ = this.dropboxService
-            .uploadFile(filePath, actualFile)
-            .pipe(
-              switchMap((response: any) => {
-                const categoryArray = categoryPath.split('.');
-                let target: any = uploadedFiles;
-
-                for (const key of categoryArray) {
-                  target = target[key];
-                }
-
-                // Make sure the target array exists
-                if (!target[lang]) {
-                  target[lang] = [];
-                }
-
-                return this.dropboxService
-                  .createSharedLink(response.path_display)
-                  .pipe(
-                    tap((link: any) => {
-                      // Find index of the file in the original array, not just the filtered array
-                      const originalIndex = categoryObj[lang].findIndex(
-                        (item: any) => item === fileItem
-                      );
-                      
-                      if (originalIndex !== -1) {
-                        // Replace the file object with the uploaded file data
-                        categoryObj[lang][originalIndex] = {
-                          name: fileItem.name,
-                          size: fileItem.size,
-                          url: link || '',
-                          path: response.path_display || '',
-                          id: response || '',
-                        };
-                        
-                        // Also update the uploadedFiles object to match
-                        target[lang][originalIndex] = categoryObj[lang][originalIndex];
-                      } else {
-                        // If not found (shouldn't happen), just push to the array
-                        target[lang].push({
-                          name: fileItem.name,
-                          size: fileItem.size,
-                          url: link || '',
-                          path: response.path_display || '',
-                          id: response || '',
-                        });
-                      }
-                      
-                      categoryStatus[categoryPath][lang].uploaded++;
-
-                      if (
-                        categoryStatus[categoryPath][lang].uploaded ===
-                        categoryStatus[categoryPath][lang].total
-                      ) {
-                        this.toastr.success(
-                          `${categoryPath} (${lang}) da fayllar muvaffaqiyatli yuklandi.`
-                        );
-                      }
-                    })
-                  );
-              }),
-              delay(1000 * index)
-            );
-          uploadObservables.push(upload$);
-        });
+    const uploadCategoryFiles = (uploadedFiles: any, category: string, categoryPath: string, categoryObj: any): Observable<any>[] => {
+      console.log(`Processing ${category} files:`, categoryObj);
+      const uploadObservables: Observable<any>[] = [];
+      
+      // Ensure categoryStatus object is initialized
+      if (!this.categoryStatus[categoryPath]) {
+        this.categoryStatus[categoryPath] = {};
       }
+      
+      // Handle taskVideoUrls category separately (it's a string array, not a language object)
+      if (category === 'taskVideoUrls') {
+        if (Array.isArray(categoryObj) && categoryObj.length > 0) {
+          console.log(`Adding ${categoryObj.length} video URLs to uploadedFiles`);
+          uploadedFiles.secondBasedFiles.taskVideoUrls = categoryObj;
+        }
+        return uploadObservables;
+      }
+      
+      // For other categories that have language-specific files
+      for (const lang in categoryObj) {
+        if (!categoryObj[lang]) continue;
+        
+        const files = categoryObj[lang].filter((file: any) => file && file.file);
+        console.log(`Found ${files.length} files for ${category} in ${lang} language`);
+        
+        if (files.length === 0) continue;
+        
+        // Ensure target array exists
+        if (categoryPath === 'firstBasedFiles') {
+          if (!uploadedFiles.firstBasedFiles[category][lang]) {
+            uploadedFiles.firstBasedFiles[category][lang] = [];
+          }
+        } else if (categoryPath === 'secondBasedFiles') {
+          if (!uploadedFiles.secondBasedFiles[category][lang]) {
+            uploadedFiles.secondBasedFiles[category][lang] = [];
+          }
+        }
+        
+        // Generate upload observables for each file
+        for (const file of files) {
+          if (!file.file) continue;
+          
+          const fileObj = file.file;
+          const fileName = file.name || fileObj.name;
+          console.log(`Preparing to upload ${fileName}`);
+          
+          // Create a unique path for the file
+          const folderName = this.lesson?.lessonTitle?.uz || 'untitled';
+          const filePath = `/${folderName}/${category}/${lang}/${fileName}`;
+          
+          // Create an upload observable for this file
+          const uploadObservable = this.dropboxService.uploadFile(filePath, fileObj).pipe(
+            switchMap((response: any) => {
+              console.log(`Successfully uploaded ${fileName} to Dropbox`);
+              return this.dropboxService.createSharedLink(response.path_display);
+            }),
+            map((response: any) => {
+              console.log(`Created shared link for ${fileName}:`, response);
+              const fileInfo = {
+                name: fileName,
+                url: response.replace('?dl=0', '?dl=1'),
+                size: fileObj.size,
+                type: fileObj.type,
+                path: filePath
+              };
+              
+              // Add file to the appropriate array in uploadedFiles
+              if (categoryPath === 'firstBasedFiles') {
+                uploadedFiles.firstBasedFiles[category][lang].push(fileInfo);
+              } else if (categoryPath === 'secondBasedFiles') {
+                uploadedFiles.secondBasedFiles[category][lang].push(fileInfo);
+              }
+              
+              return response;
+            }),
+            catchError(error => {
+              console.error(`Error uploading ${fileName}:`, error);
+              return of(null);
+            })
+          );
+          
+          uploadObservables.push(uploadObservable);
+        }
+        
+        // Add a success message observable to indicate all files for this category and language have been uploaded
+        const successObservable = of(`Successfully processed all ${files.length} ${category} files for ${lang} language`).pipe(
+          tap(message => console.log(message))
+        );
+        
+        uploadObservables.push(successObservable);
+      }
+      
+      return uploadObservables;
     };
 
     // Check each file category and upload only if files exist
     if (this.task.firstBasedFiles?.taskExampleFiles) {
-      uploadCategoryFiles(
-        'firstBasedFiles.taskExampleFiles',
-        this.task.firstBasedFiles.taskExampleFiles
-      );
+      uploadCategoryFiles(uploadedFiles, 'taskExampleFiles', 'firstBasedFiles', this.task.firstBasedFiles.taskExampleFiles);
     }
     
     if (this.task.firstBasedFiles?.taskSolutionFiles) {
-      uploadCategoryFiles(
-        'firstBasedFiles.taskSolutionFiles',
-        this.task.firstBasedFiles.taskSolutionFiles
-      );
+      uploadCategoryFiles(uploadedFiles, 'taskSolutionFiles', 'firstBasedFiles', this.task.firstBasedFiles.taskSolutionFiles);
     }
     
     if (this.task.secondBasedFiles?.taskTitleFiles) {
-      uploadCategoryFiles(
-        'secondBasedFiles.taskTitleFiles',
-        this.task.secondBasedFiles.taskTitleFiles
-      );
+      uploadCategoryFiles(uploadedFiles, 'taskTitleFiles', 'secondBasedFiles', this.task.secondBasedFiles.taskTitleFiles);
     }
     
     if (this.task.secondBasedFiles?.taskPresentationFiles) {
-      uploadCategoryFiles(
-        'secondBasedFiles.taskPresentationFiles',
-        this.task.secondBasedFiles.taskPresentationFiles
-      );
+      uploadCategoryFiles(uploadedFiles, 'taskPresentationFiles', 'secondBasedFiles', this.task.secondBasedFiles.taskPresentationFiles);
     }
     
     if (this.task.secondBasedFiles?.taskLiteratureFiles) {
-      uploadCategoryFiles(
-        'secondBasedFiles.taskLiteratureFiles',
-        this.task.secondBasedFiles.taskLiteratureFiles
-      );
+      uploadCategoryFiles(uploadedFiles, 'taskLiteratureFiles', 'secondBasedFiles', this.task.secondBasedFiles.taskLiteratureFiles);
     }
 
     // Handle video URLs separately (no file upload needed)
@@ -513,6 +514,7 @@ export class CreateBuildPage implements OnInit {
     }
 
     console.log('Final uploadedFiles before saving:', uploadedFiles);
+    console.log(`Total files to upload: ${uploadObservables.length}`);
 
     if (uploadObservables.length === 0) {
       console.log('No new files to upload, saving directly to Firebase');
@@ -521,20 +523,43 @@ export class CreateBuildPage implements OnInit {
       return;
     }
 
-    forkJoin(uploadObservables)
+    // Get the final count of uploads
+    const totalUploads = uploadObservables.length;
+    this.totalUploads = totalUploads;
+
+    // Process uploads sequentially with a delay between each
+    from(uploadObservables)
       .pipe(
+        concatMap((obs, index) => {
+          // Extract file info from the original task data to show in UI
+          const fileInfo = this.extractFileInfoFromObservable(index);
+          
+          return obs.pipe(
+            tap(() => {
+              this.currentUploadFile = fileInfo;
+            }),
+            delay(2000) // Add 2-second delay between each file upload
+          );
+        }),
         finalize(() => {
           this.uploading = false;
+          this.currentUploadFile = null;
           this.loaderService.hide();
         })
       )
       .subscribe({
         next: () => {
+          uploadedCount++;
+          this.uploadedCount = uploadedCount;
+          this.progress = Math.round((uploadedCount / totalUploads) * 100);
+          console.log(`Upload progress: ${this.progress}% (${uploadedCount}/${totalUploads})`);
+        },
+        complete: () => {
           this.progress = 100;
           this.toastr.success('Fayllar muvaffaqiyatli yuklandi');
           this.saveToFirebase(uploadedFiles);
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('Error uploading files:', error);
           this.toastr.error('Fayllar yuklanishda xatolik');
           this.loaderService.hide();
@@ -729,14 +754,20 @@ export class CreateBuildPage implements OnInit {
   }
 
   onFileTypeSelect(lang: string, category: string) {
+    console.log(`Selecting file for language: ${lang}, category: ${category}`);
     this.selectedLanguage = lang as 'uz' | 'ru' | 'en';
     this.currentCategory = category;
+    
+    // Find the appropriate hidden input element
     const inputs = this.hiddenInputs.toArray();
     const input = inputs.find(
       (input) => input.nativeElement.getAttribute('data-category') === category
     );
+    
     if (input) {
       input.nativeElement.click();
+    } else {
+      console.error(`No input found for category: ${category}`);
     }
   }
 
@@ -1004,5 +1035,110 @@ export class CreateBuildPage implements OnInit {
   getTaskTitleString(task: Task): string {
     if (!task || !task.title) return 'Untitled';
     return task.title;
+  }
+
+  /**
+   * Handle direct file selection from the file-list component
+   */
+  onDirectFileSelected(
+    file: File,
+    category: keyof FirstClassFileGroups | keyof SecondClassFileGroups,
+    language: string
+  ) {
+    console.log(`Direct file selected for ${category} in ${language}:`, file.name);
+    
+    if (!this.task) {
+      this.toastr.error('Iltimos, topshiriqni tanlang!');
+      return;
+    }
+
+    // Check file size
+    if (file.size / (1024 * 1024) > 150) {
+      this.toastr.error("Fayl hajmi 150MB dan o'tib ketdi!");
+      return;
+    }
+
+    const fileObj = {
+      name: file.name,
+      size: file.size,
+      file: file,
+    };
+
+    // Initialize file structures if needed
+    this.task.firstBasedFiles ??= {
+      taskExampleFiles: { uz: [], ru: [], en: [] },
+      taskSolutionFiles: { uz: [], ru: [], en: [] },
+    } as FirstClassFileGroups;
+
+    this.task.secondBasedFiles ??= {
+      taskTitleFiles: { uz: [], ru: [], en: [] },
+      taskPresentationFiles: { uz: [], ru: [], en: [] },
+      taskLiteratureFiles: { uz: [], ru: [], en: [] },
+      taskVideoUrls: [],
+    } as SecondClassFileGroups;
+
+    // Add the file to the appropriate category and language
+    if (this.isFirstClassFileCategory(category)) {
+      this.task.firstBasedFiles[category] ??= { uz: [], ru: [], en: [] };
+      this.task.firstBasedFiles[category][language] ??= [];
+      this.task.firstBasedFiles[category][language].push(fileObj);
+      
+      console.log(`Added file to ${category}.${language}`);
+      console.log(`Total files now: ${this.task.firstBasedFiles[category][language].length}`);
+    } else if (this.isSecondClassFileCategory(category)) {
+      this.task.secondBasedFiles[category] ??= { uz: [], ru: [], en: [] };
+      this.task.secondBasedFiles[category][language] ??= [];
+      this.task.secondBasedFiles[category][language].push(fileObj);
+      
+      console.log(`Added file to ${category}.${language}`);
+      console.log(`Total files now: ${this.task.secondBasedFiles[category][language].length}`);
+    }
+
+    this.toastr.success(
+      `Fayl ${language.toUpperCase()} tilida muvaffaqiyatli qo'shildi`
+    );
+  }
+
+  // Helper method to extract file info from the tasks
+  extractFileInfoFromObservable(index: number): { name: string; size: number } {
+    // This is a simplified approach - in a real implementation you might want to store
+    // more information about each file as you add it to the observables array
+    let fileInfo = { name: `File ${index + 1}`, size: 0 };
+    
+    // Process through each category to find the file with the given index
+    let currentIndex = 0;
+    const searchInCategory = (category: string, files: any) => {
+      for (const lang in files) {
+        const filesList = files[lang].filter((f: any) => f && f.file);
+        for (const file of filesList) {
+          if (currentIndex === index) {
+            fileInfo = { name: file.name, size: file.size };
+            return true;
+          }
+          currentIndex++;
+        }
+      }
+      return false;
+    };
+    
+    // Search in firstBasedFiles
+    if (this.task.firstBasedFiles) {
+      for (const category in this.task.firstBasedFiles) {
+        if (searchInCategory(category, this.task.firstBasedFiles[category])) {
+          return fileInfo;
+        }
+      }
+    }
+    
+    // Search in secondBasedFiles
+    if (this.task.secondBasedFiles) {
+      for (const category in this.task.secondBasedFiles) {
+        if (category !== 'taskVideoUrls' && searchInCategory(category, this.task.secondBasedFiles[category])) {
+          return fileInfo;
+        }
+      }
+    }
+    
+    return fileInfo;
   }
 }

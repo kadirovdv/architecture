@@ -4,6 +4,22 @@
     <app-loader></app-loader>
   </div>
 </div>
+
+<!-- Upload progress indicator -->
+<div class="progress-overlay" *ngIf="uploading">
+  <div class="progress-container">
+    <h4>Fayllar yuklanmoqda</h4>
+    <div class="progress-bar-container">
+      <div class="progress-bar" [style.width.%]="progress"></div>
+      <div class="progress-text">{{progress}}%</div>
+    </div>
+    <div class="file-status" *ngIf="currentUploadFile">
+      <div class="file-name">{{ currentUploadFile.name }}</div>
+    </div>
+    <div class="upload-count">{{ uploadedCount }} / {{ totalUploads }} fayllar yuklandi</div>
+  </div>
+</div>
+
 <div class="create-build-content">
   <div class="create-build-card">
     <button class="mb-3 bg-none border-0" style="width: 50px" (click)="goBack()">
@@ -107,8 +123,11 @@
                   [category]="'taskExampleFiles'"
                   [placeholder]="'GRAFIK TOPSHIRIQ YECHIMI NAMUNALARI (PDF),(PPT)'"
                   [hasError]="hasError('taskExampleFiles')"
+                  [selectedLang]="selectedLanguage"
                   (removeFile)="onRemoveFile($event)"
                   (replaceFile)="onReplaceFile($event)"
+                  (addFile)="onFileTypeSelect($event.lang, $event.category)"
+                  (fileSelected)="onDirectFileSelected($event, 'taskExampleFiles', selectedLanguage)"
                 ></app-file-list>
               </div>
             </div>
@@ -172,8 +191,11 @@
                   [category]="'taskSolutionFiles'"
                   [placeholder]="'GRAFIK TOPSHIRIQLAR VARIANTLARI'"
                   [hasError]="hasError('taskSolutionFiles')"
+                  [selectedLang]="selectedLanguage"
                   (removeFile)="onRemoveFile($event)"
                   (replaceFile)="onReplaceFile($event)"
+                  (addFile)="onFileTypeSelect($event.lang, $event.category)"
+                  (fileSelected)="onDirectFileSelected($event, 'taskSolutionFiles', selectedLanguage)"
                 ></app-file-list>
               </div>
             </div>
@@ -243,8 +265,11 @@
                   [category]="'taskTitleFiles'"
                   [placeholder]="'MA\'RUZA MATNI'"
                   [hasError]="hasError('taskTitleFiles')"
+                  [selectedLang]="selectedLanguage"
                   (removeFile)="onRemoveFile($event)"
                   (replaceFile)="onReplaceFile($event)"
+                  (addFile)="onFileTypeSelect($event.lang, $event.category)"
+                  (fileSelected)="onDirectFileSelected($event, 'taskTitleFiles', selectedLanguage)"
                 ></app-file-list>
               </div>
             </div>
@@ -309,8 +334,11 @@
                   [category]="'taskPresentationFiles'"
                   [placeholder]="'MA\'RUZA PRESENTATSIYASI'"
                   [hasError]="hasError('taskPresentationFiles')"
+                  [selectedLang]="selectedLanguage"
                   (removeFile)="onRemoveFile($event)"
                   (replaceFile)="onReplaceFile($event)"
+                  (addFile)="onFileTypeSelect($event.lang, $event.category)"
+                  (fileSelected)="onDirectFileSelected($event, 'taskPresentationFiles', selectedLanguage)"
                 ></app-file-list>
               </div>
             </div>
@@ -324,6 +352,7 @@
                   [category]="'taskVideoUrls'"
                   [placeholder]="'VIDEO'"
                   [hasError]="hasError('taskVideoUrls')"
+                  [selectedLang]="selectedLanguage"
                   (removeFile)="onRemoveFile($event)"
                   (replaceFile)="onReplaceFile($event)"
                 ></app-file-list>
@@ -390,8 +419,11 @@
                   [category]="'taskLiteratureFiles'"
                   [placeholder]="'ADABIYOT'"
                   [hasError]="hasError('taskLiteratureFiles')"
+                  [selectedLang]="selectedLanguage"
                   (removeFile)="onRemoveFile($event)"
                   (replaceFile)="onReplaceFile($event)"
+                  (addFile)="onFileTypeSelect($event.lang, $event.category)"
+                  (fileSelected)="onDirectFileSelected($event, 'taskLiteratureFiles', selectedLanguage)"
                 ></app-file-list>
               </div>
             </div>

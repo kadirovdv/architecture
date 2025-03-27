@@ -22,6 +22,7 @@ export class FileListComponent {
   @Output() fileSelected = new EventEmitter<File>();
   @Output() removeFile = new EventEmitter<{ category: string; lang: string; index: number }>();
   @Output() replaceFile = new EventEmitter<{category: string, lang: string, index: number, file: File}>();
+  @Output() addFile = new EventEmitter<{ category: string, lang: string }>();
   
   @ViewChild('fileInput') fileInput!: ElementRef;
   
@@ -101,7 +102,10 @@ export class FileListComponent {
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      const file = input.files[0];
+      console.log('File selected in file-list component');
+      
+      // Get the selected files
+      const files = Array.from(input.files);
       
       if (this.currentReplaceInfo) {
         // Handle file replacement
@@ -109,14 +113,16 @@ export class FileListComponent {
           category: this.category,
           lang: this.currentReplaceInfo.lang,
           index: this.currentReplaceInfo.index,
-          file: file
+          file: files[0]
         });
         this.currentReplaceInfo = null;
       } else {
-        // Handle new file addition
-        this.fileSelected.emit(file);
+        // Handle new file addition - emit only the first file
+        // We rely on the parent component to add it to the right language
+        this.fileSelected.emit(files[0]);
       }
       
+      // Reset the input
       input.value = '';
     }
   }
@@ -144,5 +150,19 @@ export class FileListComponent {
   getFileUrl(file: FileItem): SafeResourceUrl {
     if (!file.url) return '';
     return this.sanitizeUrl(file.url);
+  }
+
+  onAddFile(lang: string, event: Event): void {
+    event.stopPropagation();
+    this.selectedLang = lang as 'uz' | 'ru' | 'en';
+    
+    // Store the language for when the file is selected
+    this.currentReplaceInfo = null; // Reset replace info
+    
+    // Emit the event to notify parent component
+    this.addFile.emit({ category: this.category, lang });
+    
+    // Trigger file selection
+    this.fileInput.nativeElement.click();
   }
 }
