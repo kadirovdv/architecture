@@ -17,7 +17,13 @@ import { switchMap, take, tap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { i18nService } from 'src/app/shared/services/i18n.service';
 import { LoaderService } from 'src/app/shared/services/loader.service';
-import { Lesson, Task, FirstClassFileGroups, SecondClassFileGroups, Videos } from 'src/app/shared/interfaces/interfaces';
+import {
+  Lesson,
+  Task,
+  FirstClassFileGroups,
+  SecondClassFileGroups,
+  Videos,
+} from 'src/app/shared/interfaces/interfaces';
 import { BehaviorSubject, forkJoin, of, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -58,20 +64,22 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   }>({
     firstBasedFiles: {
       taskExampleFiles: { uz: [], ru: [], en: [] },
-      taskSolutionFiles: { uz: [], ru: [], en: [] }
+      taskSolutionFiles: { uz: [], ru: [], en: [] },
     },
     secondBasedFiles: {
       taskTitleFiles: { uz: [], ru: [], en: [] },
       taskPresentationFiles: { uz: [], ru: [], en: [] },
       taskLiteratureFiles: { uz: [], ru: [], en: [] },
-      taskVideoUrls: []
-    }
+      taskVideoUrls: [],
+    },
   });
 
   selectedFiles$ = this.selectedFilesSubject.asObservable();
   selectedFiles = this.selectedFilesSubject.value;
 
-  private currentFileTypeSubject = new BehaviorSubject<string>('taskExampleFiles');
+  private currentFileTypeSubject = new BehaviorSubject<string>(
+    'taskExampleFiles'
+  );
   currentFileType$ = this.currentFileTypeSubject.asObservable();
   currentFileType = this.currentFileTypeSubject.value;
 
@@ -91,16 +99,12 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     private sanitizer: DomSanitizer
   ) {
     // Subscribe to selectedFiles changes
-    this.selectedFiles$.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe(files => {
+    this.selectedFiles$.pipe(takeUntil(this.destroy$)).subscribe((files) => {
       this.selectedFiles = files;
     });
 
     // Subscribe to currentFileType changes
-    this.currentFileType$.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe(type => {
+    this.currentFileType$.pipe(takeUntil(this.destroy$)).subscribe((type) => {
       this.currentFileType = type;
     });
   }
@@ -123,12 +127,10 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     this.loadWebsiteLessons();
     window.scrollTo(0, 0);
 
-    this.i18n.currentData
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((lang) => {
-        this.lang = lang;
-        this.updateFilesOnLanguageChange();
-      });
+    this.i18n.currentData.pipe(takeUntil(this.destroy$)).subscribe((lang) => {
+      this.lang = lang;
+      this.updateFilesOnLanguageChange();
+    });
 
     this.thumbnailsLoaded
       .pipe(takeUntil(this.destroy$))
@@ -166,7 +168,10 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       .getDocuments('website-lessons')
       .pipe(
         switchMap((res: unknown) => {
-          const lessons = res as Lesson[];
+          const allLessons = res as Lesson[];
+          // Filter for active lessons only
+          const lessons = allLessons.filter(lesson => lesson.active);
+          
           if (lessons.length === 0) {
             this.websiteLessons = lessons;
             this.loaderService.hideLoader();
@@ -242,19 +247,19 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     this.selectedLesson = this.websiteLessons[index];
     this.currentSlideIndex = index;
     this.currentFileTypeSubject.next('taskExampleFiles');
-    
+
     // Reset and load files immediately
     const newFiles = {
       firstBasedFiles: {
         taskExampleFiles: { uz: [], ru: [], en: [] },
-        taskSolutionFiles: { uz: [], ru: [], en: [] }
+        taskSolutionFiles: { uz: [], ru: [], en: [] },
       },
       secondBasedFiles: {
         taskTitleFiles: { uz: [], ru: [], en: [] },
         taskPresentationFiles: { uz: [], ru: [], en: [] },
         taskLiteratureFiles: { uz: [], ru: [], en: [] },
-        taskVideoUrls: []
-      }
+        taskVideoUrls: [],
+      },
     };
 
     // Load files for the selected lesson
@@ -363,7 +368,9 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
   getTitle(lesson: Lesson): string {
     if (!lesson.lessonTitle || !this.lang) return '';
-    return lesson.lessonTitle[this.lang as keyof typeof lesson.lessonTitle] || '';
+    return (
+      lesson.lessonTitle[this.lang as keyof typeof lesson.lessonTitle] || ''
+    );
   }
 
   openFileInNewTab(filePath: string): void {
@@ -379,51 +386,53 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
   sanitizeDropboxUrl(url: string): string {
     if (!url) return '';
-  
+
     // Replace 'www.dropbox.com' with 'dl.dropboxusercontent.com'
-    let sanitizedUrl = url.replace('www.dropbox.com', 'dl.dropboxusercontent.com');
-  
+    let sanitizedUrl = url.replace(
+      'www.dropbox.com',
+      'dl.dropboxusercontent.com'
+    );
+
     // Ensure correct query parameters
-    sanitizedUrl = sanitizedUrl.replace(/\?dl=0/, '?raw=1').replace(/&dl=0/, '&raw=1');
-  
+    sanitizedUrl = sanitizedUrl
+      .replace(/\?dl=0/, '?raw=1')
+      .replace(/&dl=0/, '&raw=1');
+
     return sanitizedUrl;
   }
-  
 
   sanitizePdfUrl(url: string): string {
     if (!url) return '';
-  
+
     // Fixing Dropbox URL formatting
     let sanitizedUrl = this.sanitizeDropboxUrl(url);
     sanitizedUrl = sanitizedUrl.replace(/\?([^=]+=[^&]*)\?/g, '?$1&'); // Fix multiple '?'
-    
+
     if (sanitizedUrl.toLowerCase().endsWith('.pdf')) {
       return sanitizedUrl;
     }
     return sanitizedUrl;
   }
-  
 
   sanitizeUrl(url: string): SafeResourceUrl | null {
     if (!url) return null;
-    
+
     if (this.sanitizedUrls.has(url)) {
       return this.sanitizedUrls.get(url)!;
     }
-  
+
     const sanitizedUrl = this.sanitizePdfUrl(url);
     const encodedUrl = encodeURIComponent(sanitizedUrl);
-  
+
     // Ensure it remains a proper URL
     const safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
       `https://docs.google.com/viewer?url=${encodedUrl}&embedded=true`
     );
-  
+
     this.sanitizedUrls.set(url, safeUrl);
     console.log('safeUrl', safeUrl);
     return safeUrl;
   }
-  
 
   getVideoUrl(video: Videos): string {
     if (!video?.url || !this.lang) return '';
@@ -437,10 +446,10 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
   getEmbeddedVideoUrl(url: string): SafeResourceUrl {
     if (!url) return '';
-    
+
     const videoId = this.extractYoutubeId(url);
     if (!videoId) return '';
-    
+
     const embeddedUrl = `https://www.youtube.com/embed/${videoId}`;
     if (this.sanitizedUrls.has(embeddedUrl)) {
       return this.sanitizedUrls.get(embeddedUrl)!;
@@ -451,12 +460,16 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private extractYoutubeId(url: string): string | null {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const regExp =
+      /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : null;
+    return match && match[2].length === 11 ? match[2] : null;
   }
 
-  setLessonFiles(category: 'firstBasedFiles' | 'secondBasedFiles', fileType: string): void {
+  setLessonFiles(
+    category: 'firstBasedFiles' | 'secondBasedFiles',
+    fileType: string
+  ): void {
     if (!this.selectedLesson?.tasks) return;
 
     this.isLoadingFile = true;
@@ -466,28 +479,32 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     const newFiles = {
       firstBasedFiles: {
         taskExampleFiles: { uz: [], ru: [], en: [] },
-        taskSolutionFiles: { uz: [], ru: [], en: [] }
+        taskSolutionFiles: { uz: [], ru: [], en: [] },
       },
       secondBasedFiles: {
         taskTitleFiles: { uz: [], ru: [], en: [] },
         taskPresentationFiles: { uz: [], ru: [], en: [] },
         taskLiteratureFiles: { uz: [], ru: [], en: [] },
-        taskVideoUrls: []
-      }
+        taskVideoUrls: [],
+      },
     };
 
     // Find the selected task
-    const selectedTask = this.selectedTaskId 
-      ? this.selectedLesson.tasks.find(task => task.id === this.selectedTaskId)
+    const selectedTask = this.selectedTaskId
+      ? this.selectedLesson.tasks.find(
+          (task) => task.id === this.selectedTaskId
+        )
       : this.selectedLesson.tasks[0]; // Default to first task if none selected
 
     if (selectedTask) {
       const files = selectedTask[category]?.[fileType];
       if (files) {
         if (category === 'firstBasedFiles') {
-          newFiles.firstBasedFiles[fileType as keyof FirstClassFileGroups] = files;
+          newFiles.firstBasedFiles[fileType as keyof FirstClassFileGroups] =
+            files;
         } else {
-          newFiles.secondBasedFiles[fileType as keyof SecondClassFileGroups] = files;
+          newFiles.secondBasedFiles[fileType as keyof SecondClassFileGroups] =
+            files;
         }
       }
 
@@ -534,22 +551,39 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   selectTask(event: Event, task: Task): void {
     event.stopPropagation();
     if (!task.id) return;
-    
+
     this.selectedTaskId = task.id;
     this.isTaskModalVisible = false;
-    
+
     if (this.selectedLesson?.tasks) {
       const newFiles = {
         firstBasedFiles: {
-          taskExampleFiles: task.firstBasedFiles?.taskExampleFiles || { uz: [], ru: [], en: [] },
-          taskSolutionFiles: task.firstBasedFiles?.taskSolutionFiles || { uz: [], ru: [], en: [] }
+          taskExampleFiles: task.firstBasedFiles?.taskExampleFiles || {
+            uz: [],
+            ru: [],
+            en: [],
+          },
+          taskSolutionFiles: task.firstBasedFiles?.taskSolutionFiles || {
+            uz: [],
+            ru: [],
+            en: [],
+          },
         },
         secondBasedFiles: {
-          taskTitleFiles: task.secondBasedFiles?.taskTitleFiles || { uz: [], ru: [], en: [] },
-          taskPresentationFiles: task.secondBasedFiles?.taskPresentationFiles || { uz: [], ru: [], en: [] },
-          taskLiteratureFiles: task.secondBasedFiles?.taskLiteratureFiles || { uz: [], ru: [], en: [] },
-          taskVideoUrls: task.secondBasedFiles?.taskVideoUrls || []
-        }
+          taskTitleFiles: task.secondBasedFiles?.taskTitleFiles || {
+            uz: [],
+            ru: [],
+            en: [],
+          },
+          taskPresentationFiles: task.secondBasedFiles
+            ?.taskPresentationFiles || { uz: [], ru: [], en: [] },
+          taskLiteratureFiles: task.secondBasedFiles?.taskLiteratureFiles || {
+            uz: [],
+            ru: [],
+            en: [],
+          },
+          taskVideoUrls: task.secondBasedFiles?.taskVideoUrls || [],
+        },
       };
       this.selectedFilesSubject.next(newFiles);
     }
@@ -568,33 +602,33 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       taskExampleFiles: {
         uz: 'Grafik topshiriq variantlari',
         ru: 'Варианты графического задания',
-        en: 'Graphic task variants'
+        en: 'Graphic task variants',
       },
       taskSolutionFiles: {
         uz: 'Grafik topshiriq yechimi namunasi',
         ru: 'Пример решения графического задания',
-        en: 'Graphic task solution example'
+        en: 'Graphic task solution example',
       },
       taskTitleFiles: {
-        uz: 'Ma\'ruza matni',
+        uz: "Ma'ruza matni",
         ru: 'Текст лекции',
-        en: 'Lecture text'
+        en: 'Lecture text',
       },
       taskPresentationFiles: {
         uz: 'Prezentasiya',
         ru: 'Презентация',
-        en: 'Presentation'
+        en: 'Presentation',
       },
       taskVideoUrls: {
         uz: 'Video material',
         ru: 'Видео материал',
-        en: 'Video material'
+        en: 'Video material',
       },
       taskLiteratureFiles: {
         uz: 'Adabiyotlar',
         ru: 'Литература',
-        en: 'Literature'
-      }
+        en: 'Literature',
+      },
     };
     return titles[this.currentFileType]?.[this.lang] || '';
   }
@@ -606,10 +640,78 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
   @HostListener('document:click', ['$event'])
   handleDocumentClick(event: MouseEvent): void {
-    const literatureSection = (event.target as HTMLElement).closest('.file-selection-card-item');
-    if (!literatureSection) {
+    const clickedElement = event.target as HTMLElement;
+    const literatureSection = clickedElement.closest('.file-selection-card-item');
+    const insideLiteratureDropdown = clickedElement.closest('.literature-dropdown');
+    const isButton = clickedElement.closest('button') || 
+                    clickedElement.tagName === 'BUTTON' || 
+                    clickedElement.tagName === 'I' ||
+                    clickedElement.parentElement?.tagName === 'BUTTON';
+
+    if (!literatureSection && !insideLiteratureDropdown && !isButton) {
       this.isTaskModalVisible = false;
       this.isLiteratureDropdownVisible = false;
+    }
+  }
+
+  formatFileSize(sizeInBytes: number): string {
+    if (!sizeInBytes) return '2.2 MB';
+
+    const sizeInKB = sizeInBytes / 1024;
+    const sizeInMB = sizeInKB / 1024;
+
+    if (sizeInMB >= 1) {
+      return `${sizeInMB.toFixed(2)} MB`;
+    } else {
+      return `${sizeInKB.toFixed(2)} KB`;
+    }
+  }
+
+  handleFileClick(event: Event, url?: string): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (url) {
+      const downloadUrl = this.sanitizeDropboxUrl(url);
+      window.open(downloadUrl, '_blank');
+    }
+  }
+
+  openInNewTab(event: Event, url?: string): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!url) return;
+
+    this.dropboxService.openFileInNewTab(url).pipe(take(1)).subscribe({
+      next: () => this.loaderService.hideLoader(true),
+      error: () => this.loaderService.hideLoader(true),
+    });
+  }
+
+  downloadFile(event: Event, url?: string): void {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    if (!url) return;
+
+    this.loaderService.showLoader();
+
+    this.dropboxService
+      .downloadFile(url)
+      .pipe(take(1))
+      .subscribe({
+        next: () => this.loaderService.hideLoader(true),
+        error: () => this.loaderService.hideLoader(true),
+      });
+  }
+  toggleLiteratureDropdown(event: Event): void {
+    event.stopPropagation();
+
+    this.isLiteratureDropdownVisible = !this.isLiteratureDropdownVisible;
+
+    if (this.isLiteratureDropdownVisible) {
+      this.setLessonFiles('secondBasedFiles', 'taskLiteratureFiles');
     }
   }
 }

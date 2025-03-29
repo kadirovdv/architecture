@@ -292,15 +292,19 @@
           <div class="file-selection-card">
             <div
               class="file-selection-card-item file-selection-card-item-borderfull flex-column align-items-stretch"
-              (click)="setLessonFiles('secondBasedFiles', 'taskLiteratureFiles'); isLiteratureDropdownVisible = !isLiteratureDropdownVisible;  $event.stopPropagation()"
+              (click)="toggleLiteratureDropdown($event)"
               style="position: relative"
-              [class.active]="selectedFiles.secondBasedFiles.taskLiteratureFiles?.[lang]?.length && isLiteratureDropdownVisible"
+              [class.active]="isLiteratureDropdownVisible"
+              [class.clickable]="isLiteratureDropdownVisible"
             >
               <div class="file-selectrion-card-img">
                 <img src="/assets/img/file-selection-3.png" alt="" />
               </div>
-              <div class="d-flex mt-3">
-                <div class="file-selection-card-img me-0">
+              <div
+                class="d-flex mt-3 justify-content-between align-items-center"
+                (click)="toggleLiteratureDropdown($event)"
+              >
+                <div class="file-selection-card-img me-0 ms-2">
                   <img
                     src="./assets/svg/slide-left.svg"
                     [class.rotate-180]="isLiteratureDropdownVisible"
@@ -309,13 +313,13 @@
                   />
                 </div>
                 <div class="file-selection-card-title w-100">
-                  <h5 class="text-center">{{ getSelectedFilesTitle() }}</h5>
+                  <h5 class="text-center">Adabiyotlar</h5>
                 </div>
               </div>
 
               <!-- Literature Files Dropdown -->
               <div
-                *ngIf="isLiteratureDropdownVisible && selectedFiles?.secondBasedFiles?.taskLiteratureFiles?.[lang]?.length"
+                *ngIf="isLiteratureDropdownVisible"
                 class="literature-dropdown"
                 (click)="$event.stopPropagation()"
               >
@@ -325,15 +329,33 @@
                     class="literature-item"
                   >
                     <div class="d-flex align-items-center">
-                      <img src="./assets/svg/pdf-icon.svg" alt="PDF" class="me-2" style="width: 20px;" />
-                      <span class="file-name">{{ file.name || 'Literature file' }}</span>
+                      <img
+                        src="./assets/img/pdf.png"
+                        alt="PDF"
+                        class="me-2"
+                        style="width: 20px"
+                      />
+                      <span class="file-name"
+                        >{{ file.name || 'Literature file' }}</span
+                      >
                       <div class="ms-auto">
-                        <span class="file-size">{{ file.size || '2.2 MB' }}</span>
-                        <button class="btn btn-link p-0 ms-2" (click)="file.url && openFileInNewTab(file.url)">
-                          <img src="./assets/svg/download.svg" alt="Download" style="width: 16px;" />
+                        <span class="file-size"
+                          >{{ formatFileSize(file.size) || '2.2 MB' }}</span
+                        >
+                        <button class="view-button" (click)="openInNewTab($event, file.path)" (mousedown)="$event.stopPropagation()">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="download-button" (click)="downloadFile($event, file.path)" (mousedown)="$event.stopPropagation()">
+                          <i class="fas fa-download"></i>
                         </button>
                       </div>
                     </div>
+                  </div>
+                  <div
+                    class="literature-item text-center"
+                    *ngIf="!selectedFiles?.secondBasedFiles?.taskLiteratureFiles?.[lang]?.length"
+                  >
+                    <p class="mb-0">No literature files available</p>
                   </div>
                 </div>
               </div>

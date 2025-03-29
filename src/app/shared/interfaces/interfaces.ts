@@ -53,6 +53,7 @@ export interface Lesson {
   createdAt?: string;
   tasks?: Task[] | any[];
   filePath?: string;
+  active?: boolean;
 }
 
 export interface LessonTitle {

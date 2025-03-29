@@ -10,38 +10,18 @@ import { EditBuildPage } from './edit-build/edit-build.page';
 // import { UsersPage } from './users/users.page';
 import { LessonsPage } from './lessons/lessons.page';
 import { CreateLessonsPage } from './create-lessons/create-lessons.page';
+import { AuthGuard } from '../shared/guards/auth.guard';
 
 const routes: Routes = [
   { path: '', redirectTo: '/dashboard/lessons', pathMatch: 'full' },
   {
     path: '',
     component: DashboardPage,
+    canActivate: [AuthGuard],
     children: [
       {
         path: 'lessons',
-        component: LessonsPage,
-        // children: [
-        // {
-        //   path: 'users',
-        //   component: UsersPage,
-        // },
-        // {
-        //   path: 'lessons',
-        //   component: LessonsPage,
-        // },
-        // {
-        //   path: 'semester',
-        //   component: SemesterPage,
-        // },
-        // {
-        //   path: 'themes',
-        //   component: ThemesPage,
-        // },
-        // {
-        //   path: 'build',
-        //   component: BuildPage,
-        // },
-        // ],
+        loadChildren: () => import('./lessons/lessons.module').then(m => m.LessonsModule)
       },
       {
         path: 'create-lesson',

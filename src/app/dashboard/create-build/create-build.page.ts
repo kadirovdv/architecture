@@ -618,12 +618,10 @@ export class CreateBuildPage implements OnInit {
     console.log(`Processing ${category} files:`, categoryObj);
     const categoryObservables: Observable<any>[] = [];
     
-    // Ensure categoryStatus object is initialized
     if (!this.categoryStatus[categoryPath]) {
       this.categoryStatus[categoryPath] = {};
     }
     
-    // Handle taskVideoUrls category separately (it's a string array, not a language object)
     if (category === 'taskVideoUrls') {
       if (Array.isArray(categoryObj) && categoryObj.length > 0) {
         console.log(`Adding ${categoryObj.length} video URLs to uploadedFiles`);
@@ -632,26 +630,21 @@ export class CreateBuildPage implements OnInit {
       return categoryObservables;
     }
     
-    // For other categories that have language-specific files
     for (const lang in categoryObj) {
       if (!categoryObj[lang]) continue;
       
-      // Only upload files that don't already have a URL (new files)
       const files = categoryObj[lang].filter((file: any) => file && file.file && !file.url);
       console.log(`Found ${files.length} new files to upload for ${category} in ${lang} language`);
       
-      // Copy existing files with URLs directly to the output structure
       const existingFiles = categoryObj[lang].filter((file: any) => file && file.url);
       if (existingFiles.length > 0) {
         console.log(`Found ${existingFiles.length} existing files with URLs for ${category} in ${lang} language`);
       
-        // Ensure target array exists
         if (categoryPath === 'firstBasedFiles') {
           if (!uploadedFiles.firstBasedFiles[category][lang]) {
             uploadedFiles.firstBasedFiles[category][lang] = [];
           }
           
-          // Add existing files directly
           existingFiles.forEach((file: any) => {
             if (!uploadedFiles.firstBasedFiles[category][lang].some((f: any) => f.url === file.url)) {
               uploadedFiles.firstBasedFiles[category][lang].push({
@@ -668,7 +661,6 @@ export class CreateBuildPage implements OnInit {
             uploadedFiles.secondBasedFiles[category][lang] = [];
           }
           
-          // Add existing files directly
           existingFiles.forEach((file: any) => {
             if (!uploadedFiles.secondBasedFiles[category][lang].some((f: any) => f.url === file.url)) {
               uploadedFiles.secondBasedFiles[category][lang].push({
@@ -683,10 +675,8 @@ export class CreateBuildPage implements OnInit {
         }
       }
       
-      // Skip if there are no new files to upload
       if (files.length === 0) continue;
       
-      // Ensure target array exists for new files
       if (categoryPath === 'firstBasedFiles') {
         if (!uploadedFiles.firstBasedFiles[category][lang]) {
           uploadedFiles.firstBasedFiles[category][lang] = [];
@@ -697,7 +687,6 @@ export class CreateBuildPage implements OnInit {
         }
       }
       
-      // Generate upload observables for each new file
       for (const file of files) {
         if (!file.file) continue;
         
@@ -705,11 +694,9 @@ export class CreateBuildPage implements OnInit {
         const fileName = file.name || fileObj.name;
         console.log(`Preparing to upload ${fileName}`);
         
-        // Create a unique path for the file
         const folderName = this.lesson?.lessonTitle?.uz || 'untitled';
-        const filePath = `/${folderName}/${category}/${lang}/${fileName}`;
+        const filePath = `/${folderName}/${category}/${lang}/${fileName}/${file.path_display}`;
         
-        // Create an upload observable for this file
         const uploadObservable = this.dropboxService.uploadFile(filePath, fileObj).pipe(
           switchMap((response: any) => {
             console.log(`Successfully uploaded ${fileName} to Dropbox:`, response);
@@ -718,13 +705,10 @@ export class CreateBuildPage implements OnInit {
           map((response: any) => {
             console.log(`Created shared link for ${fileName}:`, response);
             
-            // Standardize the URL format to avoid duplicates due to URL variations
             let standardUrl = response;
             if (typeof response === 'string') {
-              // Convert any Dropbox URL to the dl=1 format
               standardUrl = response.replace(/[\?&]dl=\d/g, '').concat('?dl=1');
             } else if (response && response.url) {
-              // Handle if response is an object with url property
               standardUrl = response.url.replace(/[\?&]dl=\d/g, '').concat('?dl=1');
             }
             
@@ -738,9 +722,7 @@ export class CreateBuildPage implements OnInit {
             
             console.log(`Standardized URL for ${fileName}:`, standardUrl);
             
-            // Add file to the appropriate array in uploadedFiles, avoiding duplicates
             if (categoryPath === 'firstBasedFiles') {
-              // Check if this file already exists in the array
               if (!uploadedFiles.firstBasedFiles[category][lang].some((f: any) => f.url === fileInfo.url)) {
                 uploadedFiles.firstBasedFiles[category][lang].push(fileInfo);
               } else {
@@ -772,17 +754,14 @@ export class CreateBuildPage implements OnInit {
   private saveToFirebase(uploadedFiles: any): void {
     console.log('Saving to Firebase with files:', uploadedFiles);
     
-    // If no lesson is selected, show an error
     if (!this.lesson) {
       this.toastr.error('Fan tanlanmagan!');
       this.loaderService.hide();
       return;
     }
 
-    // Deduplicate files in uploadedFiles
     this.deduplicateFiles(uploadedFiles);
 
-    // Create a copy of the current task with the uploaded files
     const taskToSave = {
       id: this.task?.id || uploadedFiles.id,
       title: this.task?.title || uploadedFiles.title,
@@ -794,7 +773,6 @@ export class CreateBuildPage implements OnInit {
 
     console.log('Task prepared for saving:', taskToSave);
 
-    // Check if we have data for the current website
     this.crudService
       .getDocuments('website-lessons')
       .pipe(
@@ -802,7 +780,6 @@ export class CreateBuildPage implements OnInit {
         switchMap((websiteData: any[]) => {
           console.log('Retrieved Website Lessons Data:', websiteData);
           
-          // Find the existing lesson by ID (preferred) or by title match
           const existingLesson = websiteData.find(
             (l: any) => 
               (this.lesson?.id && l.id === this.lesson.id) || 
@@ -812,10 +789,8 @@ export class CreateBuildPage implements OnInit {
           console.log('Existing lesson found:', existingLesson);
           
           if (existingLesson) {
-            // Lesson exists, check if the task exists within it
             const existingTasks = existingLesson.tasks || [];
             
-            // Find the existing task by ID or title
             const existingTaskIndex = existingTasks.findIndex(
               (t: any) => (taskToSave.id && t.id === taskToSave.id) || 
                           (taskToSave.title && t.title === taskToSave.title)
@@ -824,11 +799,9 @@ export class CreateBuildPage implements OnInit {
             console.log('Existing task index:', existingTaskIndex);
             
             if (existingTaskIndex !== -1) {
-              // Task exists, merge with existing task data
               console.log('Found existing task, merging files');
               const existingTask = existingTasks[existingTaskIndex];
               
-              // Create merged task structure
               const mergedTask = {
                 ...existingTask,
                 id: taskToSave.id || existingTask.id,
@@ -847,14 +820,11 @@ export class CreateBuildPage implements OnInit {
                 }
               };
               
-              // Merge first-based files
               ['taskExampleFiles', 'taskSolutionFiles'].forEach(category => {
                 ['uz', 'ru', 'en'].forEach(lang => {
-                  // Start with the new files
                   mergedTask.firstBasedFiles[category][lang] = 
                     [...(taskToSave.firstBasedFiles[category][lang] || [])];
                   
-                  // Add existing files that aren't duplicates
                   if (existingTask.firstBasedFiles?.[category]?.[lang]) {
                     existingTask.firstBasedFiles[category][lang].forEach((file: any) => {
                       if (!mergedTask.firstBasedFiles[category][lang].some(
@@ -867,14 +837,11 @@ export class CreateBuildPage implements OnInit {
                 });
               });
               
-              // Merge second-based files
               ['taskTitleFiles', 'taskPresentationFiles', 'taskLiteratureFiles'].forEach(category => {
                 ['uz', 'ru', 'en'].forEach(lang => {
-                  // Start with the new files
                   mergedTask.secondBasedFiles[category][lang] = 
                     [...(taskToSave.secondBasedFiles[category][lang] || [])];
                   
-                  // Add existing files that aren't duplicates
                   if (existingTask.secondBasedFiles?.[category]?.[lang]) {
                     existingTask.secondBasedFiles[category][lang].forEach((file: any) => {
                       if (!mergedTask.secondBasedFiles[category][lang].some(
@@ -887,7 +854,6 @@ export class CreateBuildPage implements OnInit {
                 });
               });
               
-              // Merge video URLs - use improved deduplication check comparing all language URLs
               mergedTask.secondBasedFiles.taskVideoUrls = [
                 ...(taskToSave.secondBasedFiles.taskVideoUrls || [])
               ];
@@ -906,15 +872,12 @@ export class CreateBuildPage implements OnInit {
                 });
               }
               
-              // Update the task in the array
               existingTasks[existingTaskIndex] = mergedTask;
             } else {
-              // Task doesn't exist, add it to the tasks array
               console.log('Task doesn\'t exist in this lesson, adding it');
               existingTasks.push(taskToSave);
             }
             
-            // Update the lesson's tasks
             const updatedLesson = {
               ...existingLesson,
               tasks: existingTasks
@@ -923,14 +886,14 @@ export class CreateBuildPage implements OnInit {
             console.log('Updating existing lesson:', updatedLesson);
             return this.crudService.updateDocument<Lesson>('website-lessons', existingLesson.id, updatedLesson);
           } else {
-            // Lesson doesn't exist, create a new one with this task
             const newLesson = {
               id: this.lesson?.id || this.crudService.generateId(),
               lessonTitle: this.lesson?.lessonTitle || { uz: '', ru: '', en: '' },
               thumbnail: this.lesson?.thumbnail || '',
               index: this.lesson?.index || 0,
               createdAt: this.lesson?.createdAt || new Date().toISOString(),
-              tasks: [taskToSave]
+              tasks: [taskToSave],
+              active: true
             };
             
             console.log('Creating new lesson:', newLesson);
@@ -945,7 +908,6 @@ export class CreateBuildPage implements OnInit {
           this.toastr.success('Ma\'lumotlar saqlandi!');
           console.log('Data saved successfully');
           
-          // After successful save, refresh website lessons
           this.getWebsiteLessons();
         },
         error: (error: any) => {
@@ -957,26 +919,21 @@ export class CreateBuildPage implements OnInit {
       });
   }
 
-  /**
-   * Helper method to deduplicate files in the uploadedFiles object
-   */
   private deduplicateFiles(uploadedFiles: any): void {
     console.log('Starting file deduplication');
     let totalDuplicatesRemoved = 0;
     
-    // Deduplicate files in firstBasedFiles
     if (uploadedFiles.firstBasedFiles) {
       ['taskExampleFiles', 'taskSolutionFiles'].forEach(category => {
         ['uz', 'ru', 'en'].forEach(lang => {
           if (uploadedFiles.firstBasedFiles[category]?.[lang]?.length) {
             const originalLength = uploadedFiles.firstBasedFiles[category][lang].length;
             
-            // Keep track of URLs we've seen to deduplicate
             const seenUrls = new Set<string>();
             uploadedFiles.firstBasedFiles[category][lang] = 
               uploadedFiles.firstBasedFiles[category][lang].filter((file: any) => {
                 if (!file.url || seenUrls.has(file.url)) {
-                  return false; // Skip files without URL or duplicates
+                  return false; 
                 }
                 seenUrls.add(file.url);
                 return true;
@@ -994,19 +951,17 @@ export class CreateBuildPage implements OnInit {
       });
     }
     
-    // Deduplicate files in secondBasedFiles
     if (uploadedFiles.secondBasedFiles) {
       ['taskTitleFiles', 'taskPresentationFiles', 'taskLiteratureFiles'].forEach(category => {
         ['uz', 'ru', 'en'].forEach(lang => {
           if (uploadedFiles.secondBasedFiles[category]?.[lang]?.length) {
             const originalLength = uploadedFiles.secondBasedFiles[category][lang].length;
             
-            // Keep track of URLs we've seen to deduplicate
             const seenUrls = new Set<string>();
             uploadedFiles.secondBasedFiles[category][lang] = 
               uploadedFiles.secondBasedFiles[category][lang].filter((file: any) => {
                 if (!file.url || seenUrls.has(file.url)) {
-                  return false; // Skip files without URL or duplicates
+                  return false; 
                 }
                 seenUrls.add(file.url);
                 return true;
@@ -1023,20 +978,16 @@ export class CreateBuildPage implements OnInit {
         });
       });
       
-      // Deduplicate task video URLs
       if (uploadedFiles.secondBasedFiles.taskVideoUrls?.length) {
         const originalLength = uploadedFiles.secondBasedFiles.taskVideoUrls.length;
         
         const uniqueVideos: Videos[] = [];
         
-        // Custom video deduplication that checks all language URLs
         uploadedFiles.secondBasedFiles.taskVideoUrls.forEach((video: Videos) => {
-          // Skip videos with no URLs
           if (!video.url.uz && !video.url.ru && !video.url.en) {
             return;
           }
           
-          // Check if this video is already in our unique videos list
           const isDuplicate = uniqueVideos.some(v => 
             (v.url.uz === video.url.uz && v.url.uz !== '') ||
             (v.url.ru === video.url.ru && v.url.ru !== '') ||
@@ -1048,7 +999,6 @@ export class CreateBuildPage implements OnInit {
           }
         });
         
-        // Update the videos with the deduplicated list
         uploadedFiles.secondBasedFiles.taskVideoUrls = uniqueVideos;
         
         const newLength = uploadedFiles.secondBasedFiles.taskVideoUrls.length;
@@ -1073,7 +1023,6 @@ export class CreateBuildPage implements OnInit {
     this.selectedLanguage = lang as 'uz' | 'ru' | 'en';
     this.currentCategory = category;
     
-    // Find the appropriate hidden input element
     const inputs = this.hiddenInputs.toArray();
     const input = inputs.find(
       (input) => input.nativeElement.getAttribute('data-category') === category
@@ -1094,7 +1043,6 @@ export class CreateBuildPage implements OnInit {
           this.task.secondBasedFiles.taskVideoUrls = [];
         }
         
-        // Check if this video already exists to prevent duplicates
         const isDuplicate = this.task.secondBasedFiles.taskVideoUrls.some((video: Videos) => 
           (video.url.uz === result.url.uz && video.url.uz !== '') ||
           (video.url.ru === result.url.ru && video.url.ru !== '') ||
@@ -1106,7 +1054,6 @@ export class CreateBuildPage implements OnInit {
           return;
         }
         
-        // Add the video if it's not a duplicate
         this.task.secondBasedFiles.taskVideoUrls.push(result);
         this.toastr.success('Video muvaffaqiyatli qo\'shildi');
       })
@@ -1182,7 +1129,6 @@ export class CreateBuildPage implements OnInit {
       return;
     }
 
-    // First check if this lesson already exists in the website-lessons collection
     const existingLesson = this.websiteLessons.find(
       (lesson) => 
         (lesson.id && selectedLesson.id && lesson.id === selectedLesson.id) ||
@@ -1191,7 +1137,6 @@ export class CreateBuildPage implements OnInit {
          lesson.lessonTitle.uz === selectedLesson.lessonTitle.uz)
     );
 
-    // Set the lesson data
     this.lesson = {
       id: selectedLesson.id || this.crudService.generateId(),
       lessonTitle: selectedLesson.lessonTitle || { uz: '', ru: '', en: '' },
@@ -1201,13 +1146,11 @@ export class CreateBuildPage implements OnInit {
       tasks: selectedLesson.tasks || []
     };
     
-    // Track if we found an existing lesson on the website
     if (existingLesson) {
       console.log('Existing website lesson found:', existingLesson);
       this.existingLesson = existingLesson;
       this.toastr.info("Mavjud fan topildi. Topshiriq tanlang.");
       
-      // If the titles don't match exactly, use the website version
       if (existingLesson.lessonTitle?.uz !== selectedLesson.lessonTitle?.uz) {
         this.lesson.lessonTitle = existingLesson.lessonTitle;
       }
@@ -1216,8 +1159,6 @@ export class CreateBuildPage implements OnInit {
       this.existingLesson = null;
       this.toastr.info("Yangi fan yaratilmoqda. Topshiriq tanlang.");
     }
-    
-    // Always reset the task when lesson changes
     this.task = null;
   }
 
@@ -1229,7 +1170,6 @@ export class CreateBuildPage implements OnInit {
       return;
     }
 
-    // Find existing task from the website lesson if available
     let existingTask = null;
     if (this.existingLesson?.tasks) {
       console.log('Looking in existing lesson tasks:', this.existingLesson.tasks);
@@ -1243,7 +1183,6 @@ export class CreateBuildPage implements OnInit {
     console.log('Found existing task:', existingTask);
     console.log('Existing task files:', existingTask?.firstBasedFiles, existingTask?.secondBasedFiles);
     
-    // Create a properly structured task object with all necessary file structures
     this.task = {
       id: existingTask?.id || selectedTask.id || this.crudService.generateId(),
       title: existingTask?.title || selectedTask.title || '',
@@ -1261,10 +1200,8 @@ export class CreateBuildPage implements OnInit {
       }
     };
     
-    // Copy files from the existing task if available
     if (existingTask) {
       try {
-        // Copy first based files
         ['taskExampleFiles', 'taskSolutionFiles'].forEach(category => {
           ['uz', 'ru', 'en'].forEach(lang => {
             if (existingTask.firstBasedFiles?.[category]?.[lang]?.length) {
@@ -1274,7 +1211,6 @@ export class CreateBuildPage implements OnInit {
           });
         });
         
-        // Copy second based files
         ['taskTitleFiles', 'taskPresentationFiles', 'taskLiteratureFiles'].forEach(category => {
           ['uz', 'ru', 'en'].forEach(lang => {
             if (existingTask.secondBasedFiles?.[category]?.[lang]?.length) {
@@ -1284,7 +1220,6 @@ export class CreateBuildPage implements OnInit {
           });
         });
         
-        // Copy video URLs
         if (existingTask.secondBasedFiles?.taskVideoUrls?.length) {
           this.task.secondBasedFiles.taskVideoUrls = 
             [...existingTask.secondBasedFiles.taskVideoUrls];
@@ -1294,7 +1229,6 @@ export class CreateBuildPage implements OnInit {
       }
     }
     
-    // Log the file structures to verify they're properly bound
     console.log('Task Files Bound:');
     console.log('Example Files:', this.task.firstBasedFiles.taskExampleFiles);
     console.log('Solution Files:', this.task.firstBasedFiles.taskSolutionFiles);
@@ -1329,9 +1263,6 @@ export class CreateBuildPage implements OnInit {
     return task.title;
   }
 
-  /**
-   * Handle direct file selection from the file-list component
-   */
   onDirectFileSelected(
     file: File,
     category: keyof FirstClassFileGroups | keyof SecondClassFileGroups,
@@ -1344,7 +1275,6 @@ export class CreateBuildPage implements OnInit {
       return;
     }
 
-    // Check file size
     if (file.size / (1024 * 1024) > 150) {
       this.toastr.error("Fayl hajmi 150MB dan o'tib ketdi!");
       return;
@@ -1356,7 +1286,6 @@ export class CreateBuildPage implements OnInit {
       file: file,
     };
 
-    // Initialize file structures if needed
     this.task.firstBasedFiles ??= {
       taskExampleFiles: { uz: [], ru: [], en: [] },
       taskSolutionFiles: { uz: [], ru: [], en: [] },
@@ -1369,7 +1298,6 @@ export class CreateBuildPage implements OnInit {
       taskVideoUrls: [],
     } as SecondClassFileGroups;
 
-    // Add the file to the appropriate category and language
     if (this.isFirstClassFileCategory(category)) {
       this.task.firstBasedFiles[category] ??= { uz: [], ru: [], en: [] };
       this.task.firstBasedFiles[category][language] ??= [];
@@ -1391,13 +1319,9 @@ export class CreateBuildPage implements OnInit {
     );
   }
 
-  // Helper method to extract file info from the tasks
   extractFileInfoFromObservable(index: number): { name: string; size: number } {
-    // This is a simplified approach - in a real implementation you might want to store
-    // more information about each file as you add it to the observables array
     let fileInfo = { name: `File ${index + 1}`, size: 0 };
     
-    // Process through each category to find the file with the given index
     let currentIndex = 0;
     const searchInCategory = (category: string, files: any) => {
       for (const lang in files) {
@@ -1413,7 +1337,6 @@ export class CreateBuildPage implements OnInit {
       return false;
     };
     
-    // Search in firstBasedFiles
     if (this.task.firstBasedFiles) {
       for (const category in this.task.firstBasedFiles) {
         if (searchInCategory(category, this.task.firstBasedFiles[category])) {
@@ -1422,7 +1345,6 @@ export class CreateBuildPage implements OnInit {
       }
     }
     
-    // Search in secondBasedFiles
     if (this.task.secondBasedFiles) {
       for (const category in this.task.secondBasedFiles) {
         if (category !== 'taskVideoUrls' && searchInCategory(category, this.task.secondBasedFiles[category])) {

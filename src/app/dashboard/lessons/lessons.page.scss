@@ -90,19 +90,25 @@
   }
 
   &-bottom {
+    .lesson-item {
+      // overflow: hidden;
+    }
     .lesson-item > div:not(.position-absolute) {
       padding: 11px 0px;
+    }
+
+    .action-btn {
+      padding: 11px 10px;
     }
 
     .lesson-item .action-btns {
       .action-btn:first-child {
         border-left: 1px solid #000;
-        padding: 11px 10px;
+        border-right: 1px solid #000;
       }
 
       .action-btn:last-child {
         border-left: 1px solid #000;
-        padding: 11px 15px 11px 10px;
       }
     }
 
@@ -132,25 +138,216 @@
 .action-dropdown {
   position: absolute;
   top: 50px;
-  width: 350px;
-  height: 450px;
-  max-height: 200px;
-  overflow: scroll;
+  min-width: 350px;
+  max-height: 450px;
+  overflow-y: auto;
   right: 55px;
   background: #ffffff;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
   z-index: 99 !important;
-  padding: 10px 15px !important;
+  padding: 15px !important;
+  border-radius: 8px;
+  animation: dropdown-slide 0.3s ease-out;
+  transform-origin: top right;
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #d0d0d0;
+    border-radius: 10px;
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: #c0c0c0;
+  }
 
   .form-control:focus,
   .form-control:active {
     box-shadow: none;
+    border-color: #d0853b;
   }
 
   .form-control {
-    border-radius: 10px;
-    height: 35px;
-    border-color: #121212;
     border-radius: 0px;
+    height: 38px;
+    border-color: #ddd;
+    transition: border-color 0.2s ease-in-out;
+    
+    &::placeholder {
+      color: #aaa;
+    }
   }
+}
+
+@keyframes dropdown-slide {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// Exit animation
+.dropdown-exit {
+  animation: dropdown-exit 0.2s ease-in forwards !important;
+}
+
+@keyframes dropdown-exit {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+// Task items animation
+.my-1, .my-2 {
+  animation: fade-in 0.3s ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Task item styles
+.my-1, .my-2 {
+  margin-bottom: 10px !important;
+  
+  span {
+    padding: 8px 10px;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    transition: background-color 0.2s ease;
+    
+    &:hover {
+      background-color: #f0f0f0;
+    }
+  }
+  
+  img {
+    opacity: 0.7;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+  }
+}
+
+// Action buttons hover effects
+.action-btn {
+  transition: background-color 0.2s ease;
+  
+  &:hover {
+    background-color: rgba(208, 133, 59, 0.1);
+    
+    img {
+      transform: scale(1.1);
+      transition: transform 0.2s ease;
+    }
+  }
+}
+
+// Add/Save/Cancel icon hover effects
+.cursor-pointer[src*="plus.svg"],
+.cursor-pointer[src*="save.svg"],
+.cursor-pointer[src*="cancel.svg"] {
+  transition: transform 0.2s ease;
+  
+  &:hover {
+    transform: scale(1.1);
+  }
+}
+
+// Empty state message
+.text-muted {
+  color: #888 !important;
+  font-style: italic;
+}
+
+/* Toggle Switch Styles */
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+  margin-top: 3px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #4CAF50;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #4CAF50;
+}
+
+input:checked + .slider:before {
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+.dropdown-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100px;
+  padding: 20px 0;
 }

@@ -38,7 +38,7 @@
           <div class="d-flex position-absolute right-0 top-0 action-btns">
             <div
               class="action-btn cursor-pointer"
-              (click)="openDropdown(i, lesson)"
+              (click)="openDropdown(lesson, i, $event)"
             >
               <img src="/assets/svg/arrow-down.svg" width="30px" alt="" />
             </div>
@@ -60,7 +60,7 @@
                 class="cursor-pointer"
                 width="30px"
                 alt=""
-                (click)="addTaskToLesson()"
+                (click)="addTaskToLesson($event)"
               />
               <ng-container *ngIf="editingTaskId">
                 <img
@@ -68,19 +68,24 @@
                   width="30px"
                   alt=""
                   class="cursor-pointer ms-1"
-                  (click)="saveTaskEdit()"
+                  (click)="saveTaskEdit($event)"
                 />
                 <img
                   src="/assets/svg/cancel.svg"
                   width="30px"
                   alt=""
                   class="cursor-pointer ms-1"
-                  (click)="cancelTaskEdit()"
+                  (click)="cancelTaskEdit($event)"
                 />
               </ng-container>
             </div>
-            <div>
-              <div class="my-2 ms-1" *ngFor="let item of lesson.tasks">
+            <div *ngIf="isDropdownLoading" class="dropdown-loading">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+            <div *ngIf="!isDropdownLoading">
+              <div class="my-2 ms-1" *ngFor="let item of tasksInLesson">
                 <span class="d-flex align-items-center justify-content-between">
                   {{ item.index }}. {{ item.title }}
                   <div class="d-flex align-items-center">
@@ -89,17 +94,20 @@
                       width="20px"
                       alt=""
                       class="cursor-pointer ms-1"
-                      (click)="editTask(item)"
+                      (click)="editTask(item, $event)"
                     />
                     <img
                       src="/assets/svg/trash.svg"
                       width="20px"
                       alt=""
                       class="cursor-pointer ms-1"
-                      (click)="deleteTaskFromLesson(item)"
+                      (click)="deleteTaskFromLesson(item, $event)"
                     />
                   </div>
                 </span>
+              </div>
+              <div *ngIf="tasksInLesson.length === 0" class="text-center my-3">
+                <p class="text-muted">No tasks found. Create a new task above.</p>
               </div>
             </div>
           </div>
@@ -118,12 +126,18 @@
         </div>
         <div class="lesson-item position-relative">
           <div class="text-center">Grafik topshiriqlar</div>
-          <div class="d-flex position-absolute right-0 top-0 action-btns">
+          <div class="d-flex position-absolute align-items-center right-0 top-0 action-btns">
             <div
               class="action-btn cursor-pointer"
-              (click)="openDropdown(i, lesson)"
+              (click)="openDropdown(lesson, i, $event)"
             >
               <img src="/assets/svg/arrow-down.svg" width="30px" alt="" />
+            </div>
+            <div class="action-btn cursor-pointer" (click)="toggleLessonActive(lesson, $event)">
+              <div class="toggle-switch">
+                <input type="checkbox" [checked]="lesson.active" />
+                <span class="slider round"></span>
+              </div>
             </div>
             <div
               class="action-btn cursor-pointer"
@@ -146,7 +160,7 @@
                 class="cursor-pointer"
                 width="30px"
                 alt=""
-                (click)="addTaskToLesson()"
+                (click)="addTaskToLesson($event)"
               />
               <ng-container *ngIf="editingTaskId">
                 <img
@@ -154,36 +168,46 @@
                   width="30px"
                   alt=""
                   class="cursor-pointer ms-1"
-                  (click)="saveTaskEdit()"
+                  (click)="saveTaskEdit($event)"
                 />
                 <img
                   src="/assets/svg/cancel.svg"
                   width="30px"
                   alt=""
                   class="cursor-pointer ms-1"
-                  (click)="cancelTaskEdit()"
+                  (click)="cancelTaskEdit($event)"
                 />
               </ng-container>
             </div>
-            <div>
-              <div class="my-1 ms-1" *ngFor="let item of lesson.tasks">
-                <span class="d-flex align-items-center">
+            <div *ngIf="isDropdownLoading" class="dropdown-loading">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+            <div *ngIf="!isDropdownLoading">
+              <div class="my-1 ms-1" *ngFor="let item of tasksInLesson">
+                <span class="d-flex align-items-center justify-content-between">
                   {{ item.index }}. {{ item.title }}
-                  <img
-                    src="/assets/img/edit.png"
-                    width="20px"
-                    alt=""
-                    class="cursor-pointer ms-1"
-                    (click)="editTask(item)"
-                  />
-                  <img
-                    src="/assets/svg/trash.svg"
-                    width="20px"
-                    alt=""
-                    class="cursor-pointer ms-1"
-                    (click)="deleteTaskFromLesson(item)"
-                  />
+                  <div class="d-flex align-items-center">
+                    <img
+                      src="/assets/img/edit.png"
+                      width="20px"
+                      alt=""
+                      class="cursor-pointer ms-1"
+                      (click)="editTask(item, $event)"
+                    />
+                    <img
+                      src="/assets/svg/trash.svg"
+                      width="20px"
+                      alt=""
+                      class="cursor-pointer ms-1"
+                      (click)="deleteTaskFromLesson(item, $event)"
+                    />
+                  </div>
                 </span>
+              </div>
+              <div *ngIf="tasksInLesson.length === 0" class="text-center my-3">
+                <p class="text-muted">No tasks found. Create a new task above.</p>
               </div>
             </div>
           </div>

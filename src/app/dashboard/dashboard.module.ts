@@ -11,12 +11,13 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CreateBuildModule } from './create-build/create-build.module';
 // import { EditBuildPage } from './edit-build/edit-build.page';
 // import { UsersPage } from './users/users.page';
-import { LessonsPage } from './lessons/lessons.page';
+// import { LessonsPage } from './lessons/lessons.page';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { CreateLessonsPage } from './create-lessons/create-lessons.page';
 import { NgbActiveModal, NgbDropdownModule, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { LoaderComponent } from "../shared/components/loader/loader.component";
 import { EditBuildModule } from './edit-build/edit-build.module';
+
 @NgModule({
   declarations: [
     DashboardPage,
@@ -24,7 +25,7 @@ import { EditBuildModule } from './edit-build/edit-build.module';
     // SemesterPage,
     // ThemesPage,
     // BuildPage,
-    LessonsPage,
+    // LessonsPage,
     CreateLessonsPage,
   ],
   imports: [
@@ -39,7 +40,7 @@ import { EditBuildModule } from './edit-build/edit-build.module';
     CreateBuildModule,
     EditBuildModule,
     LoaderComponent
-],
+  ],
   providers: [NgbActiveModal],
   exports: [],
 })

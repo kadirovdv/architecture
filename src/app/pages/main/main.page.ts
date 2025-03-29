@@ -83,7 +83,9 @@ export class MainPage {
       .getDocuments('website-lessons')
       .pipe(
         switchMap((res: unknown) => {
-          const lessons = res as Lesson[];
+          const allLessons = res as Lesson[];
+          // Filter for active lessons only
+          const lessons = allLessons.filter(lesson => lesson.active);
 
           if (lessons.length === 0) {
             this.websiteLessons = lessons;
