@@ -14,7 +14,7 @@
       <div class="progress-text">{{progress}}%</div>
     </div>
     <div class="file-status" *ngIf="currentUploadFile">
-      <div class="file-name">{{ currentUploadFile.name }}</div>
+      <div class="file-name">{{ typeof currentUploadFile === 'string' ? currentUploadFile : currentUploadFile?.name }}</div>
     </div>
     <div class="upload-count">{{ uploadedCount }} / {{ totalUploads }} fayllar yuklandi</div>
   </div>
@@ -30,71 +30,83 @@
       <div
         class="col-md-12 mb-3 d-flex justify-content-center align-items-center flex-column"
       >
-        <div class="form-group mb-4">
-          <label for="lessonSelect" class="form-label">Select Lesson</label>
-          <ng-select 
-            [items]="lessons" 
-            bindLabel="name" 
-            bindValue="id" 
-            placeholder="Select a lesson"
-            [(ngModel)]="selectedLessonId"
-            (change)="onLessonSelect($event)"
-            class="edit-build-ng-select">
-          </ng-select>
-        </div>
+        <ng-select 
+          [(ngModel)]="selectedLesson"
+          (ngModelChange)="onLessonSelect($event)"
+          class="edit-build-ng-select mb-4"
+          [placeholder]="'Fanni tanlang...'"
+          [clearable]="true"
+          [items]="lessons" 
+          [compareWith]="compareLessonById"
+        >
+          <ng-template ng-option-tmp let-item="item">
+            {{ getLessonTitleString(item) }}
+          </ng-template>
+          <ng-template ng-label-tmp let-item="item">
+            {{ getLessonTitleString(item) }}
+          </ng-template>
+        </ng-select>
         
-        <div class="form-group mb-4" *ngIf="selectedLesson">
-          <label for="taskSelect" class="form-label">Select Task</label>
-          <ng-select 
-            [items]="selectedLesson.tasks" 
-            bindLabel="name" 
-            bindValue="id" 
-            placeholder="Select a task"
-            [(ngModel)]="selectedTaskId"
-            (change)="onTaskSelect($event)"
-            class="edit-build-ng-select">
-          </ng-select>
-        </div>
+        <ng-select 
+          [(ngModel)]="selectedTask"
+          (ngModelChange)="onTaskSelect($event)"
+          class="edit-build-ng-select bg-yellow mb-4"
+          [placeholder]="'Grafik topshiriqni tanlang'"
+          [clearable]="true"
+          [items]="selectedLesson?.tasks"
+          [compareWith]="compareTaskById"
+          [disabled]="!selectedLesson"
+        >
+          <ng-template ng-option-tmp let-item="item">
+            {{ getTaskTitleString(item) }}
+          </ng-template>
+          <ng-template ng-label-tmp let-item="item">
+            {{ getTaskTitleString(item) }}
+          </ng-template>
+        </ng-select>
         
-        <div class="task-details-container" *ngIf="selectedTask">
-          <h3>Edit Task Details</h3>
+        <!-- Task Details Section -->
+        <div class="task-details-container mb-4 w-100" *ngIf="selectedTask">
+          <h4>Topshiriq ma'lumotlarini tahrirlash</h4>
           
           <div class="form-group mb-3">
-            <label for="taskName" class="form-label">Task Name</label>
+            <label for="taskTitle">Topshiriq nomi:</label>
             <input 
               type="text" 
-              id="taskName" 
               class="form-control" 
-              [(ngModel)]="selectedTask.name"
-              placeholder="Enter task name">
+              id="taskTitle" 
+              [(ngModel)]="selectedTask.title"
+              placeholder="Topshiriq nomini kiriting">
           </div>
           
-          <div class="form-group mb-3">
-            <label for="taskDesc" class="form-label">Task Description</label>
+          <div class="form-group mb-3" *ngIf="selectedTask?.description !== undefined">
+            <label for="taskDesc">Tavsif:</label>
             <textarea 
               id="taskDesc" 
               class="form-control" 
               [(ngModel)]="selectedTask.description"
-              placeholder="Enter task description"
+              placeholder="Topshiriq tavsifini kiriting"
               rows="3"></textarea>
           </div>
           
-          <div class="form-group mb-3">
-            <label for="taskDuration" class="form-label">Duration (in minutes)</label>
+          <div class="form-group mb-3" *ngIf="selectedTask?.duration !== undefined">
+            <label for="taskDuration">Davomiyligi (daqiqalarda):</label>
             <input 
               type="number" 
               id="taskDuration" 
               class="form-control" 
               [(ngModel)]="selectedTask.duration"
-              placeholder="Enter duration in minutes">
+              placeholder="Davomiylikni kiriting">
           </div>
         </div>
         
+        <!-- File Management Section -->
         <div class="file-management-container" *ngIf="selectedTask">
-          <h3>Manage Files</h3>
+          <h3>Fayllarni boshqarish</h3>
           
-          <div class="videos-container" *ngIf="selectedTask.videos && selectedTask.videos.length > 0">
-            <h4>Videos</h4>
+          <!-- Videos Section -->
+          <div class="videos-container" *ngIf="selectedTask?.videos?.length">
+            <h4>Videolar</h4>
             <div class="row">
               <div class="col-md-4 mb-3" *ngFor="let video of selectedTask.videos; let i = index">
                 <div class="video-item position-relative">
@@ -104,13 +116,13 @@
                     <i class="fas fa-times"></i>
                   </button>
                   <div class="language-link mb-2">
-                    <span class="badge bg-primary me-2">{{ video.language }}</span>
-                    <a [href]="video.url" target="_blank" title="{{ video.url }}">{{ video.name || 'Video ' + (i + 1) }}</a>
+                    <span class="badge bg-primary me-2">{{ video?.language }}</span>
+                    <a [href]="video?.url" target="_blank" title="{{ video?.url }}">{{ video?.name || 'Video ' + (i + 1) }}</a>
                   </div>
                   <button 
                     class="btn btn-outline-primary btn-sm me-2" 
                     (click)="uploadNewFile('videos', i)">
-                    Replace
+                    Almashtirish
                   </button>
                 </div>
               </div>
@@ -118,20 +130,21 @@
             <button 
               class="btn btn-primary mt-3" 
               (click)="uploadNewFile('videos')">
-              <i class="fas fa-plus me-2"></i>Add New Video
+              <i class="fas fa-plus me-2"></i>Yangi video qo'shish
             </button>
           </div>
           
-          <div *ngIf="!selectedTask.videos || selectedTask.videos.length === 0" class="mt-3">
+          <div *ngIf="!selectedTask?.videos?.length" class="mt-3">
             <button 
               class="btn btn-primary" 
               (click)="uploadNewFile('videos')">
-              <i class="fas fa-plus me-2"></i>Add Video
+              <i class="fas fa-plus me-2"></i>Video qo'shish
             </button>
           </div>
           
-          <div class="videos-container" *ngIf="selectedTask.audios && selectedTask.audios.length > 0">
-            <h4>Audio Files</h4>
+          <!-- Audio Files Section -->
+          <div class="videos-container" *ngIf="selectedTask?.audios?.length">
+            <h4>Audio fayllar</h4>
             <div class="row">
               <div class="col-md-4 mb-3" *ngFor="let audio of selectedTask.audios; let i = index">
                 <div class="video-item position-relative">
@@ -141,13 +154,13 @@
                     <i class="fas fa-times"></i>
                   </button>
                   <div class="language-link mb-2">
-                    <span class="badge bg-secondary me-2">{{ audio.language }}</span>
-                    <a [href]="audio.url" target="_blank" title="{{ audio.url }}">{{ audio.name || 'Audio ' + (i + 1) }}</a>
+                    <span class="badge bg-secondary me-2">{{ audio?.language }}</span>
+                    <a [href]="audio?.url" target="_blank" title="{{ audio?.url }}">{{ audio?.name || 'Audio ' + (i + 1) }}</a>
                   </div>
                   <button 
                     class="btn btn-outline-primary btn-sm me-2" 
                     (click)="uploadNewFile('audios', i)">
-                    Replace
+                    Almashtirish
                   </button>
                 </div>
               </div>
@@ -155,20 +168,21 @@
             <button 
               class="btn btn-primary mt-3" 
               (click)="uploadNewFile('audios')">
-              <i class="fas fa-plus me-2"></i>Add New Audio
+              <i class="fas fa-plus me-2"></i>Yangi audio qo'shish
             </button>
           </div>
           
-          <div *ngIf="!selectedTask.audios || selectedTask.audios.length === 0" class="mt-3">
+          <div *ngIf="!selectedTask?.audios?.length" class="mt-3">
             <button 
               class="btn btn-primary" 
               (click)="uploadNewFile('audios')">
-              <i class="fas fa-plus me-2"></i>Add Audio
+              <i class="fas fa-plus me-2"></i>Audio qo'shish
             </button>
           </div>
           
-          <div class="videos-container" *ngIf="selectedTask.documents && selectedTask.documents.length > 0">
-            <h4>Documents</h4>
+          <!-- Documents Section -->
+          <div class="videos-container" *ngIf="selectedTask?.documents?.length">
+            <h4>Hujjatlar</h4>
             <div class="row">
               <div class="col-md-4 mb-3" *ngFor="let doc of selectedTask.documents; let i = index">
                 <div class="video-item position-relative">
@@ -178,13 +192,13 @@
                     <i class="fas fa-times"></i>
                   </button>
                   <div class="language-link mb-2">
-                    <span class="badge bg-info me-2">{{ doc.language }}</span>
-                    <a [href]="doc.url" target="_blank" title="{{ doc.url }}">{{ doc.name || 'Document ' + (i + 1) }}</a>
+                    <span class="badge bg-info me-2">{{ doc?.language }}</span>
+                    <a [href]="doc?.url" target="_blank" title="{{ doc?.url }}">{{ doc?.name || 'Hujjat ' + (i + 1) }}</a>
                   </div>
                   <button 
                     class="btn btn-outline-primary btn-sm me-2" 
                     (click)="uploadNewFile('documents', i)">
-                    Replace
+                    Almashtirish
                   </button>
                 </div>
               </div>
@@ -192,27 +206,23 @@
             <button 
               class="btn btn-primary mt-3" 
               (click)="uploadNewFile('documents')">
-              <i class="fas fa-plus me-2"></i>Add New Document
+              <i class="fas fa-plus me-2"></i>Yangi hujjat qo'shish
             </button>
           </div>
           
-          <div *ngIf="!selectedTask.documents || selectedTask.documents.length === 0" class="mt-3">
+          <div *ngIf="!selectedTask?.documents?.length" class="mt-3">
             <button 
               class="btn btn-primary" 
               (click)="uploadNewFile('documents')">
-              <i class="fas fa-plus me-2"></i>Add Document
+              <i class="fas fa-plus me-2"></i>Hujjat qo'shish
             </button>
           </div>
         </div>
         
-        <div class="action-buttons d-flex justify-content-between">
-          <button class="btn btn-secondary" routerLink="/dashboard/lessons">Cancel</button>
-          <button 
-            class="btn btn-primary" 
-            [disabled]="!selectedTask || !hasChanges()" 
-            (click)="saveChanges()">
-            Save Changes
-          </button>
+        <!-- Action Buttons -->
+        <div class="action-buttons mt-4 d-flex justify-content-center" *ngIf="selectedTask">
+          <button class="btn btn-secondary me-2" (click)="goBack()">Bekor qilish</button>
+          <button class="btn btn-primary" (click)="saveChanges()">O'zgarishlarni saqlash</button>
         </div>
       </div>
     </div>

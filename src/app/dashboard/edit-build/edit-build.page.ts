@@ -3,7 +3,7 @@ import { CrudService } from 'src/app/shared/services/crud.service';
 import { DropboxService } from 'src/app/shared/services/dropbox.service';
 import { FormGroup, FormControl } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
-import { catchError, concatMap, from, tap, timer, Observable, Subscription } from 'rxjs';
+import { catchError, concatMap, finalize, from, tap, timer, Observable, Subscription } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { LoadingService } from 'src/app/shared/services/loading.service';
@@ -11,12 +11,22 @@ import { Lesson, LessonTitle, Task, FirstClassFileGroups, SecondClassFileGroups,
 import { DomSanitizer, SafeUrl, SafeResourceUrl } from '@angular/platform-browser';
 import { firstValueFrom } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { VideoUploadComponent } from '../create-build/video-upload/video-upload.component';
-import { Observable, forkJoin, map, of, switchMap } from 'rxjs';
+import { VideoUploadComponent } from 'src/app/shared/components/video-upload/video-upload.component';
+import { forkJoin, map, of, switchMap } from 'rxjs';
 import { FirebaseError } from 'firebase/app';
 import { LessonService } from 'src/app/shared/services/lesson.service';
 import { StorageService } from 'src/app/shared/services/storage.service';
-import { finalize } from 'rxjs';
+
+// Extend the Task interface for our needs
+interface ExtendedTask extends Task {
+  title?: string;
+  description?: string;
+  duration?: number;
+  videos?: any[];
+  audios?: any[];
+  documents?: any[];
+  [key: string]: any; // Add index signature to allow string indexing
+}
 
 @Component({
   selector: 'app-edit-build',
@@ -124,14 +134,16 @@ export class EditBuildPage implements OnInit {
   currentCategory: string = '';
   errorCategories: string[] = [];
   selectedLesson: Lesson | null = null;
-  selectedTask: Task | null = null;
-  originalTask: Task | null = null;
+  selectedLessonId: string = '';
+  selectedTask: ExtendedTask | null = null;
+  selectedTaskId: string = '';
+  originalTask: ExtendedTask | null = null;
   fileUploads: { [key: string]: Observable<any>[] } = {};
 
   // Upload properties
   uploading: boolean = false;
   progress: number = 0;
-  currentUploadFile: string = '';
+  currentUploadFile: string | { name: string; size: number } = '';
   uploadedCount: number = 0;
   totalUploads: number = 0;
 
@@ -161,6 +173,15 @@ export class EditBuildPage implements OnInit {
         this.selectedLessonId = lessonId;
       }
     });
+  }
+
+  // Compare functions for ng-select
+  compareLessonById(item1: any, item2: any): boolean {
+    return item1 && item2 && item1.id === item2.id;
+  }
+
+  compareTaskById(item1: any, item2: any): boolean {
+    return item1 && item2 && item1.id === item2.id;
   }
 
   getAll() {
@@ -391,7 +412,7 @@ export class EditBuildPage implements OnInit {
 
     modalRef.result.then(
       (result) => {
-        if (result) {
+        if (result && this.selectedTask) {
           this.selectedTask.secondBasedFiles ??= {} as SecondClassFileGroups;
           this.selectedTask.secondBasedFiles.taskVideoUrls ??= [];
           
@@ -487,7 +508,7 @@ export class EditBuildPage implements OnInit {
     }
   }
 
-  async loadLesson(): Promise<void> {
+  loadLesson(): void {
     try {
       this.loading = true;
       const id = this.activatedRoute.snapshot.queryParams['id'];
@@ -497,35 +518,55 @@ export class EditBuildPage implements OnInit {
         return;
       }
 
-      const lessons = await firstValueFrom(this.crudService.getDocuments('website-lessons')) as Lesson[];
-      const lesson = lessons.find(l => l.id === id);
-      
-      if (!lesson) {
-        this.toastr.error('Lesson not found');
-        this.router.navigate(['/dashboard/build']);
-        return;
-      }
+      this.crudService.getDocuments('website-lessons').subscribe(
+        (lessons) => {
+          const lessonsArray = lessons as Lesson[];
+          const lesson = lessonsArray.find(l => l.id === id);
+          
+          if (!lesson) {
+            this.toastr.error('Lesson not found');
+            this.router.navigate(['/dashboard/build']);
+            return;
+          }
 
-      this.lesson = {
-        ...lesson,
-        lessonTitle: {
-          uz: lesson.lessonTitle?.uz || '',
-          ru: lesson.lessonTitle?.ru || '',
-          en: lesson.lessonTitle?.en || ''
-        }
-      };
+          this.lesson = {
+            ...lesson,
+            lessonTitle: {
+              uz: lesson.lessonTitle?.uz || '',
+              ru: lesson.lessonTitle?.ru || '',
+              en: lesson.lessonTitle?.en || ''
+            }
+          };
 
-      if (this.lesson.thumbnail) {
-        const thumbnailUrl = typeof this.lesson.thumbnail === 'string' ? this.lesson.thumbnail : '';
-        if (thumbnailUrl) {
-          const thumbnailBlob = await firstValueFrom(this.dropboxService.getThumbnail(thumbnailUrl));
-          this.imgDisplay = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(thumbnailBlob));
+          if (this.lesson.thumbnail) {
+            const thumbnailUrl = typeof this.lesson.thumbnail === 'string' ? this.lesson.thumbnail : '';
+            if (thumbnailUrl) {
+              this.dropboxService.getThumbnail(thumbnailUrl).subscribe(
+                (thumbnailBlob) => {
+                  this.imgDisplay = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(thumbnailBlob));
+                  this.loading = false;
+                },
+                (error) => {
+                  console.error('Error loading thumbnail:', error);
+                  this.loading = false;
+                }
+              );
+            } else {
+              this.loading = false;
+            }
+          } else {
+            this.loading = false;
+          }
+        },
+        (error) => {
+          console.error('Error loading lesson:', error);
+          this.toastr.error('Error loading lesson');
+          this.loading = false;
         }
-      }
+      );
     } catch (error) {
-      console.error('Error loading lesson:', error);
+      console.error('Error in loadLesson:', error);
       this.toastr.error('Error loading lesson');
-    } finally {
       this.loading = false;
     }
   }
@@ -765,7 +806,7 @@ export class EditBuildPage implements OnInit {
       const file = fileItem.file;
       if (!file) return of(null);
 
-      const filePath = `/${this.selectedLesson?.id}/${this.selectedTask?.id}/${category}/${language}/${file.name}`;
+      const filePath = `/${this.selectedLesson?.id || ''}/${this.selectedTask?.id || ''}/${category}/${language}/${file.name}`;
       
       return this.dropboxService.uploadFile(filePath, file).pipe(
         tap(() => {
@@ -776,13 +817,13 @@ export class EditBuildPage implements OnInit {
         switchMap(response => {
           return this.dropboxService.createSharedLink(response).pipe(
             map(shareUrl => {
-              if (this.isFirstClassFileCategory(category)) {
-                if (this.selectedTask?.firstBasedFiles?.[category]?.[language]?.[index + this.getExistingFileCount(category, language) - files.length]) {
+              if (this.selectedTask && this.isFirstClassFileCategory(category)) {
+                if (this.selectedTask.firstBasedFiles?.[category]?.[language]?.[index + this.getExistingFileCount(category, language) - files.length]) {
                   this.selectedTask.firstBasedFiles[category][language][index + this.getExistingFileCount(category, language) - files.length].url = shareUrl;
                   this.selectedTask.firstBasedFiles[category][language][index + this.getExistingFileCount(category, language) - files.length].path = response;
                 }
-              } else if (this.isSecondClassFileCategory(category)) {
-                if (this.selectedTask?.secondBasedFiles?.[category]?.[language]?.[index + this.getExistingFileCount(category, language) - files.length]) {
+              } else if (this.selectedTask && this.isSecondClassFileCategory(category)) {
+                if (this.selectedTask.secondBasedFiles?.[category]?.[language]?.[index + this.getExistingFileCount(category, language) - files.length]) {
                   this.selectedTask.secondBasedFiles[category][language][index + this.getExistingFileCount(category, language) - files.length].url = shareUrl;
                   this.selectedTask.secondBasedFiles[category][language][index + this.getExistingFileCount(category, language) - files.length].path = response;
                 }
@@ -836,82 +877,13 @@ export class EditBuildPage implements OnInit {
     return task?.title || '';
   }
 
-  loadLessons(): void {
-    this.loading = true;
-    this.lessonService.getLessons()
-      .pipe(finalize(() => this.loading = false))
-      .subscribe(
-        (data) => {
-          this.lessons = data;
-          if (this.selectedLessonId) {
-            this.selectLessonById(this.selectedLessonId);
-          }
-        },
-        (error) => {
-          this.toastr.error('Failed to load lessons', 'Error');
-          console.error('Error loading lessons:', error);
-        }
-      );
-  }
-
-  selectLessonById(lessonId: string): void {
-    const lesson = this.lessons.find(l => l.id === lessonId);
-    if (lesson) {
-      this.selectedLesson = lesson;
-      this.selectedLessonId = lesson.id;
-    }
-  }
-
-  onLessonSelect(lesson: any): void {
-    this.selectedLesson = lesson;
-    this.selectedTask = null;
-    this.selectedTaskId = '';
-    this.originalTask = null;
-  }
-
-  onTaskSelect(task: any): void {
-    this.loading = true;
-    this.lessonService.getTaskById(this.selectedLesson.id, task.id)
-      .pipe(finalize(() => this.loading = false))
-      .subscribe(
-        (fullTask) => {
-          this.selectedTask = fullTask;
-          this.selectedTaskId = fullTask.id;
-          // Create a deep copy of the task for change detection
-          this.originalTask = JSON.parse(JSON.stringify(fullTask));
-        },
-        (error) => {
-          this.toastr.error('Failed to load task details', 'Error');
-          console.error('Error loading task details:', error);
-        }
-      );
-  }
-
-  hasChanges(): boolean {
-    if (!this.selectedTask || !this.originalTask) return false;
-    return JSON.stringify(this.selectedTask) !== JSON.stringify(this.originalTask);
-  }
-
-  saveChanges(): void {
-    if (!this.selectedTask) return;
-    
-    this.loading = true;
-    this.lessonService.updateTask(this.selectedLesson.id, this.selectedTask)
-      .pipe(finalize(() => this.loading = false))
-      .subscribe(
-        () => {
-          this.toastr.success('Task updated successfully', 'Success');
-          // Update the original task to reflect the current state
-          this.originalTask = JSON.parse(JSON.stringify(this.selectedTask));
-        },
-        (error) => {
-          this.toastr.error('Failed to update task', 'Error');
-          console.error('Error updating task:', error);
-        }
-      );
-  }
-
+  // Method to handle file uploads and replacements
   uploadNewFile(fileType: string, index?: number): void {
+    if (!this.selectedTask) {
+      this.toastr.error('Iltimos, topshiriqni tanlang!');
+      return;
+    }
+
     const modalRef = this.modalService.open(VideoUploadComponent, {
       centered: true,
       size: 'lg'
@@ -932,6 +904,7 @@ export class EditBuildPage implements OnInit {
     );
   }
 
+  // Method to handle the file upload result
   handleFileUpload(fileData: any, fileType: string, index?: number): void {
     if (!this.selectedTask) return;
     
@@ -941,7 +914,7 @@ export class EditBuildPage implements OnInit {
     this.totalUploads = 1;
     this.uploadedCount = 0;
     
-    const path = `lessons/${this.selectedLesson.id}/tasks/${this.selectedTask.id}/${fileType}`;
+    const path = `lessons/${this.selectedLesson?.id || ''}/${this.selectedTask?.id || ''}/${fileType}`;
     
     this.storageService.uploadFile(fileData.file, path)
       .subscribe(
@@ -959,58 +932,87 @@ export class EditBuildPage implements OnInit {
               type: fileData.file.type
             };
             
-            if (!this.selectedTask[fileType]) {
-              this.selectedTask[fileType] = [];
+            // Make sure we have a task and it's safe to proceed
+            if (this.selectedTask) {
+              // Initialize file array if it doesn't exist
+              if (!this.selectedTask[fileType]) {
+                this.selectedTask[fileType] = [];
+              }
+              
+              // Make sure the array exists before trying to access or modify it
+              if (Array.isArray(this.selectedTask[fileType])) {
+                if (index !== undefined && index >= 0 && index < this.selectedTask[fileType].length) {
+                  // Replace existing file
+                  this.selectedTask[fileType][index] = fileObj;
+                } else {
+                  // Add new file
+                  this.selectedTask[fileType].push(fileObj);
+                }
+              }
+              
+              this.uploading = false;
+              this.saveChanges();
             }
-            
-            if (index !== undefined && index >= 0 && index < this.selectedTask[fileType].length) {
-              // Replace existing file
-              this.selectedTask[fileType][index] = fileObj;
-            } else {
-              // Add new file
-              this.selectedTask[fileType].push(fileObj);
-            }
-            
-            this.uploading = false;
-            this.saveChanges();
           }
         },
         (error) => {
           this.uploading = false;
-          this.toastr.error('Failed to upload file', 'Error');
+          this.toastr.error('Faylni yuklashda xatolik yuz berdi', 'Xato');
           console.error('Error uploading file:', error);
         }
       );
   }
 
+  // Method to delete a file
   deleteFile(file: any, fileType: string, index: number): void {
-    if (!this.selectedTask || !this.selectedTask[fileType]) return;
+    if (!this.selectedTask) {
+      this.toastr.error('Iltimos, topshiriqni tanlang!');
+      return;
+    }
     
-    if (confirm('Are you sure you want to delete this file?')) {
+    // Check if the file type array exists
+    if (!this.selectedTask[fileType] || !Array.isArray(this.selectedTask[fileType])) {
+      this.toastr.error('Fayl turi mavjud emas!');
+      return;
+    }
+    
+    if (confirm("Siz rostdan ham bu faylni o'chirmoqchimisiz?")) {
       this.loading = true;
       
       // First delete from storage if there's a URL
-      if (file.url) {
+      if (file && file.url) {
         this.storageService.deleteFile(file.url)
           .pipe(finalize(() => {
             // Remove from the array regardless of storage deletion success
-            this.selectedTask[fileType].splice(index, 1);
-            this.saveChanges();
+            if (this.selectedTask && 
+                this.selectedTask[fileType] && 
+                Array.isArray(this.selectedTask[fileType]) && 
+                index >= 0 && 
+                index < this.selectedTask[fileType].length) {
+              this.selectedTask[fileType].splice(index, 1);
+              this.saveChanges();
+            }
             this.loading = false;
           }))
           .subscribe(
             () => {
-              this.toastr.success('File deleted successfully', 'Success');
+              this.toastr.success('Fayl muvaffaqiyatli o\'chirildi', 'Muvaffaqiyat');
             },
             (error) => {
-              this.toastr.warning('File removed from task but may still exist in storage', 'Warning');
+              this.toastr.warning('Fayl topshiriqdan olib tashlandi, lekin saqlash joyida hali ham mavjud bo\'lishi mumkin', 'Ogohlantirish');
               console.error('Error deleting file from storage:', error);
             }
           );
       } else {
         // No URL to delete from storage, just remove from array
-        this.selectedTask[fileType].splice(index, 1);
-        this.saveChanges();
+        if (this.selectedTask && 
+            this.selectedTask[fileType] && 
+            Array.isArray(this.selectedTask[fileType]) && 
+            index >= 0 && 
+            index < this.selectedTask[fileType].length) {
+          this.selectedTask[fileType].splice(index, 1);
+          this.saveChanges();
+        }
         this.loading = false;
       }
     }
