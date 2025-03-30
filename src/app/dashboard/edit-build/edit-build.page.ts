@@ -1017,4 +1017,14 @@ export class EditBuildPage implements OnInit {
       }
     }
   }
+
+  // Helper method to get the filename from currentUploadFile
+  getFileName(): string {
+    if (typeof this.currentUploadFile === 'string') {
+      return this.currentUploadFile;
+    } else if (this.currentUploadFile && typeof this.currentUploadFile === 'object' && 'name' in this.currentUploadFile) {
+      return this.currentUploadFile.name;
+    }
+    return '';
+  }
 }

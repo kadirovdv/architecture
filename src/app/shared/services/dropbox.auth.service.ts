@@ -8,7 +8,7 @@ import { Router } from '@angular/router';
 })
 export class DropboxAuthService {
   private clientId = environment.appKEY
-  private redirectUri = `http://localhost:4200`; // Replace with your redirect URI
+  private redirectUri = `http://localhost:4200`; 
   private authUrl = 'https://www.dropbox.com/oauth2/authorize';
   private accessToken: string | null = null;
 

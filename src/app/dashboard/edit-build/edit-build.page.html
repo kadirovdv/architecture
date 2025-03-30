@@ -14,7 +14,7 @@
       <div class="progress-text">{{progress}}%</div>
     </div>
     <div class="file-status" *ngIf="currentUploadFile">
-      <div class="file-name">{{ typeof currentUploadFile === 'string' ? currentUploadFile : currentUploadFile.name }}</div>
+      <div class="file-name">{{ getFileName() }}</div>
     </div>
     <div class="upload-count">{{ uploadedCount }} / {{ totalUploads }} fayllar yuklandi</div>
   </div>
