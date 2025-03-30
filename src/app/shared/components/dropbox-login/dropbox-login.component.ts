@@ -3,6 +3,7 @@ import { DropboxAuthService } from '../../services/dropbox.auth.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { LoadingService } from '../../services/loading.service';
 import { ToastrService } from 'ngx-toastr';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-dropbox-login',
@@ -23,7 +24,8 @@ export class DropboxLoginComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private loadingService: LoadingService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private translate: TranslateService
   ) { }
 
   ngOnInit(): void {
@@ -40,11 +42,15 @@ export class DropboxLoginComponent implements OnInit {
       this.loadingService.show();
       try {
         this.dropboxAuthService.setAccessTokenFromUrl(window.location.href);
-        this.toastr.success('Successfully authenticated with Dropbox');
+        this.translate.get('dropbox.auth-success').subscribe((res: string) => {
+          this.toastr.success(res || 'Successfully authenticated with Dropbox');
+        });
         // Navigate back to the return URL
         this.router.navigateByUrl(this.returnUrl);
       } catch (error) {
-        this.toastr.error('Authentication failed');
+        this.translate.get('dropbox.auth-failed').subscribe((res: string) => {
+          this.toastr.error(res || 'Authentication failed');
+        });
         console.error('Auth error:', error);
       } finally {
         this.loadingService.hide();
@@ -54,7 +60,9 @@ export class DropboxLoginComponent implements OnInit {
 
   onSubmit(): void {
     // This is a placeholder method as we're using OAuth for authentication
-    this.toastr.info('Please use the "Continue with Dropbox" option to authenticate');
+    this.translate.get('dropbox.use-oauth').subscribe((res: string) => {
+      this.toastr.info(res || 'Please use the "Continue with Dropbox" option to authenticate');
+    });
   }
 
   togglePasswordVisibility(): void {
@@ -73,16 +81,22 @@ export class DropboxLoginComponent implements OnInit {
     this.dropboxAuthService.signInWithPopup()
       .then(token => {
         if (token) {
-          this.toastr.success('Successfully authenticated with Dropbox');
+          this.translate.get('dropbox.auth-success').subscribe((res: string) => {
+            this.toastr.success(res || 'Successfully authenticated with Dropbox');
+          });
           this.router.navigateByUrl(this.returnUrl);
         } else {
-          this.toastr.error('Authentication failed');
+          this.translate.get('dropbox.auth-failed').subscribe((res: string) => {
+            this.toastr.error(res || 'Authentication failed');
+          });
         }
       })
       .catch(error => {
         console.error('Authentication error:', error);
         if (error !== 'Popup closed by user') {
-          this.toastr.error('Authentication failed: ' + error);
+          this.translate.get('dropbox.auth-failed').subscribe((res: string) => {
+            this.toastr.error(res + ': ' + error || 'Authentication failed: ' + error);
+          });
         }
       })
       .finally(() => {

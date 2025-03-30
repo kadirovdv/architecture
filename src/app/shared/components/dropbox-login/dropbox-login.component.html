@@ -2,8 +2,8 @@
   <div class="login-card">
     <div class="logo-section">
       <img src="assets/img/dropbox-logo.png" alt="Dropbox Logo" class="dropbox-logo">
-      <h2>Connect to Dropbox</h2>
-      <p class="subtitle">Link your Dropbox account to access your files</p>
+      <h2>{{ 'dropbox.connect' | translate }}</h2>
+      <p class="subtitle">{{ 'dropbox.subtitle' | translate }}</p>
     </div>
     
     <div class="form-section">
@@ -11,19 +11,19 @@
       <div *ngIf="false">
         <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
           <div class="form-group">
-            <label for="email">Email</label>
+            <label for="email">{{ 'dropbox.email' | translate }}</label>
             <input 
               type="email" 
               id="email" 
               name="email" 
               [(ngModel)]="email" 
               class="form-control" 
-              placeholder="Enter your email"
+              placeholder="{{ 'dropbox.email-placeholder' | translate }}"
               required>
           </div>
           
           <div class="form-group">
-            <label for="password">Password</label>
+            <label for="password">{{ 'dropbox.password' | translate }}</label>
             <div class="password-input">
               <input 
                 [type]="showPassword ? 'text' : 'password'" 
@@ -31,7 +31,7 @@
                 name="password" 
                 [(ngModel)]="password" 
                 class="form-control" 
-                placeholder="Enter your password"
+                placeholder="{{ 'dropbox.password-placeholder' | translate }}"
                 required>
               <button type="button" class="toggle-password" (click)="togglePasswordVisibility()">
                 <i class="fas" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
@@ -42,36 +42,35 @@
           <div class="form-group remember-me">
             <div class="d-flex align-items-center">
               <input type="checkbox" id="remember" name="remember" class="me-2" [(ngModel)]="rememberMe">
-              <label for="remember">Remember me</label>
+              <label for="remember">{{ 'dropbox.remember-me' | translate }}</label>
             </div>
-            <a href="#" class="forgot-password">Forgot password?</a>
+            <a href="#" class="forgot-password">{{ 'dropbox.forgot-password' | translate }}</a>
           </div>
           
-          <button type="submit" class="btn-login" [disabled]="!loginForm.valid">Sign in to Dropbox</button>
+          <button type="submit" class="btn-login" [disabled]="!loginForm.valid">{{ 'dropbox.sign-in' | translate }}</button>
         </form>
       </div>
       
       <p class="auth-info mb-4">
-        To manage files in this application, you need to authorize access to your Dropbox account. 
-        Click the button below to securely connect.
+        {{ 'dropbox.auth-info' | translate }}
       </p>
       
       <button class="btn-oauth" (click)="authenticateWithOAuth()" [disabled]="isAuthenticating">
         <img src="assets/img/dropbox-logo.png" alt="Dropbox Icon" class="oauth-icon">
-        <span *ngIf="!isAuthenticating">Continue with Dropbox</span>
-        <span *ngIf="isAuthenticating">Connecting...</span>
+        <span *ngIf="!isAuthenticating">{{ 'dropbox.continue-with' | translate }}</span>
+        <span *ngIf="isAuthenticating">{{ 'dropbox.connecting' | translate }}</span>
       </button>
       
       <div class="auth-notes mt-4">
         <p class="text-sm">
-          <strong>Note:</strong> You'll be redirected to Dropbox to authorize this application. No passwords are stored by this app.
+          <strong>{{ 'dropbox.auth-note' | translate }}</strong>
         </p>
       </div>
     </div>
     
     <div class="footer">
-      <p>Don't have a Dropbox account? <a href="https://www.dropbox.com/register" target="_blank">Sign up</a></p>
-      <p class="terms">By logging in, you agree to Dropbox's <a href="https://www.dropbox.com/terms" target="_blank">Terms & Conditions</a></p>
+      <p>{{ 'dropbox.no-account' | translate }} <a href="https://www.dropbox.com/register" target="_blank">{{ 'dropbox.sign-up' | translate }}</a></p>
+      <p class="terms">{{ 'dropbox.terms' | translate }} <a href="https://www.dropbox.com/terms" target="_blank">{{ 'dropbox.terms-link' | translate }}</a></p>
     </div>
   </div>
 </div>
