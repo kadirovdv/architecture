@@ -5,6 +5,7 @@ import { ThemePage } from './theme/theme.page';
 import { MainPage } from './main/main.page';
 import { AboutPage } from './about/about.page';
 import { LessonsPage } from './lessons/lessons.page';
+import { DropboxAuthGuard } from '../shared/guards/dropbox-auth.guard';
 
 const routes: Routes = [
   {
@@ -22,7 +23,8 @@ const routes: Routes = [
       },
       {
         path: 'lessons/:id',
-        component: LessonsPage
+        component: LessonsPage,
+        canActivate: [DropboxAuthGuard]
       }
     ],
   },

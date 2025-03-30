@@ -124,7 +124,7 @@ export class CreateBuildPage implements OnInit {
 
     const oversizedFiles = files.filter(
       (file) => file.size / (1024 * 1024) > 150
-    );
+    ); 
     if (oversizedFiles.length > 0) {
       this.toastr.error("Fayl hajmi 150MB dan o'tib ketdi!");
       return;
@@ -372,8 +372,8 @@ export class CreateBuildPage implements OnInit {
 
     if (!this.task.firstBasedFiles) {
       errorCategories.push('taskExampleFiles', 'taskSolutionFiles');
-      return {
-        isValid: false,
+      return { 
+        isValid: false, 
         message: "Birinchi bo'lim fayllari topilmadi!",
         errorCategories,
       };
@@ -386,8 +386,8 @@ export class CreateBuildPage implements OnInit {
         'taskLiteratureFiles',
         'taskVideoUrls'
       );
-      return {
-        isValid: false,
+      return { 
+        isValid: false, 
         message: "Ikkinchi bo'lim fayllari topilmadi!",
         errorCategories,
       };
@@ -402,7 +402,7 @@ export class CreateBuildPage implements OnInit {
 
     const hasSecondBasedFiles = Object.values(this.task.secondBasedFiles).some(
       (fileGroup: any) =>
-        fileGroup &&
+        fileGroup && 
         (Array.isArray(fileGroup)
           ? fileGroup.length > 0
           : Object.values(fileGroup).some(
@@ -412,15 +412,15 @@ export class CreateBuildPage implements OnInit {
 
     if (!hasFirstBasedFiles && !hasSecondBasedFiles) {
       errorCategories.push(
-        'taskExampleFiles',
+        'taskExampleFiles', 
         'taskSolutionFiles',
         'taskTitleFiles',
         'taskPresentationFiles',
         'taskLiteratureFiles',
         'taskVideoUrls'
       );
-      return {
-        isValid: false,
+      return { 
+        isValid: false, 
         message: "Kamida bitta fayl yoki video qo'shing!",
         errorCategories,
       };
@@ -428,7 +428,7 @@ export class CreateBuildPage implements OnInit {
 
     const checkFileSizes = (files: any, category: string): boolean => {
       if (!files) return true;
-
+      
       if (Array.isArray(files)) {
         if (
           files.some((file) => file.size && file.size / (1024 * 1024) > 150)
@@ -465,8 +465,8 @@ export class CreateBuildPage implements OnInit {
       });
 
     if (errorCategories.length > 0) {
-      return {
-        isValid: false,
+      return { 
+        isValid: false, 
         message: "Ba'zi fayllar hajmi 150MB dan oshib ketdi!",
         errorCategories,
       };
@@ -507,11 +507,11 @@ export class CreateBuildPage implements OnInit {
         id: taskCopy.id,
         index: taskCopy.index,
         createdAt: taskCopy.createdAt,
-        firstBasedFiles: {
+      firstBasedFiles: {
           taskExampleFiles: taskCopy.firstBasedFiles?.taskExampleFiles || { uz: [], ru: [], en: [] },
           taskSolutionFiles: taskCopy.firstBasedFiles?.taskSolutionFiles || { uz: [], ru: [], en: [] }
-        },
-        secondBasedFiles: {
+      },
+      secondBasedFiles: {
           taskTitleFiles: taskCopy.secondBasedFiles?.taskTitleFiles || { uz: [], ru: [], en: [] },
           taskPresentationFiles: taskCopy.secondBasedFiles?.taskPresentationFiles || { uz: [], ru: [], en: [] },
           taskLiteratureFiles: taskCopy.secondBasedFiles?.taskLiteratureFiles || { uz: [], ru: [], en: [] },
@@ -524,27 +524,27 @@ export class CreateBuildPage implements OnInit {
       // Check each file category and upload only if files exist
       const allUploadObservables: Observable<any>[] = [];
 
-      if (this.task.firstBasedFiles?.taskExampleFiles) {
+    if (this.task.firstBasedFiles?.taskExampleFiles) {
         const exampleObservables = this.uploadCategoryFiles(uploadedFiles, 'taskExampleFiles', 'firstBasedFiles', this.task.firstBasedFiles.taskExampleFiles);
         allUploadObservables.push(...exampleObservables);
       }
 
-      if (this.task.firstBasedFiles?.taskSolutionFiles) {
+    if (this.task.firstBasedFiles?.taskSolutionFiles) {
         const solutionObservables = this.uploadCategoryFiles(uploadedFiles, 'taskSolutionFiles', 'firstBasedFiles', this.task.firstBasedFiles.taskSolutionFiles);
         allUploadObservables.push(...solutionObservables);
       }
 
-      if (this.task.secondBasedFiles?.taskTitleFiles) {
+    if (this.task.secondBasedFiles?.taskTitleFiles) {
         const titleObservables = this.uploadCategoryFiles(uploadedFiles, 'taskTitleFiles', 'secondBasedFiles', this.task.secondBasedFiles.taskTitleFiles);
         allUploadObservables.push(...titleObservables);
       }
 
-      if (this.task.secondBasedFiles?.taskPresentationFiles) {
+    if (this.task.secondBasedFiles?.taskPresentationFiles) {
         const presentationObservables = this.uploadCategoryFiles(uploadedFiles, 'taskPresentationFiles', 'secondBasedFiles', this.task.secondBasedFiles.taskPresentationFiles);
         allUploadObservables.push(...presentationObservables);
       }
 
-      if (this.task.secondBasedFiles?.taskLiteratureFiles) {
+    if (this.task.secondBasedFiles?.taskLiteratureFiles) {
         const literatureObservables = this.uploadCategoryFiles(uploadedFiles, 'taskLiteratureFiles', 'secondBasedFiles', this.task.secondBasedFiles.taskLiteratureFiles);
         allUploadObservables.push(...literatureObservables);
       }
@@ -560,9 +560,9 @@ export class CreateBuildPage implements OnInit {
       if (allUploadObservables.length === 0) {
         console.log('No new files to upload, saving directly to Firebase');
         // If no new files to upload, just save with the existing files
-        this.saveToFirebase(uploadedFiles);
-        return;
-      }
+      this.saveToFirebase(uploadedFiles);
+      return;
+    }
 
       // Get the final count of uploads
       const totalUploads = allUploadObservables.length;
@@ -570,7 +570,7 @@ export class CreateBuildPage implements OnInit {
 
       // Process uploads sequentially with a delay between each
       from(allUploadObservables)
-        .pipe(
+      .pipe(
           concatMap((obs, index) => {
             // Extract file info from the original task data to show in UI
             const fileInfo = this.extractFileInfoFromObservable(index);
@@ -587,25 +587,25 @@ export class CreateBuildPage implements OnInit {
             this.currentUploadFile = null;
             this.loaderService.hide();
           })
-        )
-        .subscribe({
-          next: () => {
+      )
+      .subscribe({
+        next: () => {
             this.uploadedCount++;
             this.progress = Math.round((this.uploadedCount / this.totalUploads) * 100);
             console.log(`Upload progress: ${this.progress}% (${this.uploadedCount}/${this.totalUploads})`);
-          },
-          complete: () => {
+        },
+        complete: () => {
             this.progress = 100;
-            this.toastr.success('Fayllar muvaffaqiyatli yuklandi');
-            this.saveToFirebase(uploadedFiles);
-          },
+          this.toastr.success('Fayllar muvaffaqiyatli yuklandi');
+          this.saveToFirebase(uploadedFiles);
+        },
           error: (error: any) => {
             console.error('Error uploading files:', error);
-            this.toastr.error('Fayllar yuklanishda xatolik');
-            this.loaderService.hide();
+          this.toastr.error('Fayllar yuklanishda xatolik');
+          this.loaderService.hide();
             this.uploading = false;
-          },
-        });
+        },
+      });
     } catch (error) {
       console.error('Error in upload process:', error);
       this.toastr.error('Fayl yuklash jarayonida xatolik yuz berdi');
@@ -889,9 +889,9 @@ export class CreateBuildPage implements OnInit {
             const newLesson = {
               id: this.lesson?.id || this.crudService.generateId(),
               lessonTitle: this.lesson?.lessonTitle || { uz: '', ru: '', en: '' },
-              thumbnail: this.lesson?.thumbnail || '',
-              index: this.lesson?.index || 0,
-              createdAt: this.lesson?.createdAt || new Date().toISOString(),
+      thumbnail: this.lesson?.thumbnail || '',
+      index: this.lesson?.index || 0,
+      createdAt: this.lesson?.createdAt || new Date().toISOString(),
               tasks: [taskToSave],
               active: true
             };

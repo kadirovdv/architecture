@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
-import { Observable, from, throwError, defer } from 'rxjs';
+import { Observable, from, throwError, defer, of } from 'rxjs';
 import { catchError, map, shareReplay, share, switchMap } from 'rxjs/operators';
+import { DropboxAuthService } from './dropbox.auth.service';
+import { Router } from '@angular/router';
 
 declare var Dropbox: any;
 
@@ -11,12 +13,29 @@ declare var Dropbox: any;
 })
 export class DropboxService {
   private dbx: any;
-  private accessToken: string | null = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private dropboxAuthService: DropboxAuthService,
+    private router: Router
+  ) {}
+
+  /**
+   * Get the current access token or initiate authentication if not available
+   */
+  private getAuthToken(): string | null {
+    const token = this.dropboxAuthService.getAccessToken();
+    if (!token) {
+      // Store current path for redirect after authentication
+      const currentPath = this.router.url;
+      this.dropboxAuthService.initiateAuth(currentPath);
+      return null;
+    }
+    return token;
+  }
 
   initializeDropbox() {
-    const authUrl = `https://www.dropbox.com/oauth2/authorize?client_id=${environment.appKEY}&response_type=${environment.token}`;
+    const authUrl = `https://www.dropbox.com/oauth2/authorize?client_id=${environment.appKEY}&response_type=token`;
     window.location.href = authUrl;
   }
 
@@ -37,10 +56,13 @@ export class DropboxService {
   //   }
 
   listFiles(path: string = ''): Observable<any> {
+    const token = this.getAuthToken();
+    if (!token) return of(null); // Return empty observable if no token
+    
     const listUrl = `https://api.dropboxapi.com/2/files/list_folder`;
 
     const headers = new HttpHeaders({
-      Authorization: `Bearer ${environment.token}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     });
 
@@ -48,13 +70,16 @@ export class DropboxService {
   }
 
   downloadFile(filePath: string): Observable<Blob> {
+    const token = this.getAuthToken();
+    if (!token) return throwError(() => new Error('Authentication required'));
+    
     const url = 'https://content.dropboxapi.com/2/files/download';
 
     return new Observable((observer) => {
       fetch(url, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${environment.token}`,
+          Authorization: `Bearer ${token}`,
           'Dropbox-API-Arg': JSON.stringify({
             path: filePath, // e.g., '/path/to/file.txt'
           }),
@@ -92,9 +117,12 @@ export class DropboxService {
   }
 
   deleteFile(path: string): Observable<any> {
+    const token = this.getAuthToken();
+    if (!token) return throwError(() => new Error('Authentication required'));
+    
     const deleteUrl = `https://api.dropboxapi.com/2/files/delete_v2`;
     const headers = new HttpHeaders({
-      Authorization: `Bearer ${this.accessToken}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     });
 
@@ -102,6 +130,9 @@ export class DropboxService {
   }
 
   createSharedLink(filePath: string): Observable<string> {
+    const token = this.getAuthToken();
+    if (!token) return throwError(() => new Error('Authentication required'));
+    
     const checkLinkUrl =
       'https://api.dropboxapi.com/2/sharing/list_shared_links';
     const createLinkUrl =
@@ -115,7 +146,7 @@ export class DropboxService {
     return fetchApi(checkLinkUrl, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${environment.token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -144,7 +175,7 @@ export class DropboxService {
         return fetchApi(createLinkUrl, {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${environment.token}`,
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
@@ -179,6 +210,9 @@ export class DropboxService {
   }
 
   uploadFile(filePath: string = '', fileContent: Blob): Observable<string> {
+    const token = this.getAuthToken();
+    if (!token) return throwError(() => new Error('Authentication required'));
+    
     const url = 'https://content.dropboxapi.com/2/files/upload';
     
     // Add timestamp to filename to prevent conflicts
@@ -195,7 +229,7 @@ export class DropboxService {
         fetch(url, {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${environment.token}`,
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/octet-stream',
             'Dropbox-API-Arg': JSON.stringify({
               path: newFilePath,
@@ -225,9 +259,12 @@ export class DropboxService {
   }
 
   openFileInNewTab(filePath: string): Observable<void> {
+    const token = this.getAuthToken();
+    if (!token) return throwError(() => new Error('Authentication required'));
+    
     const url = 'https://api.dropboxapi.com/2/sharing/list_shared_links';
     const headers = {
-      Authorization: `Bearer ${environment.token}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     };
     const body = JSON.stringify({ path: filePath });
@@ -248,18 +285,17 @@ export class DropboxService {
             console.error('No shared link exists for the file.');
           }
         })
-        .catch((error) => {
-          console.error('Error:', error);
-          throw error;
-        })
     );
   }
 
   getThumbnail(filePath: string, size: string = 'w2048h1536'): Observable<Blob> {
+    const token = this.getAuthToken();
+    if (!token) return throwError(() => new Error('Authentication required'));
+    
     const DROPBOX_THUMBNAIL_URL =
       'https://content.dropboxapi.com/2/files/get_thumbnail';
     const headers = new HttpHeaders({
-      Authorization: `Bearer ${environment.token}`,
+      Authorization: `Bearer ${token}`,
       'Dropbox-API-Arg': JSON.stringify({
         path: filePath,
         size: size,

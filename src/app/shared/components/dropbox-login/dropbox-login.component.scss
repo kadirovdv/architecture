@@ -1,0 +1,281 @@
+// Dropbox brand color variables
+$dropbox-blue: #0061fe;
+$dropbox-blue-hover: #0051d3;
+$background-color: #f7f9fc;
+$card-background: #ffffff;
+$text-color: #1e1919;
+$text-secondary: #637381;
+$border-color: #dfe3e8;
+$input-focus: #bbdefb;
+
+.dropbox-login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: $background-color;
+  padding: 20px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 450px;
+  background-color: $card-background;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  
+  @media (max-width: 500px) {
+    padding: 30px 20px;
+  }
+}
+
+.logo-section {
+  text-align: center;
+  margin-bottom: 24px;
+  
+  .dropbox-logo {
+    width: 60px;
+    height: auto;
+    margin-bottom: 16px;
+  }
+  
+  h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: $text-color;
+    margin-bottom: 8px;
+  }
+  
+  .subtitle {
+    color: $text-secondary;
+    font-size: 14px;
+    margin: 0;
+  }
+}
+
+.form-section {
+  form {
+    margin-bottom: 24px;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+    
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: $text-color;
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid $border-color;
+      border-radius: 6px;
+      font-size: 15px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      
+      &:focus {
+        outline: none;
+        border-color: $dropbox-blue;
+        box-shadow: 0 0 0 3px rgba($dropbox-blue, 0.15);
+      }
+      
+      &::placeholder {
+        color: lighten($text-secondary, 20%);
+      }
+    }
+    
+    &.remember-me {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      
+      input[type="checkbox"] {
+        margin-right: 8px;
+      }
+      
+      label {
+        margin-bottom: 0;
+        font-size: 14px;
+        cursor: pointer;
+      }
+      
+      .forgot-password {
+        color: $dropbox-blue;
+        font-size: 14px;
+        text-decoration: none;
+        
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+  
+  .password-input {
+    position: relative;
+    
+    .toggle-password {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: $text-secondary;
+      cursor: pointer;
+      padding: 5px;
+      
+      &:hover {
+        color: $text-color;
+      }
+    }
+  }
+}
+
+.btn-login {
+  width: 100%;
+  padding: 12px;
+  background-color: $dropbox-blue;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: $dropbox-blue-hover;
+  }
+  
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+.divider {
+  position: relative;
+  text-align: center;
+  margin: 20px 0;
+  
+  &:before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: $border-color;
+  }
+  
+  span {
+    position: relative;
+    display: inline-block;
+    padding: 0 12px;
+    background-color: $card-background;
+    color: $text-secondary;
+    font-size: 14px;
+  }
+}
+
+.btn-oauth {
+  width: 100%;
+  padding: 12px;
+  background-color: white;
+  color: $text-color;
+  border: 1px solid $border-color;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: darken($card-background, 3%);
+  }
+  
+  .oauth-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+  }
+}
+
+.footer {
+  margin-top: 24px;
+  text-align: center;
+  
+  p {
+    font-size: 14px;
+    color: $text-secondary;
+    margin: 8px 0;
+    
+    a {
+      color: $dropbox-blue;
+      text-decoration: none;
+      
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+  
+  .terms {
+    font-size: 12px;
+    margin-top: 16px;
+  }
+}
+
+.auth-info {
+  color: $text-secondary;
+  text-align: center;
+  font-size: 15px;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.auth-notes {
+  margin-top: 24px;
+  
+  .text-sm {
+    font-size: 13px;
+    color: $text-secondary;
+    text-align: center;
+    line-height: 1.5;
+    
+    strong {
+      font-weight: 600;
+      color: darken($text-secondary, 15%);
+    }
+  }
+}
+
+// Utilities
+.mb-4 {
+  margin-bottom: 16px;
+}
+
+.mt-4 {
+  margin-top: 16px;
+}
+
+.me-2 {
+  margin-right: 8px;
+}
+
+.d-flex {
+  display: flex;
+}
+
+.align-items-center {
+  align-items: center;
+}
