@@ -35,5 +35,28 @@
   "about-lesson-offer-desc-4": "It enables students to reinforce their theoretical knowledge through practice, develop self-study skills, and prepare for future engineering activities.",
   "no-data": "Sorry, we haven't uploaded any lessons yet, try again sooner or later...",
   "choose-theme": "CHOOSE THEME",
-  "choose-semester": "CHOOSE SEMESTER"
+  "choose-semester": "CHOOSE SEMESTER",
+  
+  "dropbox": {
+    "connect": "Connect to Dropbox",
+    "subtitle": "Link your Dropbox account to access your files",
+    "email": "Email",
+    "email-placeholder": "Enter your email",
+    "password": "Password",
+    "password-placeholder": "Enter your password",
+    "remember-me": "Remember me",
+    "forgot-password": "Forgot password?",
+    "sign-in": "Sign in to Dropbox",
+    "auth-info": "To manage files in this application, you need to authorize access to your Dropbox account. Click the button below to securely connect.",
+    "continue-with": "Continue with Dropbox",
+    "connecting": "Connecting...",
+    "auth-note": "Note: You'll be redirected to Dropbox to authorize this application. No passwords are stored by this app.",
+    "no-account": "Don't have a Dropbox account?",
+    "sign-up": "Sign up",
+    "terms": "By logging in, you agree to Dropbox's",
+    "terms-link": "Terms & Conditions",
+    "auth-success": "Successfully authenticated with Dropbox",
+    "auth-failed": "Authentication failed",
+    "use-oauth": "Please use the \"Continue with Dropbox\" option to authenticate"
+  }
 }

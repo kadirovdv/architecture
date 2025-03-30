@@ -637,13 +637,15 @@ export class LessonsPage implements OnInit {
         active: updatedActive,
       })
       .subscribe(() => {
-        this.toastr.success(
-          updatedActive ? "Dars saytda ko'rinadi" : "Dars saytda ko'rinmaydi"
-        );
-
-        // Update local state
-        lesson.active = updatedActive;
-        this.loadingService.hide();
+        setTimeout(() => {
+          this.toastr.success(
+            updatedActive ? "Dars saytda ko'rinadi" : "Dars saytda ko'rinmaydi"
+          );
+  
+          // Update local state
+          lesson.active = updatedActive;
+          this.loadingService.hide();
+        }, Math.random() * 1000);
       });
   }
 

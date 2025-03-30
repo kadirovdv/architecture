@@ -7,6 +7,10 @@ import { RouterModule } from '@angular/router';
 import { HighlightPipe } from './pipes/highlight.pipe';
 import { TranslateModule } from '@ngx-translate/core';
 import { LoaderComponent } from './components/loader/loader.component';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { LessonService } from './services/lesson.service';
+import { StorageService } from './services/storage.service';
+import { VideoUploadComponent } from './components/video-upload/video-upload.component';
 
 @NgModule({
   declarations: [
@@ -21,11 +25,23 @@ import { LoaderComponent } from './components/loader/loader.component';
     RouterModule,
     TranslateModule,
     LoaderComponent,
+    NgbModule,
+    VideoUploadComponent,
   ],
   exports: [
     NavbarComponent,
     FooterComponent,
     LoaderComponent,
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    RouterModule,
+    NgbModule,
+    VideoUploadComponent,
   ],
+  providers: [
+    LessonService,
+    StorageService,
+  ]
 })
 export class SharedModule {}

@@ -12,6 +12,11 @@ import { DomSanitizer, SafeUrl, SafeResourceUrl } from '@angular/platform-browse
 import { firstValueFrom } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { VideoUploadComponent } from '../create-build/video-upload/video-upload.component';
+import { Observable, forkJoin, map, of, switchMap } from 'rxjs';
+import { FirebaseError } from 'firebase/app';
+import { LessonService } from 'src/app/shared/services/lesson.service';
+import { StorageService } from 'src/app/shared/services/storage.service';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-edit-build',
@@ -118,6 +123,17 @@ export class EditBuildPage implements OnInit {
   selectedLanguage: 'uz' | 'ru' | 'en' = 'uz';
   currentCategory: string = '';
   errorCategories: string[] = [];
+  selectedLesson: Lesson | null = null;
+  selectedTask: Task | null = null;
+  originalTask: Task | null = null;
+  fileUploads: { [key: string]: Observable<any>[] } = {};
+
+  // Upload properties
+  uploading: boolean = false;
+  progress: number = 0;
+  currentUploadFile: string = '';
+  uploadedCount: number = 0;
+  totalUploads: number = 0;
 
   constructor(
     private crudService: CrudService,
@@ -128,13 +144,23 @@ export class EditBuildPage implements OnInit {
     private router: Router,
     private loadingService: LoadingService,
     private sanitizer: DomSanitizer,
-    private modalService: NgbModal
+    private modalService: NgbModal,
+    private lessonService: LessonService,
+    private storageService: StorageService
   ) {}
 
   ngOnInit(): void {
     this.loadLesson();
     this.getLessons();
     this.getWebsiteLessons();
+    
+    // If there's a lesson ID in the route, select it
+    this.activatedRoute.params.subscribe(params => {
+      const lessonId = params['id'];
+      if (lessonId) {
+        this.selectedLessonId = lessonId;
+      }
+    });
   }
 
   getAll() {
@@ -243,7 +269,7 @@ export class EditBuildPage implements OnInit {
     category: keyof FirstClassFileGroups | keyof SecondClassFileGroups,
     language: string
   ) {
-    if (!this.task) {
+    if (!this.selectedTask) {
       this.toastr.error('Iltimos, topshiriqni tanlang!');
       return;
     }
@@ -252,6 +278,7 @@ export class EditBuildPage implements OnInit {
     if (!input.files) return;
 
     const files = Array.from(input.files);
+    console.log(`Number of files selected: ${files.length}`);
 
     const oversizedFiles = files.filter(
       (file) => file.size / (1024 * 1024) > 150
@@ -267,12 +294,12 @@ export class EditBuildPage implements OnInit {
       file: file,
     }));
 
-    this.task.firstBasedFiles ??= {
+    this.selectedTask.firstBasedFiles ??= {
       taskExampleFiles: { uz: [], ru: [], en: [] },
       taskSolutionFiles: { uz: [], ru: [], en: [] },
     } as FirstClassFileGroups;
 
-    this.task.secondBasedFiles ??= {
+    this.selectedTask.secondBasedFiles ??= {
       taskTitleFiles: { uz: [], ru: [], en: [] },
       taskPresentationFiles: { uz: [], ru: [], en: [] },
       taskLiteratureFiles: { uz: [], ru: [], en: [] },
@@ -280,26 +307,24 @@ export class EditBuildPage implements OnInit {
     } as SecondClassFileGroups;
 
     if (this.isFirstClassFileCategory(category)) {
-      this.task.firstBasedFiles[category] ??= { uz: [], ru: [], en: [] };
-      this.task.firstBasedFiles[category][language] ??= [];
-      this.task.firstBasedFiles[category][language] = [
-        ...this.task.firstBasedFiles[category][language]!,
+      this.selectedTask.firstBasedFiles[category] ??= { uz: [], ru: [], en: [] };
+      this.selectedTask.firstBasedFiles[category][language] ??= [];
+      this.selectedTask.firstBasedFiles[category][language] = [
+        ...this.selectedTask.firstBasedFiles[category][language]!,
         ...filesArray,
       ];
     } else if (this.isSecondClassFileCategory(category)) {
-      this.task.secondBasedFiles[category] ??= { uz: [], ru: [], en: [] };
-      this.task.secondBasedFiles[category][language] ??= [];
-      this.task.secondBasedFiles[category][language] = [
-        ...this.task.secondBasedFiles[category][language]!,
+      this.selectedTask.secondBasedFiles[category] ??= { uz: [], ru: [], en: [] };
+      this.selectedTask.secondBasedFiles[category][language] ??= [];
+      this.selectedTask.secondBasedFiles[category][language] = [
+        ...this.selectedTask.secondBasedFiles[category][language]!,
         ...filesArray,
       ];
     }
 
     input.value = '';
 
-    this.toastr.success(
-      `Fayllar ${language.toUpperCase()} tilida muvaffaqiyatli qo'shildi`
-    );
+    this.uploadAndSaveFiles(category, language, filesArray);
   }
 
   private isFirstClassFileCategory(
@@ -318,67 +343,67 @@ export class EditBuildPage implements OnInit {
     ].includes(category);
   }
 
-  onRemoveFile(event: { category: string; lang: string; index: number }): void {
-    if (this.task) {
-      if (event.category === 'taskVideoUrls') {
-        // Handle video deletion
-        if (this.task.secondBasedFiles?.taskVideoUrls) {
-          this.task.secondBasedFiles.taskVideoUrls.splice(event.index, 1);
-          this.toastr.success('Video muvaffaqiyatli o\'chirildi');
-        }
-      } else if (this.isFirstClassFileCategory(event.category)) {
-        this.task.firstBasedFiles[event.category][event.lang]?.splice(
-          event.index,
-          1
-        );
-        this.toastr.success('Fayl muvaffaqiyatli o\'chirildi');
-      } else if (this.isSecondClassFileCategory(event.category)) {
-        this.task.secondBasedFiles[event.category][event.lang]?.splice(
-          event.index,
-          1
-        );
-        this.toastr.success('Fayl muvaffaqiyatli o\'chirildi');
+  onRemoveFile(event: { category: string; lang: string; index: number; autoSave?: boolean }): void {
+    if (!this.selectedTask) {
+      this.toastr.error('Iltimos, topshiriqni tanlang!');
+      return;
+    }
+
+    const { category, lang, index, autoSave = true } = event;
+
+    if (this.isFirstClassFileCategory(category)) {
+      if (this.selectedTask.firstBasedFiles?.[category]?.[lang]) {
+        this.selectedTask.firstBasedFiles[category][lang].splice(index, 1);
       }
+    } else if (this.isSecondClassFileCategory(category)) {
+      if (this.selectedTask.secondBasedFiles?.[category]?.[lang]) {
+        this.selectedTask.secondBasedFiles[category][lang].splice(index, 1);
+      }
+    }
+
+    if (autoSave) {
+      this.saveChanges();
     }
   }
 
   onFileTypeSelect(lang: string, category: string) {
-    this.selectedLanguage = lang as 'uz' | 'ru' | 'en';
-    this.currentCategory = category;
-    const inputs = this.hiddenInputs.toArray();
-    const input = inputs.find(
-      (input) => input.nativeElement.getAttribute('data-category') === category
+    const input = this.hiddenInputs.find(
+      (el) => el.nativeElement.dataset.category === category
     );
+    
     if (input) {
+      this.selectedLanguage = lang as 'uz' | 'ru' | 'en';
+      this.currentCategory = category;
       input.nativeElement.click();
     }
   }
 
   addVideo() {
-    const modalRef = this.modalService.open(VideoUploadComponent);
-    modalRef.result
-      .then((result: Videos) => {
-        if (!this.task.secondBasedFiles.taskVideoUrls) {
-          this.task.secondBasedFiles.taskVideoUrls = [];
+    if (!this.selectedTask) {
+      this.toastr.error('Iltimos, topshiriqni tanlang!');
+      return;
+    }
+
+    const modalRef = this.modalService.open(VideoUploadComponent, {
+      centered: true,
+      size: 'lg',
+    });
+
+    modalRef.result.then(
+      (result) => {
+        if (result) {
+          this.selectedTask.secondBasedFiles ??= {} as SecondClassFileGroups;
+          this.selectedTask.secondBasedFiles.taskVideoUrls ??= [];
+          
+          this.selectedTask.secondBasedFiles.taskVideoUrls.push(result);
+          
+          this.saveChanges();
         }
-        
-        // Check if this video already exists to prevent duplicates
-        const isDuplicate = this.task.secondBasedFiles.taskVideoUrls.some((video: Videos) => 
-          (video.url.uz === result.url.uz && video.url.uz !== '') ||
-          (video.url.ru === result.url.ru && video.url.ru !== '') ||
-          (video.url.en === result.url.en && video.url.en !== '')
-        );
-        
-        if (isDuplicate) {
-          this.toastr.warning('Bu video allaqachon mavjud!');
-          return;
-        }
-        
-        // Add the video if it's not a duplicate
-        this.task.secondBasedFiles.taskVideoUrls.push(result);
-        this.toastr.success('Video muvaffaqiyatli qo\'shildi');
-      })
-      .catch(() => {});
+      },
+      (reason) => {
+        console.log('Video upload modal dismissed', reason);
+      }
+    );
   }
 
   hasError(category: string): boolean {
@@ -518,21 +543,18 @@ export class EditBuildPage implements OnInit {
       this.loading = true;
       this.loadingService.show();
 
-      // Upload thumbnail if changed
       let thumbnailPath = typeof this.lesson.thumbnail === 'string' ? this.lesson.thumbnail : '';
       if (this.file) {
         const uploadPath = `/website-lessons/${this.lesson.id}/thumbnail`;
         thumbnailPath = await firstValueFrom(this.dropboxService.uploadFile(uploadPath, this.file));
       }
 
-      // Update lesson data
       const updatedLesson: Partial<Lesson> = {
         lessonTitle: this.lesson.lessonTitle,
         thumbnail: thumbnailPath,
         tasks: this.lesson.tasks
       };
 
-      // Update lesson document
       await firstValueFrom(this.crudService.updateDocument('website-lessons', this.lesson.id || '', updatedLesson));
 
       this.toastr.success('Lesson updated successfully');
@@ -551,14 +573,22 @@ export class EditBuildPage implements OnInit {
   }
 
   getLessons() {
-    this.lessons = [];
-    this.crudService.getDocuments('lessons').subscribe((res) => {
-      this.lessons = res as Lesson[];
-      this.lessons.sort((a, b) => {
-        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return dateA - dateB;
-      });
+    this.loading = true;
+    this.crudService.getDocuments('lessons').subscribe({
+      next: (res) => {
+        this.lessons = res as Lesson[];
+        this.lessons.sort((a, b) => {
+          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          return dateA - dateB;
+        });
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading lessons:', error);
+        this.toastr.error('Fanlarni yuklashda xatolik yuz berdi');
+        this.loading = false;
+      }
     });
   }
 
@@ -578,7 +608,7 @@ export class EditBuildPage implements OnInit {
     index: number;
     file: File;
   }): void {
-    if (!this.task) {
+    if (!this.selectedTask) {
       this.toastr.error('Please select a task first');
       return;
     }
@@ -597,12 +627,391 @@ export class EditBuildPage implements OnInit {
     };
 
     if (this.isFirstClassFileCategory(category)) {
-      if (this.task.firstBasedFiles[category]?.[lang]) {
-        this.task.firstBasedFiles[category][lang][index] = newFile;
+      if (this.selectedTask.firstBasedFiles[category]?.[lang]) {
+        this.selectedTask.firstBasedFiles[category][lang][index] = newFile;
       }
     } else if (this.isSecondClassFileCategory(category)) {
-      if (this.task.secondBasedFiles[category]?.[lang]) {
-        this.task.secondBasedFiles[category][lang][index] = newFile;
+      if (this.selectedTask.secondBasedFiles[category]?.[lang]) {
+        this.selectedTask.secondBasedFiles[category][lang][index] = newFile;
+      }
+    }
+  }
+
+  onLessonSelect(selectedLesson: Lesson): void {
+    if (!selectedLesson) {
+      this.selectedTask = null;
+      return;
+    }
+    
+    this.loading = true;
+    this.crudService.getDocumentById('lessons', selectedLesson.id || '').subscribe({
+      next: (res: any) => {
+        this.selectedLesson = res as Lesson;
+        if (this.selectedLesson?.tasks) {
+          this.selectedLesson.tasks.sort((a: Task, b: Task) => {
+            if (a.index !== undefined && b.index !== undefined) {
+              return a.index - b.index;
+            }
+            const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return dateA - dateB;
+          });
+        }
+        this.loading = false;
+        this.selectedTask = null;
+      },
+      error: (error) => {
+        console.error('Error loading lesson details:', error);
+        this.toastr.error('Fan ma\'lumotlarini yuklashda xatolik yuz berdi');
+        this.loading = false;
+      }
+    });
+  }
+
+  onTaskSelect(selectedTask: Task): void {
+    if (!selectedTask) {
+      this.selectedTask = null;
+      return;
+    }
+
+    this.loading = true;
+    
+    this.originalTask = JSON.parse(JSON.stringify(selectedTask));
+    this.selectedTask = selectedTask;
+    
+    this.selectedTask.firstBasedFiles ??= {
+      taskExampleFiles: { uz: [], ru: [], en: [] },
+      taskSolutionFiles: { uz: [], ru: [], en: [] },
+    } as FirstClassFileGroups;
+
+    this.selectedTask.secondBasedFiles ??= {
+      taskTitleFiles: { uz: [], ru: [], en: [] },
+      taskPresentationFiles: { uz: [], ru: [], en: [] },
+      taskLiteratureFiles: { uz: [], ru: [], en: [] },
+      taskVideoUrls: [],
+    } as SecondClassFileGroups;
+    
+    this.loading = false;
+  }
+
+  saveChanges(): void {
+    if (!this.selectedLesson || !this.selectedTask) {
+      this.toastr.error('Iltimos, fan va topshiriqni tanlang!');
+      return;
+    }
+
+    if (!this.selectedTask.title || this.selectedTask.title.trim() === '') {
+      this.toastr.error('Iltimos, topshiriq nomini kiriting!');
+      return;
+    }
+
+    if (this.isTaskUnchanged()) {
+      this.toastr.info('Hech qanday o\'zgarish kiritilmadi.');
+      return;
+    }
+
+    this.loading = true;
+    this.loadingService.show();
+    
+    const taskIndex = this.selectedLesson.tasks?.findIndex((t: Task) => t.id === this.selectedTask?.id) ?? -1;
+    
+    if (taskIndex === -1) {
+      this.toastr.error('Topshiriq topilmadi! Iltimos sahifani yangilang.');
+      this.loading = false;
+      this.loadingService.hide();
+      return;
+    }
+
+    if (this.selectedLesson.tasks && taskIndex !== -1) {
+      this.selectedLesson.tasks[taskIndex] = { ...this.selectedTask };
+    }
+
+    this.crudService.updateDocument('lessons', this.selectedLesson.id || '', this.selectedLesson)
+      .pipe(
+        catchError((error) => {
+          console.error('Error saving task changes:', error);
+          this.toastr.error('O\'zgarishlarni saqlashda xatolik yuz berdi.');
+          throw error;
+        })
+      )
+      .subscribe(() => {
+        this.toastr.success('O\'zgarishlar muvaffaqiyatli saqlandi.');
+        this.loading = false;
+        this.loadingService.hide();
+        
+        this.originalTask = JSON.parse(JSON.stringify(this.selectedTask));
+      });
+  }
+
+  isTaskUnchanged(): boolean {
+    return JSON.stringify(this.originalTask) === JSON.stringify(this.selectedTask);
+  }
+
+  uploadAndSaveFiles(category: string, language: string, files: any[]): void {
+    if (!this.selectedLesson || !this.selectedTask) {
+      this.toastr.error('Iltimos, fan va topshiriqni tanlang!');
+      return;
+    }
+
+    this.loading = true;
+    this.loadingService.show();
+    this.totalUploads = files.length;
+    this.uploadedCount = 0;
+    this.progress = 0;
+
+    this.fileUploads[category] = this.fileUploads[category] || [];
+
+    const uploads = files.map((fileItem, index) => {
+      const file = fileItem.file;
+      if (!file) return of(null);
+
+      const filePath = `/${this.selectedLesson?.id}/${this.selectedTask?.id}/${category}/${language}/${file.name}`;
+      
+      return this.dropboxService.uploadFile(filePath, file).pipe(
+        tap(() => {
+          this.uploadedCount++;
+          this.progress = Math.round((this.uploadedCount / this.totalUploads) * 100);
+          this.currentUploadFile = { name: file.name, size: file.size };
+        }),
+        switchMap(response => {
+          return this.dropboxService.createSharedLink(response).pipe(
+            map(shareUrl => {
+              if (this.isFirstClassFileCategory(category)) {
+                if (this.selectedTask?.firstBasedFiles?.[category]?.[language]?.[index + this.getExistingFileCount(category, language) - files.length]) {
+                  this.selectedTask.firstBasedFiles[category][language][index + this.getExistingFileCount(category, language) - files.length].url = shareUrl;
+                  this.selectedTask.firstBasedFiles[category][language][index + this.getExistingFileCount(category, language) - files.length].path = response;
+                }
+              } else if (this.isSecondClassFileCategory(category)) {
+                if (this.selectedTask?.secondBasedFiles?.[category]?.[language]?.[index + this.getExistingFileCount(category, language) - files.length]) {
+                  this.selectedTask.secondBasedFiles[category][language][index + this.getExistingFileCount(category, language) - files.length].url = shareUrl;
+                  this.selectedTask.secondBasedFiles[category][language][index + this.getExistingFileCount(category, language) - files.length].path = response;
+                }
+              }
+              
+              return { shareUrl, path: response };
+            })
+          );
+        }),
+        catchError(error => {
+          console.error(`Error uploading file ${file.name}:`, error);
+          this.toastr.error(`Faylni yuklashda xatolik: ${file.name}`);
+          return of(null);
+        })
+      );
+    });
+
+    this.fileUploads[category] = [...this.fileUploads[category], ...uploads];
+
+    forkJoin(uploads).subscribe({
+      next: (results) => {
+        this.saveChanges();
+        this.loading = false;
+        this.loadingService.hide();
+        this.toastr.success(`${language.toUpperCase()} tilidagi ${files.length} ta fayl muvaffaqiyatli yuklandi!`);
+      },
+      error: (error) => {
+        console.error('Error during file uploads:', error);
+        this.toastr.error('Fayllarni yuklashda xatolik yuz berdi!');
+        this.loading = false;
+        this.loadingService.hide();
+      }
+    });
+  }
+
+  getExistingFileCount(category: string, language: string): number {
+    if (this.isFirstClassFileCategory(category)) {
+      return this.selectedTask?.firstBasedFiles?.[category]?.[language]?.length || 0;
+    } else if (this.isSecondClassFileCategory(category)) {
+      return this.selectedTask?.secondBasedFiles?.[category]?.[language]?.length || 0;
+    }
+    return 0;
+  }
+
+  getLessonTitleString(lesson: Lesson): string {
+    if (!lesson?.lessonTitle) return '';
+    return `${lesson.lessonTitle.uz || ''} - ${lesson.lessonTitle.ru || ''} - ${lesson.lessonTitle.en || ''}`;
+  }
+
+  getTaskTitleString(task: Task): string {
+    return task?.title || '';
+  }
+
+  loadLessons(): void {
+    this.loading = true;
+    this.lessonService.getLessons()
+      .pipe(finalize(() => this.loading = false))
+      .subscribe(
+        (data) => {
+          this.lessons = data;
+          if (this.selectedLessonId) {
+            this.selectLessonById(this.selectedLessonId);
+          }
+        },
+        (error) => {
+          this.toastr.error('Failed to load lessons', 'Error');
+          console.error('Error loading lessons:', error);
+        }
+      );
+  }
+
+  selectLessonById(lessonId: string): void {
+    const lesson = this.lessons.find(l => l.id === lessonId);
+    if (lesson) {
+      this.selectedLesson = lesson;
+      this.selectedLessonId = lesson.id;
+    }
+  }
+
+  onLessonSelect(lesson: any): void {
+    this.selectedLesson = lesson;
+    this.selectedTask = null;
+    this.selectedTaskId = '';
+    this.originalTask = null;
+  }
+
+  onTaskSelect(task: any): void {
+    this.loading = true;
+    this.lessonService.getTaskById(this.selectedLesson.id, task.id)
+      .pipe(finalize(() => this.loading = false))
+      .subscribe(
+        (fullTask) => {
+          this.selectedTask = fullTask;
+          this.selectedTaskId = fullTask.id;
+          // Create a deep copy of the task for change detection
+          this.originalTask = JSON.parse(JSON.stringify(fullTask));
+        },
+        (error) => {
+          this.toastr.error('Failed to load task details', 'Error');
+          console.error('Error loading task details:', error);
+        }
+      );
+  }
+
+  hasChanges(): boolean {
+    if (!this.selectedTask || !this.originalTask) return false;
+    return JSON.stringify(this.selectedTask) !== JSON.stringify(this.originalTask);
+  }
+
+  saveChanges(): void {
+    if (!this.selectedTask) return;
+    
+    this.loading = true;
+    this.lessonService.updateTask(this.selectedLesson.id, this.selectedTask)
+      .pipe(finalize(() => this.loading = false))
+      .subscribe(
+        () => {
+          this.toastr.success('Task updated successfully', 'Success');
+          // Update the original task to reflect the current state
+          this.originalTask = JSON.parse(JSON.stringify(this.selectedTask));
+        },
+        (error) => {
+          this.toastr.error('Failed to update task', 'Error');
+          console.error('Error updating task:', error);
+        }
+      );
+  }
+
+  uploadNewFile(fileType: string, index?: number): void {
+    const modalRef = this.modalService.open(VideoUploadComponent, {
+      centered: true,
+      size: 'lg'
+    });
+    
+    modalRef.componentInstance.fileType = fileType;
+    modalRef.componentInstance.existingIndex = index;
+    
+    modalRef.result.then(
+      (result) => {
+        if (result) {
+          this.handleFileUpload(result, fileType, index);
+        }
+      },
+      () => {
+        // Modal dismissed
+      }
+    );
+  }
+
+  handleFileUpload(fileData: any, fileType: string, index?: number): void {
+    if (!this.selectedTask) return;
+    
+    this.uploading = true;
+    this.progress = 0;
+    this.currentUploadFile = fileData.file.name;
+    this.totalUploads = 1;
+    this.uploadedCount = 0;
+    
+    const path = `lessons/${this.selectedLesson.id}/tasks/${this.selectedTask.id}/${fileType}`;
+    
+    this.storageService.uploadFile(fileData.file, path)
+      .subscribe(
+        (progress) => {
+          if (typeof progress === 'number') {
+            this.progress = Math.round(progress);
+          } else {
+            // Upload complete, add file to task
+            this.uploadedCount++;
+            
+            const fileObj = {
+              name: fileData.name || fileData.file.name,
+              url: progress.url,
+              language: fileData.language || 'en',
+              type: fileData.file.type
+            };
+            
+            if (!this.selectedTask[fileType]) {
+              this.selectedTask[fileType] = [];
+            }
+            
+            if (index !== undefined && index >= 0 && index < this.selectedTask[fileType].length) {
+              // Replace existing file
+              this.selectedTask[fileType][index] = fileObj;
+            } else {
+              // Add new file
+              this.selectedTask[fileType].push(fileObj);
+            }
+            
+            this.uploading = false;
+            this.saveChanges();
+          }
+        },
+        (error) => {
+          this.uploading = false;
+          this.toastr.error('Failed to upload file', 'Error');
+          console.error('Error uploading file:', error);
+        }
+      );
+  }
+
+  deleteFile(file: any, fileType: string, index: number): void {
+    if (!this.selectedTask || !this.selectedTask[fileType]) return;
+    
+    if (confirm('Are you sure you want to delete this file?')) {
+      this.loading = true;
+      
+      // First delete from storage if there's a URL
+      if (file.url) {
+        this.storageService.deleteFile(file.url)
+          .pipe(finalize(() => {
+            // Remove from the array regardless of storage deletion success
+            this.selectedTask[fileType].splice(index, 1);
+            this.saveChanges();
+            this.loading = false;
+          }))
+          .subscribe(
+            () => {
+              this.toastr.success('File deleted successfully', 'Success');
+            },
+            (error) => {
+              this.toastr.warning('File removed from task but may still exist in storage', 'Warning');
+              console.error('Error deleting file from storage:', error);
+            }
+          );
+      } else {
+        // No URL to delete from storage, just remove from array
+        this.selectedTask[fileType].splice(index, 1);
+        this.saveChanges();
+        this.loading = false;
       }
     }
   }
