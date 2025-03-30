@@ -26,6 +26,7 @@ export class DropboxService {
   private getAuthToken(): string | null {
     const token = this.dropboxAuthService.getAccessToken();
     if (!token) {
+      console.log('No Dropbox token available, initiating authentication');
       // Store current path for redirect after authentication
       const currentPath = this.router.url;
       this.dropboxAuthService.initiateAuth(currentPath);
@@ -57,16 +58,28 @@ export class DropboxService {
 
   listFiles(path: string = ''): Observable<any> {
     const token = this.getAuthToken();
-    if (!token) return of(null); // Return empty observable if no token
-    
-    const listUrl = `https://api.dropboxapi.com/2/files/list_folder`;
+    if (!token) {
+      console.error('Cannot list files: No authentication token');
+      return throwError(() => new Error('Authentication required'));
+    }
 
+    const url = 'https://api.dropboxapi.com/2/files/list_folder';
+    const body = { path: path || '' };
     const headers = new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
     });
 
-    return this.http.post(listUrl, { path }, { headers });
+    return this.http.post(url, body, { headers }).pipe(
+      catchError(error => {
+        console.error('Error listing files:', error);
+        if (error.status === 401 || error.status === 403) {
+          // Auth error handled by interceptor
+          return throwError(() => new Error('Authentication failed'));
+        }
+        return throwError(() => error);
+      })
+    );
   }
 
   downloadFile(filePath: string): Observable<Blob> {

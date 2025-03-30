@@ -16,13 +16,21 @@ export class DropboxAuthGuard implements CanActivate {
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): Observable<boolean> | boolean {
+    // Check if we're currently on the dropbox-login page to avoid redirect loops
+    if (state.url.includes('dropbox-login')) {
+      return true;
+    }
+    
     const isAuthenticated = this.dropboxAuthService.isAuthenticated();
+    console.log('DropboxAuthGuard check:', isAuthenticated ? 'Authenticated' : 'Not authenticated');
     
     if (!isAuthenticated) {
+      console.log('Not authenticated, redirecting to login page');
+      
       // Store the attempted URL for redirecting
       this.dropboxAuthService.initiateAuth(state.url);
       
-      // Navigate to the login page
+      // Navigate to the login page with return URL
       this.router.navigate(['/dropbox-login'], {
         queryParams: { returnUrl: state.url }
       });
@@ -30,6 +38,7 @@ export class DropboxAuthGuard implements CanActivate {
       return false;
     }
     
+    console.log('Authenticated, allowing navigation to:', state.url);
     return true;
   }
 } 
