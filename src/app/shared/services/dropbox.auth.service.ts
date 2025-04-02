@@ -106,6 +106,28 @@ export class DropboxAuthService {
     return null;
   }
 
+  /**
+   * Set the token directly (used for environment token or when retrieved from another source)
+   */
+  setToken(token: string): void {
+    if (!token) return;
+    
+    this.accessToken = token;
+    sessionStorage.setItem('accessToken', token);
+    this.accessTokenSubject.next(token);
+    console.log('Token set from external source:', token.substring(0, 5) + '...');
+  }
+
+  /**
+   * Clear the token (used when token is invalid)
+   */
+  clearToken(): void {
+    this.accessToken = null;
+    sessionStorage.removeItem('accessToken');
+    this.accessTokenSubject.next(null);
+    console.log('Token cleared due to authentication error');
+  }
+
   setAccessTokenFromUrl(url: string): void {
     try {
       const fragment = new URL(url).hash.substring(1);

@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { Observable, from, throwError, defer, of } from 'rxjs';
-import { catchError, map, shareReplay, share, switchMap } from 'rxjs/operators';
+import { catchError, map, shareReplay, share, switchMap, tap } from 'rxjs/operators';
 import { DropboxAuthService } from './dropbox.auth.service';
 import { Router } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
 
 declare var Dropbox: any;
 
@@ -13,17 +14,37 @@ declare var Dropbox: any;
 })
 export class DropboxService {
   private dbx: any;
+  private envToken: string = environment.dropboxToken;
 
   constructor(
     private http: HttpClient,
     private dropboxAuthService: DropboxAuthService,
-    private router: Router
-  ) {}
+    private router: Router,
+    private toastr: ToastrService
+  ) {
+    this.initializeToken();
+  }
+
+  /**
+   * Initialize by setting the environment token if available
+   */
+  initializeToken() {
+    console.log('Initializing Dropbox service with environment token');
+    if (this.envToken) {
+      this.dropboxAuthService.setToken(this.envToken);
+    }
+  }
 
   /**
    * Get the current access token or initiate authentication if not available
    */
   private getAuthToken(): string | null {
+    // First check if environment token is set and valid
+    if (this.envToken) {
+      return this.envToken;
+    }
+    
+    // Then try to get the token from the auth service
     const token = this.dropboxAuthService.getAccessToken();
     if (!token) {
       console.log('No Dropbox token available, initiating authentication');
@@ -33,6 +54,43 @@ export class DropboxService {
       return null;
     }
     return token;
+  }
+
+  /**
+   * Validate the token with a simple API call
+   */
+  validateToken(token: string): Observable<boolean> {
+    const url = 'https://api.dropboxapi.com/2/users/get_current_account';
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+    });
+
+    return this.http.post(url, null, { headers }).pipe(
+      map(() => true),
+      catchError(error => {
+        console.error('Token validation failed:', error);
+        return of(false);
+      })
+    );
+  }
+
+  /**
+   * Handle authentication errors by redirecting to login
+   */
+  private handleAuthError(error: HttpErrorResponse): Observable<never> {
+    if (error.status === 401 || error.status === 403) {
+      console.log('Authentication error detected, redirecting to login');
+      this.toastr.error('Dropbox authentication has expired. Redirecting to login...', 'Auth Error');
+      
+      // Clear invalid token
+      this.dropboxAuthService.clearToken();
+      
+      // Redirect to login
+      setTimeout(() => {
+        this.router.navigate(['/dropbox-login']);
+      }, 1000);
+    }
+    return throwError(() => error);
   }
 
   initializeDropbox() {
@@ -73,11 +131,7 @@ export class DropboxService {
     return this.http.post(url, body, { headers }).pipe(
       catchError(error => {
         console.error('Error listing files:', error);
-        if (error.status === 401 || error.status === 403) {
-          // Auth error handled by interceptor
-          return throwError(() => new Error('Authentication failed'));
-        }
-        return throwError(() => error);
+        return this.handleAuthError(error);
       })
     );
   }
@@ -100,6 +154,14 @@ export class DropboxService {
       })
         .then((response) => {
           if (!response.ok) {
+            // Check for auth errors
+            if (response.status === 401 || response.status === 403) {
+              this.dropboxAuthService.clearToken();
+              this.toastr.error('Authentication failed. Redirecting to login...', 'Auth Error');
+              this.router.navigate(['/dropbox-login']);
+              throw new Error('Authentication failed');
+            }
+            
             return response.text().then((errorDetails) => {
               throw new Error(
                 `Failed to download file: ${response.statusText}, ${errorDetails}`
@@ -129,6 +191,59 @@ export class DropboxService {
     });
   }
 
+  getThumbnail(filePath: string): Observable<Blob> {
+    const token = this.getAuthToken();
+    if (!token) return throwError(() => new Error('Authentication required'));
+    
+    const url = 'https://content.dropboxapi.com/2/files/get_thumbnail_v2';
+
+    return new Observable((observer) => {
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          resource: {
+            '.tag': 'path',
+            path: filePath,
+          },
+          format: 'jpeg',
+          size: 'w256h256',
+          mode: 'strict',
+        }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            // Check for auth errors
+            if (response.status === 401 || response.status === 403) {
+              this.dropboxAuthService.clearToken();
+              this.toastr.error('Authentication failed. Redirecting to login...', 'Auth Error');
+              this.router.navigate(['/dropbox-login']);
+              throw new Error('Authentication failed');
+            }
+            
+            return response.text().then((errorDetails) => {
+              throw new Error(
+                `Failed to get thumbnail: ${response.statusText}, ${errorDetails}`
+              );
+            });
+          }
+          return response.blob();
+        })
+        .then((thumbnailBlob) => {
+          console.log('Thumbnail retrieved successfully');
+          observer.next(thumbnailBlob);
+          observer.complete();
+        })
+        .catch((error) => {
+          console.error('Error getting thumbnail:', error);
+          observer.error(error);
+        });
+    });
+  }
+
   deleteFile(path: string): Observable<any> {
     const token = this.getAuthToken();
     if (!token) return throwError(() => new Error('Authentication required'));
@@ -139,7 +254,9 @@ export class DropboxService {
       'Content-Type': 'application/json',
     });
 
-    return this.http.post(deleteUrl, { path }, { headers });
+    return this.http.post(deleteUrl, { path }, { headers }).pipe(
+      catchError(error => this.handleAuthError(error))
+    );
   }
 
   createSharedLink(filePath: string): Observable<string> {
@@ -169,6 +286,14 @@ export class DropboxService {
     }).pipe(
       switchMap((response) => {
         if (!response.ok) {
+          // Check for auth errors
+          if (response.status === 401 || response.status === 403) {
+            this.dropboxAuthService.clearToken();
+            this.toastr.error('Authentication failed. Redirecting to login...', 'Auth Error');
+            this.router.navigate(['/dropbox-login']);
+            return throwError(() => new Error('Authentication failed'));
+          }
+          
           return throwError(
             () =>
               new Error(
@@ -200,6 +325,14 @@ export class DropboxService {
         }).pipe(
           switchMap((createResponse) => {
             if (!createResponse.ok) {
+              // Check for auth errors
+              if (createResponse.status === 401 || createResponse.status === 403) {
+                this.dropboxAuthService.clearToken();
+                this.toastr.error('Authentication failed. Redirecting to login...', 'Auth Error');
+                this.router.navigate(['/dropbox-login']);
+                return throwError(() => new Error('Authentication failed'));
+              }
+              
               return throwError(
                 () =>
                   new Error(
@@ -213,7 +346,10 @@ export class DropboxService {
         );
       }),
       catchError((error) => {
-        console.error(error);
+        console.error('Error creating or fetching shared link:', error);
+        if (error.status === 401 || error.status === 403) {
+          this.handleAuthError(error);
+        }
         return throwError(
           () =>
             new Error('Error occurred while creating or fetching shared link')
@@ -248,7 +384,7 @@ export class DropboxService {
               path: newFilePath,
               mode: 'add',
               autorename: true, // Enable autorename to handle any remaining conflicts
-              mute: false
+              mute: false,
             }),
           },
           body: fileContent,
@@ -257,16 +393,32 @@ export class DropboxService {
     ).pipe(
       switchMap((response) => {
         if (!response.ok) {
-          return response.json().then(errorData => {
-            console.error('Dropbox API Error:', errorData);
-            throw new Error(`Failed to upload file: ${errorData?.error?.message || response.statusText}`);
-          });
+          // Check for auth errors
+          if (response.status === 401 || response.status === 403) {
+            this.dropboxAuthService.clearToken();
+            this.toastr.error('Authentication failed. Redirecting to login...', 'Auth Error');
+            this.router.navigate(['/dropbox-login']);
+            return throwError(() => new Error('Authentication failed'));
+          }
+          
+          return from(response.text()).pipe(
+            switchMap((errorDetails) =>
+              throwError(() => new Error(`Upload failed: ${errorDetails}`))
+            )
+          );
         }
         return from(response.json());
       }),
+      map((result: any) => {
+        console.log('Upload result:', result);
+        return result.path_display || newFilePath;
+      }),
       catchError((error) => {
-        console.error('Upload Error:', error);
-        return throwError(() => new Error(`Failed to upload file: ${error.message}`));
+        console.error('Error during upload:', error);
+        if (error.status === 401 || error.status === 403) {
+          return this.handleAuthError(error);
+        }
+        return throwError(() => error);
       })
     );
   }
@@ -299,31 +451,5 @@ export class DropboxService {
           }
         })
     );
-  }
-
-  getThumbnail(filePath: string, size: string = 'w2048h1536'): Observable<Blob> {
-    const token = this.getAuthToken();
-    if (!token) return throwError(() => new Error('Authentication required'));
-    
-    const DROPBOX_THUMBNAIL_URL =
-      'https://content.dropboxapi.com/2/files/get_thumbnail';
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-      'Dropbox-API-Arg': JSON.stringify({
-        path: filePath,
-        size: size,
-      }),
-    });
-
-    return this.http
-      .post(DROPBOX_THUMBNAIL_URL, null, { headers, responseType: 'blob' })
-      .pipe(
-        map((blob: Blob) => blob),
-        shareReplay(1),
-        catchError((error) => {
-          console.error('Error fetching thumbnail:', error);
-          return throwError(() => new Error('Failed to fetch thumbnail'));
-        })
-      );
   }
 }

@@ -11,9 +11,12 @@ import { catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { DropboxAuthService } from '../services/dropbox.auth.service';
 import { ToastrService } from 'ngx-toastr';
+import { environment } from 'src/environments/environment';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
+  private envToken: string = environment.dropboxToken;
+
   constructor(
     private router: Router,
     private dropboxAuthService: DropboxAuthService,
@@ -26,14 +29,24 @@ export class AuthInterceptor implements HttpInterceptor {
       return next.handle(request);
     }
 
+    // First try environment token if available
+    let token: string | null = this.envToken;
+    
+    // If no environment token, get from auth service
+    if (!token) {
+      token = this.dropboxAuthService.getAccessToken();
+    }
+    
     // Add the authorization header if we have a token
-    const token = this.dropboxAuthService.getAccessToken();
     if (token) {
       request = request.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`
         }
       });
+      console.log('Added Dropbox Bearer token to request:', request.url);
+    } else {
+      console.warn('No Dropbox token available for request:', request.url);
     }
 
     return next.handle(request).pipe(
@@ -47,8 +60,8 @@ export class AuthInterceptor implements HttpInterceptor {
           // Show error to user
           this.toastr.error('Your Dropbox session has expired. Please log in again.', 'Authentication Error');
           
-          // Clear the invalid token
-          this.dropboxAuthService.signOut();
+          // Clear the invalid token from auth service
+          this.dropboxAuthService.clearToken();
           
           // Store the current route for redirect after login
           const currentUrl = this.router.url;
