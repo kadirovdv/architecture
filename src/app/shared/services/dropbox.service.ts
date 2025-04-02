@@ -191,59 +191,6 @@ export class DropboxService {
     });
   }
 
-  getThumbnail(filePath: string): Observable<Blob> {
-    const token = this.getAuthToken();
-    if (!token) return throwError(() => new Error('Authentication required'));
-    
-    const url = 'https://content.dropboxapi.com/2/files/get_thumbnail_v2';
-
-    return new Observable((observer) => {
-      fetch(url, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          resource: {
-            '.tag': 'path',
-            path: filePath,
-          },
-          format: 'jpeg',
-          size: 'w256h256',
-          mode: 'strict',
-        }),
-      })
-        .then((response) => {
-          if (!response.ok) {
-            // Check for auth errors
-            if (response.status === 401 || response.status === 403) {
-              this.dropboxAuthService.clearToken();
-              this.toastr.error('Authentication failed. Redirecting to login...', 'Auth Error');
-              this.router.navigate(['/dropbox-login']);
-              throw new Error('Authentication failed');
-            }
-            
-            return response.text().then((errorDetails) => {
-              throw new Error(
-                `Failed to get thumbnail: ${response.statusText}, ${errorDetails}`
-              );
-            });
-          }
-          return response.blob();
-        })
-        .then((thumbnailBlob) => {
-          console.log('Thumbnail retrieved successfully');
-          observer.next(thumbnailBlob);
-          observer.complete();
-        })
-        .catch((error) => {
-          console.error('Error getting thumbnail:', error);
-          observer.error(error);
-        });
-    });
-  }
-
   deleteFile(path: string): Observable<any> {
     const token = this.getAuthToken();
     if (!token) return throwError(() => new Error('Authentication required'));
@@ -451,5 +398,31 @@ export class DropboxService {
           }
         })
     );
+  }
+
+  getThumbnail(filePath: string, size: string = 'w2048h1536'): Observable<Blob> {
+    const token = this.getAuthToken();
+    if (!token) return throwError(() => new Error('Authentication required'));
+    
+    const DROPBOX_THUMBNAIL_URL =
+      'https://content.dropboxapi.com/2/files/get_thumbnail';
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Dropbox-API-Arg': JSON.stringify({
+        path: filePath,
+        size: size,
+      }),
+    });
+
+    return this.http
+      .post(DROPBOX_THUMBNAIL_URL, null, { headers, responseType: 'blob' })
+      .pipe(
+        map((blob: Blob) => blob),
+        shareReplay(1),
+        catchError((error) => {
+          console.error('Error fetching thumbnail:', error);
+          return throwError(() => new Error('Failed to fetch thumbnail'));
+        })
+      );
   }
 }
