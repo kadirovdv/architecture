@@ -1214,27 +1214,14 @@ export class EditBuildPage implements OnInit {
   // Add a helper method to format URLs for display
   getShortUrl(url: string): string {
     if (!url) return '';
-    
     try {
-      // Try to extract domain and path
-      const urlObj = new URL(url);
-      let display = urlObj.hostname;
-      
-      // Add path but limit length
-      if (urlObj.pathname && urlObj.pathname !== '/') {
-        const path = urlObj.pathname.length > 15 
-          ? urlObj.pathname.substring(0, 12) + '...' 
-          : urlObj.pathname;
-        display += path;
-      }
-      
-      return display;
-    } catch (e) {
-      // If URL parsing fails, just return a truncated version
-      if (url.length > 30) {
-        return url.substring(0, 27) + '...';
-      }
-      return url;
+      return url.length > 30 ? url.substring(0, 30) + '...' : url;
+    } catch (error) {
+      return '';
     }
+  }
+
+  isStringUrl(url: any): boolean {
+    return typeof url === 'string';
   }
 }

@@ -301,7 +301,7 @@
                   </div>
                 </div>
                 <app-file-list
-                  [files]="selectedTask?.secondBasedFiles?.taskTitleFiles || { uz: [], ru: [], en: [] }"
+                  [files]="selectedTask.secondBasedFiles?.taskTitleFiles || { uz: [], ru: [], en: [] }"
                   [category]="'taskTitleFiles'"
                   [placeholder]="'NAZARIY'"
                   [hasError]="hasError('taskTitleFiles')"
@@ -369,7 +369,7 @@
                   </div>
                 </div>
                 <app-file-list
-                  [files]="selectedTask?.secondBasedFiles?.taskPresentationFiles || { uz: [], ru: [], en: [] }"
+                  [files]="selectedTask.secondBasedFiles?.taskPresentationFiles || { uz: [], ru: [], en: [] }"
                   [category]="'taskPresentationFiles'"
                   [placeholder]="'PREZENTATSIYA'"
                   [hasError]="hasError('taskPresentationFiles')"
@@ -437,7 +437,7 @@
                   </div>
                 </div>
                 <app-file-list
-                  [files]="selectedTask?.secondBasedFiles?.taskLiteratureFiles || { uz: [], ru: [], en: [] }"
+                  [files]="selectedTask.secondBasedFiles?.taskLiteratureFiles || { uz: [], ru: [], en: [] }"
                   [category]="'taskLiteratureFiles'"
                   [placeholder]="'ADABIYOT'"
                   [hasError]="hasError('taskLiteratureFiles')"
@@ -487,7 +487,7 @@
                           <a [href]="video.url.en" target="_blank">{{ getShortUrl(video.url.en) }}</a>
                         </div>
                         <!-- Single URL case -->
-                        <div class="language-link mb-2" *ngIf="video?.url && typeof video.url === 'string'">
+                        <div class="language-link mb-2" *ngIf="video?.url && isStringUrl(video.url)">
                           <a [href]="video.url" target="_blank">{{ getShortUrl(video.url) }}</a>
                         </div>
                       </div>
