@@ -3,7 +3,6 @@ import { Component, OnInit } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { DropboxAuthService } from 'src/app/shared/services/dropbox.auth.service';
 import { AuthService } from 'src/app/shared/services/firebase.auth.service';
 
 @Component({
@@ -17,7 +16,6 @@ export class LoginPage implements OnInit {
   password: string = '';
   constructor(
     public authService: AuthService,
-    public dropboxAuthService: DropboxAuthService,
     private afAuth: AngularFireAuth,
     private router: Router,
     private toastr: ToastrService,

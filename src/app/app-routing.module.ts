@@ -1,8 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from './shared/guards/auth.guard';
-import { DropboxLoginComponent } from './shared/components/dropbox-login/dropbox-login.component';
-import { DropboxAuthGuard } from './shared/guards/dropbox-auth.guard';
 
 const routes: Routes = [
   {
@@ -27,10 +25,6 @@ const routes: Routes = [
       import('./dashboard/dashboard.module').then(
         (module) => module.DashboardModule
       ),
-  },
-  {
-    path: 'dropbox-login',
-    component: DropboxLoginComponent
   },
   {
     path: '**',

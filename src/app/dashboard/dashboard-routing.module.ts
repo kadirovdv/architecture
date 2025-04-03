@@ -11,7 +11,6 @@ import { EditBuildPage } from './edit-build/edit-build.page';
 import { LessonsPage } from './lessons/lessons.page';
 import { CreateLessonsPage } from './create-lessons/create-lessons.page';
 import { AuthGuard } from '../shared/guards/auth.guard';
-import { DropboxAuthGuard } from '../shared/guards/dropbox-auth.guard';
 
 const routes: Routes = [
   { path: '', redirectTo: '/dashboard/lessons', pathMatch: 'full' },
@@ -23,22 +22,18 @@ const routes: Routes = [
       {
         path: 'lessons',
         loadChildren: () => import('./lessons/lessons.module').then(m => m.LessonsModule),
-        canActivate: [DropboxAuthGuard]
       },
       {
         path: 'create-lesson',
         component: CreateLessonsPage,
-        canActivate: [DropboxAuthGuard]
       },
       {
         path: 'create-build',
         component: CreateBuildPage,
-        canActivate: [DropboxAuthGuard]
       },
       {
         path: 'edit-build',
         component: EditBuildPage,
-        canActivate: [DropboxAuthGuard]
       },
       // {
       //   path: 'edit-build/:id',

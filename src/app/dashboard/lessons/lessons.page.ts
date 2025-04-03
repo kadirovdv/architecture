@@ -233,33 +233,27 @@ export class LessonsPage implements OnInit {
   }
 
   closeDropdown() {
-    // Don't do anything if no dropdown is open
     if (this.selectedIndex === -1) return;
 
-    // Get all open dropdowns
     const dropdowns = document.querySelectorAll('.action-dropdown');
 
-    // Add the exit animation class to all open dropdowns
     dropdowns.forEach((dropdown) => {
       dropdown.classList.add('dropdown-exit');
     });
 
-    // After animation completes, reset the state
     setTimeout(() => {
       this.selectedIndex = -1;
       this.selectedId = '';
       this.tasksInLesson = [];
 
-      // Clear any editing
       if (this.editingTaskId) {
         this.cancelTaskEdit();
       }
 
-      // Remove the animation class (in case dropdown is re-opened quickly)
       dropdowns.forEach((dropdown) => {
         dropdown.classList.remove('dropdown-exit');
       });
-    }, 200); // Match this to your animation duration
+    }, 200); 
   }
 
   addTaskToLesson(event?: Event) {
@@ -321,6 +315,10 @@ export class LessonsPage implements OnInit {
 
     // Create a copy of the current tasks and add the new one
     const updatedTasks = [...this.tasksInLesson, newTask];
+    
+    // Store the currently selected index to reopen the dropdown later
+    const currentIndex = this.selectedIndex;
+    const currentId = this.selectedId;
 
     // Update the document directly
     this.crudService
@@ -342,12 +340,15 @@ export class LessonsPage implements OnInit {
             secondBasedFiles: {},
           };
 
+          // Update local state to include the new task
+          this.tasksInLesson = updatedTasks;
+
           // Reset submission flag and hide loader
           this.isSubmitting = false;
           this.loadingService.hide();
-
-          // Close the dropdown
-          this.closeDropdown();
+          
+          // Don't close the dropdown, just keep it open with the updated list
+          // Instead of this.closeDropdown()
         },
         (error) => {
           console.error('Error adding task:', error);

@@ -8,20 +8,14 @@ import {
 } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { Router } from '@angular/router';
-import { DropboxAuthService } from '../services/dropbox.auth.service';
-import { ToastrService } from 'ngx-toastr';
 import { environment } from 'src/environments/environment';
+import { ToastrService } from 'ngx-toastr';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-  private envToken: string = environment.dropboxToken;
+  private readonly token: string = environment.dropboxToken;
 
-  constructor(
-    private router: Router,
-    private dropboxAuthService: DropboxAuthService,
-    private toastr: ToastrService
-  ) {}
+  constructor(private toastr: ToastrService) {}
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     // Only intercept Dropbox API requests
@@ -29,13 +23,8 @@ export class AuthInterceptor implements HttpInterceptor {
       return next.handle(request);
     }
 
-    // First try environment token if available
-    let token: string | null = this.envToken;
-    
-    // If no environment token, get from auth service
-    if (!token) {
-      token = this.dropboxAuthService.getAccessToken();
-    }
+    // Get the token from environment
+    const token = this.token;
     
     // Add the authorization header if we have a token
     if (token) {
@@ -47,29 +36,15 @@ export class AuthInterceptor implements HttpInterceptor {
       console.log('Added Dropbox Bearer token to request:', request.url);
     } else {
       console.warn('No Dropbox token available for request:', request.url);
+      this.toastr.error('Dropbox token not configured', 'Configuration Error');
     }
 
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
-        // Handle 401 Unauthorized and 403 Forbidden errors
-        if (error.status === 401 || error.status === 403 || 
-            (error.error && typeof error.error === 'string' && 
-             error.error.includes('invalid_access_token'))) {
-          console.error('Authentication error with Dropbox API:', error);
-          
-          // Show error to user
-          this.toastr.error('Your Dropbox session has expired. Please log in again.', 'Authentication Error');
-          
-          // Clear the invalid token from auth service
-          this.dropboxAuthService.clearToken();
-          
-          // Store the current route for redirect after login
-          const currentUrl = this.router.url;
-          
-          // Redirect to login page
-          this.router.navigate(['/dropbox-login'], { 
-            queryParams: { returnUrl: currentUrl }
-          });
+        // Handle API errors
+        if (error.status === 401 || error.status === 403) {
+          console.error('Dropbox API authentication error:', error);
+          this.toastr.error('Dropbox API request failed due to authentication error', 'API Error');
         }
         
         return throwError(() => error);

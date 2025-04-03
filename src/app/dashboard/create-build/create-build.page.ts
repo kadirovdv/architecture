@@ -476,18 +476,18 @@ export class CreateBuildPage implements OnInit {
   }
 
   uploadAllFilesAndSaveData(): void {
-    const validation = this.validateUpload();
-    if (!validation.isValid) {
-      this.toastr.error(validation.message);
+    // const validation = this.validateUpload();
+    // if (!validation.isValid) {
+    //   this.toastr.error(validation.message);
 
-      if (validation.errorCategories) {
-        this.errorCategories = validation.errorCategories;
-        setTimeout(() => {
-          this.errorCategories = [];
-        }, 400);
-      }
-      return;
-    }
+    //   if (validation.errorCategories) {
+    //     this.errorCategories = validation.errorCategories;
+    //     setTimeout(() => {
+    //       this.errorCategories = [];
+    //     }, 400);
+    //   }
+    //   return;
+    // }
 
     // Reset tracking fields
     this.uploadedCount = 0;

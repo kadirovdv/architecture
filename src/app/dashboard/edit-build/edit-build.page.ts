@@ -447,7 +447,7 @@ export class EditBuildPage implements OnInit {
       this.toastr.error('Please select a task first');
       return;
     }
-    
+
     this.uploading = true;
     this.loadingService.show();
     this.totalUploads = files.length;
@@ -531,10 +531,10 @@ export class EditBuildPage implements OnInit {
         
         // Create a mock file object
         const fileObj = {
-          name: file.name,
+      name: file.name,
           url: URL.createObjectURL(file),  // Local URL for demo
           path: `mock/path/${file.name}`,
-          size: file.size,
+      size: file.size,
           type: file.type,
           language: language
         };
@@ -759,28 +759,28 @@ export class EditBuildPage implements OnInit {
         (lessons) => {
           const lessonsArray = lessons as ILesson[];
           const lesson = lessonsArray.find(l => l.id === id);
-          
-          if (!lesson) {
-            this.toastr.error('Lesson not found');
-            this.router.navigate(['/dashboard/build']);
-            return;
-          }
+      
+      if (!lesson) {
+        this.toastr.error('Lesson not found');
+        this.router.navigate(['/dashboard/build']);
+        return;
+      }
 
-          this.lesson = {
-            ...lesson,
-            lessonTitle: {
-              uz: lesson.lessonTitle?.uz || '',
-              ru: lesson.lessonTitle?.ru || '',
-              en: lesson.lessonTitle?.en || ''
-            }
-          };
+      this.lesson = {
+        ...lesson,
+        lessonTitle: {
+          uz: lesson.lessonTitle?.uz || '',
+          ru: lesson.lessonTitle?.ru || '',
+          en: lesson.lessonTitle?.en || ''
+        }
+      };
 
-          if (this.lesson.thumbnail) {
-            const thumbnailUrl = typeof this.lesson.thumbnail === 'string' ? this.lesson.thumbnail : '';
-            if (thumbnailUrl) {
+      if (this.lesson.thumbnail) {
+        const thumbnailUrl = typeof this.lesson.thumbnail === 'string' ? this.lesson.thumbnail : '';
+        if (thumbnailUrl) {
               this.dropboxService.getThumbnail(thumbnailUrl).subscribe(
                 (thumbnailBlob) => {
-                  this.imgDisplay = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(thumbnailBlob));
+          this.imgDisplay = this.sanitizer.bypassSecurityTrustUrl(URL.createObjectURL(thumbnailBlob));
                   this.loading = false;
                 },
                 (error) => {
@@ -796,8 +796,8 @@ export class EditBuildPage implements OnInit {
           }
         },
         (error) => {
-          console.error('Error loading lesson:', error);
-          this.toastr.error('Error loading lesson');
+      console.error('Error loading lesson:', error);
+      this.toastr.error('Error loading lesson');
           this.loading = false;
         }
       );
@@ -855,11 +855,11 @@ export class EditBuildPage implements OnInit {
     this.crudService.getDocuments('lessons').subscribe({
       next: (res) => {
         this.lessons = res as ILesson[];
-        this.lessons.sort((a, b) => {
-          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-          return dateA - dateB;
-        });
+      this.lessons.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateA - dateB;
+      });
         this.loading = false;
       },
       error: (error) => {
@@ -885,7 +885,7 @@ export class EditBuildPage implements OnInit {
       this.selectedTask = null;
       return;
     }
-    
+
     this.loading = true;
     this.crudService.getDocumentById('lessons', selectedLesson.id || '').subscribe({
       next: (res: any) => {
@@ -917,7 +917,7 @@ export class EditBuildPage implements OnInit {
       this.errorCategories = [];
       return;
     }
-    
+
     this.originalTask = JSON.parse(JSON.stringify(selectedTask));
     this.selectedTask = selectedTask;
     
