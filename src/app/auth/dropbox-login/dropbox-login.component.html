@@ -1,0 +1,65 @@
+<div class="dropbox-login-container">
+  <div class="login-card">
+    <div class="logo">
+      <img src="assets/img/dropbox-logo.png" alt="Dropbox Logo" class="dropbox-logo">
+    </div>
+    
+    <!-- Not logged in state -->
+    <div *ngIf="!isLoggedIn" class="login-content">
+      <h2>Sign in to Dropbox</h2>
+      <p class="description">Access your Dropbox account to manage your files.</p>
+      
+      <button 
+        (click)="login()" 
+        [disabled]="isAuthorizing" 
+        class="login-button">
+        <span>Sign in with Dropbox</span>
+      </button>
+      
+      <div class="info-text">
+        <small>You'll be redirected to Dropbox in a new tab for secure authentication.</small>
+      </div>
+    </div>
+    
+    <!-- Logged in state -->
+    <div *ngIf="isLoggedIn" class="login-content success">
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24" width="48" height="48">
+          <path fill="#0061FE" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"></path>
+        </svg>
+      </div>
+      
+      <h2>Successfully Connected</h2>
+      
+      <!-- User account info if available -->
+      <div *ngIf="userAccountInfo" class="user-info">
+        <div *ngIf="userAccountInfo.profile_photo_url" class="user-photo">
+          <img [src]="userAccountInfo.profile_photo_url" alt="Profile Photo" class="profile-photo">
+        </div>
+        <p class="user-name">{{ userAccountInfo.name.display_name }}</p>
+        <p class="user-email">{{ userAccountInfo.email }}</p>
+      </div>
+      <p *ngIf="!userAccountInfo" class="description">Your Dropbox account is now linked to the application.</p>
+      
+      <button 
+        (click)="continueToApp()" 
+        class="login-button continue-button">
+        Continue to App
+      </button>
+      
+      <div class="secondary-actions">
+        <button 
+          (click)="testConnection()" 
+          class="secondary-button">
+          Test Connection
+        </button>
+        
+        <button 
+          (click)="logout()" 
+          class="secondary-button disconnect">
+          Disconnect
+        </button>
+      </div>
+    </div>
+  </div>
+</div> 

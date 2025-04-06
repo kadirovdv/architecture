@@ -34,6 +34,32 @@ export class DropboxService {
   }
 
   /**
+   * Verify if the current token is valid by getting the current account info
+   * @returns Observable with the user account info if valid, error if invalid
+   */
+  validateToken(): Observable<any> {
+    const token = sessionStorage.getItem('accessToken');
+    if (!token) {
+      return throwError(() => new Error('No token available'));
+    }
+  
+    const url = 'https://api.dropboxapi.com/2/users/get_current_account';
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      // DON'T set Content-Type for this request
+    });
+  
+    return this.http.post(url, null, { headers }).pipe(
+      catchError(error => {
+        console.error('Token validation error:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+  
+  
+
+  /**
    * Handle errors consistently 
    */
   private handleError(error: any): Observable<never> {
