@@ -6,38 +6,16 @@ import { Router } from '@angular/router';
   providedIn: 'root',
 })
 export class DropboxAuthService {
-  private accessTokenKey = 'accessToken';
-  private tokenTypeKey = 'token_type';
+  private accessTokenKey = 'access_token'; // Simplified to just use one key
   private originalPathKey = 'originalPath';
-  private tokenSourceKey = 'tokenSource'; // Track where the token came from
 
-  constructor(private router: Router) {
-    // Check for environment token on service initialization
-    this.checkEnvironmentToken();
-  }
-
-  /**
-   * Check if environment token exists and set it if no token is present
-   */
-  private checkEnvironmentToken(): void {
-    if (!this.isAuthenticated() && environment.dropboxToken) {
-      this.setToken(environment.dropboxToken, 'environment');
-    }
-  }
+  constructor(private router: Router) {}
 
   /**
    * Check if user is authenticated with any valid token
    */
   public isAuthenticated(): boolean {
     return !!this.getAccessToken();
-  }
-
-  /**
-   * Check if token is expired or invalid
-   */
-  public isTokenExpired(): boolean {
-    const token = this.getAccessToken();
-    return !token || token === 'INITIAL_TOKEN_FROM_DROPBOX';
   }
 
   /**
@@ -70,89 +48,88 @@ export class DropboxAuthService {
   }
 
   /**
-   * Open Dropbox login in a new tab
+   * Redirect to Dropbox OAuth for authentication
    */
   public loginWithRedirect(): void {
     // Store current path for return after auth
     const currentPath = window.location.pathname + window.location.search;
-    sessionStorage.setItem('returnPath', currentPath);
+    sessionStorage.setItem(this.originalPathKey, currentPath);
     
-    // Generate authorization URL
-    const validRedirectUri = `${encodeURIComponent(window.location.origin)}/auth/dropbox-login`;
-    const authUrl = `https://www.dropbox.com/oauth2/authorize?response_type=token&client_id=${environment.appKEY}&redirect_uri=${validRedirectUri}`;
+    // Clear any existing token first
+    this.clearToken();
     
-    // Open in new tab
-    window.open(authUrl, '_blank');
+    // Generate authorization URL with correct redirect URI
+    const redirectUri = encodeURIComponent(window.location.origin + '/auth/callback');
+    
+    // Create authentication URL with the redirect URI
+    const authUrl = `https://www.dropbox.com/oauth2/authorize?response_type=token&client_id=${environment.appKEY}&redirect_uri=${redirectUri}`;
+    
+    console.log('Opening Dropbox Auth URL:', authUrl);
+    
+    // Open in a new window instead of redirecting the current window
+    // This works better in some environments where redirects might be blocked
+    const authWindow = window.open(authUrl, '_blank');
+    
+    if (!authWindow) {
+      console.error('Failed to open Dropbox authentication window. Popup might be blocked.');
+      alert('Please allow popups for this site to login with Dropbox.');
+    }
   }
 
   /**
-   * Set token with optional source tracking
+   * Set access token
    */
-  public setToken(token: string, source: 'environment' | 'user' = 'user'): void {
+  public setToken(token: string): void {
+    if (!token) return;
+    console.log('Setting access token');
     sessionStorage.setItem(this.accessTokenKey, token);
-    sessionStorage.setItem(this.tokenSourceKey, source);
   }
 
   /**
    * Extract and set token from URL hash
+   * @returns boolean True if token was found and set
    */
-  public setTokenFromUrlHash(hash: string): void {
-    const params = new URLSearchParams(hash.replace('#', ''));
-    const accessToken = params.get('access_token');
-    const tokenType = params.get('token_type');
-
-    if (accessToken && tokenType) {
-      sessionStorage.setItem(this.accessTokenKey, accessToken);
-      sessionStorage.setItem(this.tokenTypeKey, tokenType);
-      sessionStorage.setItem(this.tokenSourceKey, 'user'); // User provided token
+  public setTokenFromUrl(url: string): boolean {
+    if (!url.includes('#access_token=')) {
+      return false;
     }
-  }
-
-  /**
-   * Extract token from full URL
-   */
-  public setAccessTokenFromUrl(url: string): void {
-    if (url.includes('#access_token=')) {
-      const hash = url.substring(url.indexOf('#') + 1);
-      this.setTokenFromUrlHash(hash);
+    
+    console.log('URL contains access token');
+    const hash = url.substring(url.indexOf('#') + 1);
+    const params = new URLSearchParams(hash);
+    const token = params.get('access_token');
+    
+    if (token) {
+      this.setToken(token);
+      return true;
     }
+    
+    return false;
   }
 
   /**
-   * Get the current access token
+   * Get the current access token:
+   * 1. First try session storage
+   * 2. If not found in session, try environment (except when loginRedirect=true)
    */
-  public getAccessToken(): string | null {
-    return sessionStorage.getItem(this.accessTokenKey);
+  public getAccessToken(loginRedirect = false): string | null {
+    // First try session storage
+    const sessionToken = sessionStorage.getItem(this.accessTokenKey);
+    if (sessionToken) {
+      return sessionToken;
+    }
+    
+    // If we're redirecting to login, don't return the environment token
+    // This prevents trying to use an expired environment token during login
+    if (loginRedirect) {
+      return null;
+    }
+    
+    // Fallback to environment token
+    return environment.dropboxToken || null;
   }
 
-  /**
-   * Get the token type
-   */
-  public getTokenType(): string | null {
-    return sessionStorage.getItem(this.tokenTypeKey);
-  }
-
-  /**
-   * Get the source of the current token
-   */
-  public getTokenSource(): 'environment' | 'user' | null {
-    return sessionStorage.getItem(this.tokenSourceKey) as 'environment' | 'user' | null;
-  }
-
-  /**
-   * Clear all token information
-   */
   public clearToken(): void {
     sessionStorage.removeItem(this.accessTokenKey);
-    sessionStorage.removeItem(this.tokenTypeKey);
-    sessionStorage.removeItem(this.tokenSourceKey);
-  }
-
-  /**
-   * Open Dropbox home in a new tab
-   */
-  public openDropboxInNewTab(): void {
-    const url = 'https://www.dropbox.com/home';
-    window.open(url, '_blank');
   }
 }

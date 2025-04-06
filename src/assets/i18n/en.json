@@ -47,16 +47,57 @@
     "remember-me": "Remember me",
     "forgot-password": "Forgot password?",
     "sign-in": "Sign in to Dropbox",
+    "access-files": "Access your Dropbox account to manage your files.",
     "auth-info": "To manage files in this application, you need to authorize access to your Dropbox account. Click the button below to securely connect.",
     "continue-with": "Continue with Dropbox",
+    "sign-in-button": "Sign in with Dropbox",
     "connecting": "Connecting...",
-    "auth-note": "Note: You'll be redirected to Dropbox to authorize this application. No passwords are stored by this app.",
+    "auth-note": "You'll be redirected to Dropbox in a new tab for secure authentication.",
     "no-account": "Don't have a Dropbox account?",
     "sign-up": "Sign up",
     "terms": "By logging in, you agree to Dropbox's",
     "terms-link": "Terms & Conditions",
     "auth-success": "Successfully authenticated with Dropbox",
     "auth-failed": "Authentication failed",
-    "use-oauth": "Please use the \"Continue with Dropbox\" option to authenticate"
+    "use-oauth": "Please use the \"Continue with Dropbox\" option to authenticate",
+    
+    "manual-token": {
+      "title": "Having trouble signing in?",
+      "description": "If the automatic login isn't working, you can manually paste a token.",
+      "instructions-button": "How to get a token",
+      "placeholder": "Paste access_token here",
+      "use-token": "Use Token",
+      "token-required": "Please enter a token",
+      "token-extracted": "Token extracted from URL",
+      "extraction-failed": "Could not extract token from the provided URL",
+      "token-set": "Token has been set. Verifying..."
+    },
+    
+    "success": {
+      "title": "Successfully Connected",
+      "description": "Your Dropbox account is now linked to the application.",
+      "continue": "Continue to App",
+      "test-connection": "Test Connection",
+      "disconnect": "Disconnect",
+      "disconnected": "Disconnected from Dropbox"
+    },
+    
+    "errors": {
+      "expired": "Your Dropbox access has expired. Please log in again.",
+      "auth-required": "Authentication Required",
+      "auth-failed": "Authentication failed. Please log in to Dropbox again.",
+      "connection-failed": "Failed to connect to Dropbox API",
+      "session-expired": "Your Dropbox session has expired. Please log in again.",
+      "popup-blocked": "Please enable popups to open the authentication page automatically"
+    },
+    
+    "instructions": {
+      "step1": "Open this URL in a new tab:",
+      "step2": "Log in to Dropbox and authorize the application",
+      "step3": "After authorization, you'll be redirected to a page with a URL containing \"#access_token=\"",
+      "step4": "Copy the ENTIRE URL from your browser address bar",
+      "step5": "Paste it in the input field below (we'll extract the token automatically)",
+      "note": "If you only see the token itself, you can paste just that."
+    }
   }
 }

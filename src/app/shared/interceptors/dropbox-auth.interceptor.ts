@@ -6,18 +6,19 @@ import {
   HttpInterceptor,
   HttpErrorResponse
 } from '@angular/common/http';
-import { Observable, throwError, firstValueFrom } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { DropboxAuthService } from '../services/dropbox.auth.service';
-import { DropboxService } from '../services/dropbox.service';
-import { environment } from 'src/environments/environment';
+import { ToastrService } from 'ngx-toastr';
+import { TranslateService } from '@ngx-translate/core';
 
 @Injectable()
 export class DropboxAuthInterceptor implements HttpInterceptor {
   
   constructor(
     private dropboxAuthService: DropboxAuthService,
-    private dropboxService: DropboxService
+    private toastr: ToastrService,
+    private translate: TranslateService
   ) {}
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
@@ -27,65 +28,72 @@ export class DropboxAuthInterceptor implements HttpInterceptor {
       request.url.includes('content.dropboxapi.com');
     
     if (isDropboxRequest) {
-      // Don't intercept the validation request itself to avoid infinite loops
-      if (request.url.includes('users/get_current_account')) {
-        return next.handle(request).pipe(
-          catchError((error) => throwError(() => error))
-        );
+      // Add token to the request, using environment token for API calls
+      const token = this.dropboxAuthService.getAccessToken();
+      if (!token) {
+        console.error('No Dropbox token available');
+        this.dropboxAuthService.redirectToLogin();
+        return throwError(() => new Error('No Dropbox token available'));
       }
       
-      // Get token source
-      const tokenSource = this.dropboxAuthService.getTokenSource();
-      
-      // Check if token is expired before even sending the request
-      if (this.dropboxAuthService.isTokenExpired()) {
-        // If the token was from environment, try to refresh it first
-        if (tokenSource === 'environment' && environment.dropboxToken) {
-          // Try to use the environment token again (maybe it was updated)
-          this.dropboxAuthService.setToken(environment.dropboxToken, 'environment');
-          
-          // If it's still expired, redirect
-          if (this.dropboxAuthService.isTokenExpired()) {
-            this.dropboxAuthService.redirectToLogin();
-            return throwError(() => new Error('Dropbox token expired. Redirecting to login.'));
-          }
-        } else {
-          // Redirect to login page since token is expired
-          this.dropboxAuthService.redirectToLogin();
-          return throwError(() => new Error('Dropbox token expired. Redirecting to login.'));
+      // Add the token to the request
+      const authReq = request.clone({
+        setHeaders: {
+          Authorization: `Bearer ${token}`
         }
-      }
+      });
       
-      // If token is not expired, proceed with the request and catch any 401 errors
-      return next.handle(request).pipe(
+      // Send the request and handle expired token errors
+      return next.handle(authReq).pipe(
         catchError((error: HttpErrorResponse) => {
-          if (error.status === 401) {
-            // Get token source before clearing
-            const source = this.dropboxAuthService.getTokenSource();
+          console.log('Dropbox API error:', error);
+
+          // Check specifically for expired_access_token error from Dropbox API
+          if (
+            error.error?.error && 
+            error.error.error['.tag'] === 'expired_access_token'
+          ) {
+            console.warn('Dropbox token has expired');
             
-            // Clear the current token as it's invalid
+            // Show error message to user
+            this.translate.get(['dropbox.errors.expired', 'dropbox.errors.auth-required']).subscribe(texts => {
+              this.toastr.error(
+                texts['dropbox.errors.expired'],
+                texts['dropbox.errors.auth-required']
+              );
+            });
+            
+            // Clear the token
             this.dropboxAuthService.clearToken();
             
-            // If the token was from environment, try to refresh it
-            if (source === 'environment' && environment.dropboxToken) {
-              this.dropboxAuthService.setToken(environment.dropboxToken, 'environment');
-              
-              // Verify the token
-              this.verifyEnvironmentToken();
-              
-              // If it's still expired, redirect
-              if (this.dropboxAuthService.isTokenExpired()) {
-                this.dropboxAuthService.redirectToLogin();
-                return throwError(() => new Error('Environment token is invalid. Redirecting to login.'));
-              }
-            } else {
-              // Redirect to login page
-              this.dropboxAuthService.redirectToLogin();
-              return throwError(() => new Error('Dropbox authentication failed. Redirecting to login.'));
-            }
+            // Redirect to login to get a new user token
+            this.dropboxAuthService.redirectToLogin();
+            
+            return throwError(() => new Error('Dropbox token expired. Please log in again.'));
           }
           
-          // For any other errors, just pass them through
+          // Also handle 401 errors
+          if (error.status === 401) {
+            console.warn('Unauthorized access to Dropbox API (401)');
+            
+            // Show error message to user
+            this.translate.get(['dropbox.errors.auth-failed', 'dropbox.errors.auth-required']).subscribe(texts => {
+              this.toastr.error(
+                texts['dropbox.errors.auth-failed'],
+                texts['dropbox.errors.auth-required']
+              );
+            });
+            
+            // Clear the token
+            this.dropboxAuthService.clearToken();
+            
+            // Redirect to login
+            this.dropboxAuthService.redirectToLogin();
+            
+            return throwError(() => new Error('Dropbox authentication failed. Please log in again.'));
+          }
+          
+          // For other errors, just pass them through
           return throwError(() => error);
         })
       );
@@ -93,19 +101,5 @@ export class DropboxAuthInterceptor implements HttpInterceptor {
     
     // Not a Dropbox request, just pass it through
     return next.handle(request);
-  }
-
-  /**
-   * Verify the environment token by making a validation request
-   */
-  private async verifyEnvironmentToken(): Promise<boolean> {
-    try {
-      await firstValueFrom(this.dropboxService.validateToken());
-      return true;
-    } catch (error) {
-      console.error('Environment token validation failed:', error);
-      this.dropboxAuthService.clearToken();
-      return false;
-    }
   }
 } 
