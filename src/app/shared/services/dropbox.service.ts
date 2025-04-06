@@ -209,7 +209,7 @@ export class DropboxService {
     );
   }
 
-  uploadFile(filePath: string = '', fileContent: Blob): Observable<string> {
+  uploadFile(filePath: string = '', fileContent: Blob): Observable<any> {
     const token = this.getAuthToken();
     if (!token) return throwError(() => new Error('Dropbox token not configured'));
     
@@ -251,8 +251,13 @@ export class DropboxService {
         return from(response.json());
       }),
       map((result: any) => {
-        console.log('Upload result:', result);
-        return result.path_display || newFilePath;
+        console.log('Upload result from Dropbox API:', result);
+        // Return the full metadata object instead of just the path
+        return {
+          ...result,
+          original_path: filePath,
+          timestamp: timestamp
+        };
       }),
       catchError((error) => {
         console.error('Error during upload:', error);
