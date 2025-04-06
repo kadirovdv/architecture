@@ -475,6 +475,163 @@ export class CreateBuildPage implements OnInit {
     return { isValid: true, message: '' };
   }
 
+  private prepareFilesForUpload(uploadedFiles: any): Observable<any>[] {
+    console.log('Preparing files for upload');
+    
+    // Track existing files and files that need replacement
+    const replacements = new Map<string, {
+      categoryPath: string;
+      category: string;
+      lang: string;
+      index: number;
+      file: any;
+    }>();
+    
+    // Collect all files that need to be uploaded and track replacements
+    const allFilesToUpload: Array<{
+      file: File;
+      categoryPath: string;
+      category: string;
+      lang: string;
+      index: number;
+      metadata: any;
+    }> = [];
+    
+    // Helper to collect files that need uploading
+    const collectFilesForUpload = (categoryPath: string, category: string) => {
+      ['uz', 'ru', 'en'].forEach(lang => {
+        if (!this.task[categoryPath]?.[category]?.[lang]) return;
+        
+        this.task[categoryPath][category][lang].forEach((file: any, index: number) => {
+          if (file && file.file) {
+            // This is a file that needs to be uploaded
+            const fileObj = file.file;
+            const fileName = file.name || fileObj.name;
+            
+            // Check if this is a replacement
+            if (file.isReplacement) {
+              console.log(`Found replacement file ${fileName} in ${categoryPath}.${category}.${lang}`);
+              
+              // Create a unique key for the replacement to identify it later
+              const replacementKey = `${categoryPath}_${category}_${lang}_${index}`;
+              replacements.set(replacementKey, {
+                categoryPath,
+                category,
+                lang,
+                index,
+                file
+              });
+              
+              // If there's a URL of the file being replaced, track it
+              if (file.replacedFileUrl) {
+                console.log(`This file is replacing file with URL: ${file.replacedFileUrl}`);
+              }
+            }
+            
+            // Add to upload queue
+            allFilesToUpload.push({
+              file: fileObj,
+              categoryPath,
+              category,
+              lang,
+              index,
+              metadata: {
+                isReplacement: file.isReplacement || false,
+                replacedFileUrl: file.replacedFileUrl,
+                replacedFileId: file.replacedFileId,
+                originalPath: file.path,
+                originalId: file.id
+              }
+            });
+          }
+        });
+      });
+    };
+    
+    // Collect all files that need to be uploaded
+    if (this.task.firstBasedFiles) {
+      ['taskExampleFiles', 'taskSolutionFiles'].forEach(category => {
+        collectFilesForUpload('firstBasedFiles', category);
+      });
+    }
+    
+    if (this.task.secondBasedFiles) {
+      ['taskTitleFiles', 'taskPresentationFiles', 'taskLiteratureFiles'].forEach(category => {
+        collectFilesForUpload('secondBasedFiles', category);
+      });
+    }
+    
+    // Create an array of observable file uploads
+    return allFilesToUpload.map(uploadInfo => {
+      const { file, categoryPath, category, lang, index, metadata } = uploadInfo;
+      const folderName = this.lesson?.lessonTitle?.uz || 'untitled';
+      const filePath = `/${folderName}/${category}/${lang}/${file.name}`;
+      
+      return this.dropboxService.uploadFile(filePath, file).pipe(
+        switchMap((response: any) => {
+          console.log(`Successfully uploaded ${file.name} to Dropbox:`, response);
+          return this.dropboxService.createSharedLink(response.path_display).pipe(
+            map(linkResponse => ({
+              linkResponse,
+              dropboxResponse: response,
+              uploadInfo
+            }))
+          );
+        }),
+        map((result: any) => {
+          const { linkResponse, dropboxResponse, uploadInfo } = result;
+          const { categoryPath, category, lang, index, metadata } = uploadInfo;
+          
+          let downloadUrl = '';
+          if (typeof linkResponse === 'string') {
+            downloadUrl = linkResponse.replace(/[\?&]dl=\d/g, '').concat('?dl=1');
+          }
+          
+          // Get the existing file array from task to update in place
+          const fileArray = this.task[categoryPath][category][lang];
+          
+          // Create the file info object with all metadata
+          const fileInfo = {
+            name: file.name,
+            url: downloadUrl,
+            size: file.size,
+            type: file.type,
+            path: dropboxResponse.path_display,
+            path_lower: dropboxResponse.path_lower,
+            id: dropboxResponse.id,
+            rev: dropboxResponse.rev,
+            server_modified: dropboxResponse.server_modified,
+            client_modified: dropboxResponse.client_modified,
+            isReplacement: metadata.isReplacement,
+            replacedFileUrl: metadata.replacedFileUrl,
+            replacedFileId: metadata.replacedFileId
+          };
+          
+          console.log(`Complete file info for ${file.name}:`, fileInfo);
+          
+          // Update the file in place if it's a replacement
+          if (metadata.isReplacement) {
+            console.log(`Replacing file at index ${index} with new upload`);
+            fileArray[index] = fileInfo;
+          }
+          
+          return {
+            fileInfo,
+            categoryPath,
+            category,
+            lang,
+            index,
+            isReplacement: metadata.isReplacement
+          };
+        }),
+        catchError(error => {
+          console.error(`Error uploading ${file.name}:`, error);
+          return of(null);
+        })
+      );
+    });
+  }
+
   uploadAllFilesAndSaveData(): void {
     const validation = this.validateUpload();
     if (!validation.isValid) {
@@ -498,238 +655,30 @@ export class CreateBuildPage implements OnInit {
     this.loaderService.show();
     
     try {
-      // Create a deep copy of the task to preserve existing files
-      const taskCopy = JSON.parse(JSON.stringify(this.task));
-      
-      // Create a new object to track all files, both existing and new
-      // @ts-ignore: Complex nested object type
-      const uploadedFiles = {
-        title: taskCopy.title,
-        id: taskCopy.id,
-        index: taskCopy.index,
-        createdAt: taskCopy.createdAt,
-        firstBasedFiles: {
-          taskExampleFiles: { uz: [], ru: [], en: [] },
-          taskSolutionFiles: { uz: [], ru: [], en: [] }
-        },
-        secondBasedFiles: {
-          taskTitleFiles: { uz: [], ru: [], en: [] },
-          taskPresentationFiles: { uz: [], ru: [], en: [] },
-          taskLiteratureFiles: { uz: [], ru: [], en: [] },
-          taskVideoUrls: taskCopy.secondBasedFiles?.taskVideoUrls || []
-        }
-      };
-      
-      console.log('Initial uploadedFiles structure created');
-      
-      // Create a map to track files by unique identifiers to prevent duplicates
-      const fileTracker = {
-        urls: new Set<string>(),
-        ids: new Set<string>(),
-        paths: new Set<string>()
-      };
-      
-      // Helper function to track file identifiers
-      const trackFile = (file: any): boolean => {
-        if (!file) return false;
-        
-        // Check if we've already seen this file
-        if (file.url && fileTracker.urls.has(file.url)) return false;
-        if (file.id && fileTracker.ids.has(file.id)) return false;
-        if (file.path && fileTracker.paths.has(file.path)) return false;
-        
-        // If not, add to tracking sets
-        if (file.url) fileTracker.urls.add(file.url);
-        if (file.id) fileTracker.ids.add(file.id);
-        if (file.path) fileTracker.paths.add(file.path);
-        
-        return true; // File is unique
-      };
-      
-      // First add all existing files that already have URLs to our tracking
-      const addExistingFiles = (categoryPath: 'firstBasedFiles' | 'secondBasedFiles', category: string) => {
-        ['uz', 'ru', 'en'].forEach(lang => {
-          const files = taskCopy[categoryPath]?.[category]?.[lang] || [];
-          const existingFiles = files.filter((file: any) => file && file.url);
-          
-          console.log(`Found ${existingFiles.length} existing files with URLs in ${category}.${lang}`);
-          
-          existingFiles.forEach((file: any) => {
-            if (trackFile(file)) {
-              // Get the right category object with type assertion
-              const categoryObj = uploadedFiles[categoryPath as keyof typeof uploadedFiles] as any;
-              // Make sure the category exists in the object
-              if (category in categoryObj && 
-                  (lang === 'uz' || lang === 'ru' || lang === 'en')) {
-                // Push file directly using any type
-                categoryObj[category][lang].push({
-                  name: file.name,
-                  url: file.url,
-                  size: file.size,
-                  type: file.type || '',
-                  path: file.path || '',
-                  path_lower: file.path_lower || '',
-                  id: file.id || '',
-                  rev: file.rev || '',
-                  server_modified: file.server_modified || null,
-                  client_modified: file.client_modified || null,
-                  existing: true // Mark as existing file
-                });
-              }
-            }
-          });
-        });
-      };
-      
-      // Add all existing files with URLs
-      if (taskCopy.firstBasedFiles) {
-        ['taskExampleFiles', 'taskSolutionFiles'].forEach(category => {
-          addExistingFiles('firstBasedFiles', category);
-        });
-      }
-      
-      if (taskCopy.secondBasedFiles) {
-        ['taskTitleFiles', 'taskPresentationFiles', 'taskLiteratureFiles'].forEach(category => {
-          addExistingFiles('secondBasedFiles', category);
-        });
-      }
-      
-      // Check each file category and prepare file uploads
-      const allUploadObservables: Observable<any>[] = [];
-      
-      // Helper to create upload observables
-      const createUploadObservables = (categoryPath: string, category: string) => {
-        const observables: Observable<any>[] = [];
-        
-        ['uz', 'ru', 'en'].forEach(lang => {
-          const files = taskCopy[categoryPath]?.[category]?.[lang] || [];
-          // Only get files that need to be uploaded (have a file property but no URL)
-          const filesToUpload = files.filter((file: any) => file && file.file && !file.url);
-          
-          console.log(`Found ${filesToUpload.length} new files to upload for ${category} in ${lang} language`);
-          
-          filesToUpload.forEach((file: any) => {
-            if (!file.file) return;
-            
-            const fileObj = file.file;
-            const fileName = file.name || fileObj.name;
-            console.log(`Preparing to upload ${fileName}`);
-            
-            const folderName = this.lesson?.lessonTitle?.uz || 'untitled';
-            const filePath = `/${folderName}/${category}/${lang}/${fileName}`;
-            
-            const uploadObservable = this.dropboxService.uploadFile(filePath, fileObj).pipe(
-              switchMap((response: any) => {
-                console.log(`Successfully uploaded ${fileName} to Dropbox:`, response);
-                
-                // Extract all metadata from the Dropbox response
-                const pathDisplay = response.path_display;
-                
-                return this.dropboxService.createSharedLink(pathDisplay).pipe(
-                  map(linkResponse => ({
-                    linkResponse,
-                    dropboxResponse: response
-                  }))
-                );
-              }),
-              map((result: any) => {
-                console.log(`Created shared link for ${fileName}:`, result);
-                
-                const sharedLinkUrl = result.linkResponse;
-                const dropboxResponse = result.dropboxResponse;
-                
-                let downloadUrl = '';
-                if (typeof sharedLinkUrl === 'string') {
-                  downloadUrl = sharedLinkUrl.replace(/[\?&]dl=\d/g, '').concat('?dl=1');
-                }
-                
-                const fileInfo = {
-                  name: fileName,
-                  url: downloadUrl,
-                  size: fileObj.size,
-                  type: fileObj.type,
-                  path: dropboxResponse.path_display,
-                  path_lower: dropboxResponse.path_lower,
-                  id: dropboxResponse.id,
-                  rev: dropboxResponse.rev,
-                  server_modified: dropboxResponse.server_modified,
-                  client_modified: dropboxResponse.client_modified,
-                  categoryPath,
-                  category,
-                  lang
-                };
-                
-                console.log(`Complete file info for ${fileName}:`, fileInfo);
-                
-                return fileInfo;
-              }),
-              catchError(error => {
-                console.error(`Error uploading ${fileName}:`, error);
-                return of(null);
-              })
-            );
-            
-            observables.push(uploadObservable);
-          });
-        });
-        
-        return observables;
-      };
-      
-      // Create upload observables for each category
-      if (taskCopy.firstBasedFiles) {
-        ['taskExampleFiles', 'taskSolutionFiles'].forEach(category => {
-          const observables = createUploadObservables('firstBasedFiles', category);
-          allUploadObservables.push(...observables);
-        });
-      }
-      
-      if (taskCopy.secondBasedFiles) {
-        ['taskTitleFiles', 'taskPresentationFiles', 'taskLiteratureFiles'].forEach(category => {
-          const observables = createUploadObservables('secondBasedFiles', category);
-          allUploadObservables.push(...observables);
-        });
-      }
+      // Prepare and collect all files for upload
+      const uploadObservables = this.prepareFilesForUpload(this.task);
+      console.log(`Total files to upload: ${uploadObservables.length}`);
 
-      console.log(`Total files to upload: ${allUploadObservables.length}`);
-
-      if (allUploadObservables.length === 0) {
+      if (uploadObservables.length === 0) {
         console.log('No new files to upload, saving directly to Firebase');
-        this.saveToFirebase(uploadedFiles);
+        this.saveToFirebase(this.task);
         return;
       }
 
       // Get the final count of uploads
-      this.totalUploads = allUploadObservables.length;
+      this.totalUploads = uploadObservables.length;
 
       // Process uploads sequentially with a delay between each
-      from(allUploadObservables)
+      from(uploadObservables)
         .pipe(
           concatMap((obs, index) => {
-            // Extract file info from the original task data to show in UI
-            const fileInfo = this.extractFileInfoFromObservable(index);
-            
             return obs.pipe(
               tap((result) => {
-                this.currentUploadFile = fileInfo;
-                
                 if (result) {
-                  // Add the uploaded file to our uploadedFiles object if it's unique
-                  const { categoryPath, category, lang, ...fileData } = result;
-                  if (trackFile(fileData)) {
-                    // Use type assertions to handle dynamic property access
-                    if (categoryPath === 'firstBasedFiles' || categoryPath === 'secondBasedFiles') {
-                      // Get the right category object with type assertion
-                      const categoryObj = uploadedFiles[categoryPath as keyof typeof uploadedFiles] as any;
-                      // Make sure the category exists in the object
-                      if (category in categoryObj && 
-                          typeof lang === 'string' && 
-                          (lang === 'uz' || lang === 'ru' || lang === 'en')) {
-                        // Use type assertion to access the nested property
-                        categoryObj[category][lang].push(fileData);
-                      }
-                    }
-                  }
+                  const { fileInfo } = result;
+                  this.currentUploadFile = { name: fileInfo.name, size: fileInfo.size };
+                  this.uploadedCount++;
+                  this.progress = Math.round((this.uploadedCount / this.totalUploads) * 100);
                 }
               }),
               delay(1000) // Add 1-second delay between each file upload
@@ -743,16 +692,13 @@ export class CreateBuildPage implements OnInit {
         )
         .subscribe({
           next: () => {
-            this.uploadedCount++;
-            this.progress = Math.round((this.uploadedCount / this.totalUploads) * 100);
             console.log(`Upload progress: ${this.progress}% (${this.uploadedCount}/${this.totalUploads})`);
           },
           complete: () => {
             this.progress = 100;
             this.toastr.success('Fayllar muvaffaqiyatli yuklandi');
-            // Final deduplication step to ensure no duplicates
-            this.deduplicateFiles(uploadedFiles);
-            this.saveToFirebase(uploadedFiles);
+            // Save the task with the updated files
+            this.saveToFirebase(this.task);
           },
           error: (error: any) => {
             console.error('Error uploading files:', error);
@@ -769,8 +715,8 @@ export class CreateBuildPage implements OnInit {
     }
   }
 
-  private saveToFirebase(uploadedFiles: any): void {
-    console.log('Saving to Firebase with files:', uploadedFiles);
+  private saveToFirebase(taskData: any): void {
+    console.log('Saving to Firebase with task data:', taskData);
     
     if (!this.lesson) {
       this.toastr.error('Fan tanlanmagan!');
@@ -778,18 +724,20 @@ export class CreateBuildPage implements OnInit {
       return;
     }
 
-    this.deduplicateFiles(uploadedFiles);
+    // Create a clean task copy to save (remove temporary upload fields)
+    const taskCopy = JSON.parse(JSON.stringify(taskData));
+    this.cleanupTaskData(taskCopy);
 
-    // Ensure all file objects have consistent properties before saving
-    this.normalizeFileObjects(uploadedFiles);
+    // Ensure all files have been properly deduplicated 
+    this.deduplicateTaskData(taskCopy);
 
     const taskToSave = {
-      id: this.task?.id || uploadedFiles.id,
-      title: this.task?.title || uploadedFiles.title,
-      index: this.task?.index || uploadedFiles.index,
-      createdAt: this.task?.createdAt || uploadedFiles.createdAt || new Date().toISOString(),
-      firstBasedFiles: uploadedFiles.firstBasedFiles,
-      secondBasedFiles: uploadedFiles.secondBasedFiles
+      id: taskCopy.id,
+      title: taskCopy.title,
+      index: taskCopy.index,
+      createdAt: taskCopy.createdAt || new Date().toISOString(),
+      firstBasedFiles: taskCopy.firstBasedFiles,
+      secondBasedFiles: taskCopy.secondBasedFiles
     };
 
     console.log('Task prepared for saving:', taskToSave);
@@ -820,87 +768,9 @@ export class CreateBuildPage implements OnInit {
             console.log('Existing task index:', existingTaskIndex);
             
             if (existingTaskIndex !== -1) {
-              console.log('Found existing task, merging files');
-              const existingTask = existingTasks[existingTaskIndex];
-              
-              const mergedTask = {
-                ...existingTask,
-                id: taskToSave.id || existingTask.id,
-                title: taskToSave.title || existingTask.title,
-                index: taskToSave.index || existingTask.index,
-                createdAt: existingTask.createdAt || taskToSave.createdAt,
-                firstBasedFiles: {
-                  taskExampleFiles: { uz: [], ru: [], en: [] },
-                  taskSolutionFiles: { uz: [], ru: [], en: [] }
-                },
-                secondBasedFiles: {
-                  taskTitleFiles: { uz: [], ru: [], en: [] },
-                  taskPresentationFiles: { uz: [], ru: [], en: [] },
-                  taskLiteratureFiles: { uz: [], ru: [], en: [] },
-                  taskVideoUrls: []
-                }
-              };
-              
-              ['taskExampleFiles', 'taskSolutionFiles'].forEach(category => {
-                ['uz', 'ru', 'en'].forEach(lang => {
-                  mergedTask.firstBasedFiles[category][lang] = 
-                    [...(taskToSave.firstBasedFiles[category][lang] || [])];
-                  
-                  if (existingTask.firstBasedFiles?.[category]?.[lang]) {
-                    existingTask.firstBasedFiles[category][lang].forEach((file: any) => {
-                      if (!mergedTask.firstBasedFiles[category][lang].some(
-                          (f: any) => (f.url && f.url === file.url) || 
-                                      (f.id && f.id === file.id) ||
-                                      (f.path && f.path === file.path)
-                      )) {
-                        mergedTask.firstBasedFiles[category][lang].push(file);
-                      }
-                    });
-                  }
-                });
-              });
-              
-              ['taskTitleFiles', 'taskPresentationFiles', 'taskLiteratureFiles'].forEach(category => {
-                ['uz', 'ru', 'en'].forEach(lang => {
-                  mergedTask.secondBasedFiles[category][lang] = 
-                    [...(taskToSave.secondBasedFiles[category][lang] || [])];
-                  
-                  if (existingTask.secondBasedFiles?.[category]?.[lang]) {
-                    existingTask.secondBasedFiles[category][lang].forEach((file: any) => {
-                      if (!mergedTask.secondBasedFiles[category][lang].some(
-                          (f: any) => (f.url && f.url === file.url) || 
-                                      (f.id && f.id === file.id) ||
-                                      (f.path && f.path === file.path)
-                      )) {
-                        mergedTask.secondBasedFiles[category][lang].push(file);
-                      }
-                    });
-                  }
-                });
-              });
-              
-              mergedTask.secondBasedFiles.taskVideoUrls = [
-                ...(taskToSave.secondBasedFiles.taskVideoUrls || [])
-              ];
-              
-              if (existingTask.secondBasedFiles?.taskVideoUrls) {
-                existingTask.secondBasedFiles.taskVideoUrls.forEach((video: Videos) => {
-                  const isDuplicate = mergedTask.secondBasedFiles.taskVideoUrls.some((v: Videos) => 
-                    (v.url.uz === video.url.uz && v.url.uz !== '') ||
-                    (v.url.ru === video.url.ru && v.url.ru !== '') ||
-                    (v.url.en === video.url.en && v.url.en !== '')
-                  );
-                  
-                  if (!isDuplicate) {
-                    mergedTask.secondBasedFiles.taskVideoUrls.push(video);
-                  }
-                });
-              }
-              
-              // Final deduplication to ensure no duplicates in merged task
-              this.deduplicateTaskFiles(mergedTask);
-              
-              existingTasks[existingTaskIndex] = mergedTask;
+              console.log('Found existing task, updating it');
+              // Replace the task completely with our updated version
+              existingTasks[existingTaskIndex] = taskToSave;
             } else {
               console.log('Task doesn\'t exist in this lesson, adding it');
               existingTasks.push(taskToSave);
@@ -948,23 +818,23 @@ export class CreateBuildPage implements OnInit {
   }
 
   /**
-   * Make sure all file objects have consistent properties
+   * Clean up task data by removing temporary upload fields
    */
-  private normalizeFileObjects(uploadedFiles: any): void {
-    console.log('Normalizing file objects for consistency');
-    
+  private cleanupTaskData(taskData: any): void {
     // Process first class files
-    if (uploadedFiles.firstBasedFiles) {
+    if (taskData.firstBasedFiles) {
       ['taskExampleFiles', 'taskSolutionFiles'].forEach(category => {
         ['uz', 'ru', 'en'].forEach(lang => {
-          if (uploadedFiles.firstBasedFiles[category]?.[lang]) {
-            uploadedFiles.firstBasedFiles[category][lang] = 
-              uploadedFiles.firstBasedFiles[category][lang].map((file: any) => {
-                if (!file) return null;
-                return {
-                  name: file.name || '',
-                  url: file.url || '',
-                  size: file.size || 0,
+          if (taskData.firstBasedFiles[category]?.[lang]) {
+            taskData.firstBasedFiles[category][lang] = 
+              taskData.firstBasedFiles[category][lang]
+                // Filter out files without URLs (they weren't uploaded)
+                .filter((file: any) => file && file.url)
+                // Clean up temporary fields
+                .map((file: any) => ({
+                  name: file.name,
+                  url: file.url,
+                  size: file.size,
                   type: file.type || '',
                   path: file.path || '',
                   path_lower: file.path_lower || '',
@@ -972,25 +842,26 @@ export class CreateBuildPage implements OnInit {
                   rev: file.rev || '',
                   server_modified: file.server_modified || null,
                   client_modified: file.client_modified || null
-                };
-              }).filter(Boolean);
+                }));
           }
         });
       });
     }
     
     // Process second class files
-    if (uploadedFiles.secondBasedFiles) {
+    if (taskData.secondBasedFiles) {
       ['taskTitleFiles', 'taskPresentationFiles', 'taskLiteratureFiles'].forEach(category => {
         ['uz', 'ru', 'en'].forEach(lang => {
-          if (uploadedFiles.secondBasedFiles[category]?.[lang]) {
-            uploadedFiles.secondBasedFiles[category][lang] = 
-              uploadedFiles.secondBasedFiles[category][lang].map((file: any) => {
-                if (!file) return null;
-                return {
-                  name: file.name || '',
-                  url: file.url || '',
-                  size: file.size || 0,
+          if (taskData.secondBasedFiles[category]?.[lang]) {
+            taskData.secondBasedFiles[category][lang] = 
+              taskData.secondBasedFiles[category][lang]
+                // Filter out files without URLs (they weren't uploaded)
+                .filter((file: any) => file && file.url)
+                // Clean up temporary fields
+                .map((file: any) => ({
+                  name: file.name,
+                  url: file.url,
+                  size: file.size,
                   type: file.type || '',
                   path: file.path || '',
                   path_lower: file.path_lower || '',
@@ -998,8 +869,7 @@ export class CreateBuildPage implements OnInit {
                   rev: file.rev || '',
                   server_modified: file.server_modified || null,
                   client_modified: file.client_modified || null
-                };
-              }).filter(Boolean);
+                }));
           }
         });
       });
@@ -1007,20 +877,22 @@ export class CreateBuildPage implements OnInit {
   }
 
   /**
-   * Deduplicate files within a single task
+   * Deduplicate files in the task data
    */
-  private deduplicateTaskFiles(task: any): void {
-    const taskWrapper = {
-      firstBasedFiles: task.firstBasedFiles,
-      secondBasedFiles: task.secondBasedFiles
+  private deduplicateTaskData(taskData: any): void {
+    // Create a wrapper to use with the deduplicateFiles method
+    const wrapper = {
+      firstBasedFiles: taskData.firstBasedFiles,
+      secondBasedFiles: taskData.secondBasedFiles
     };
     
-    this.deduplicateFiles(taskWrapper);
+    this.deduplicateFiles(wrapper);
     
-    task.firstBasedFiles = taskWrapper.firstBasedFiles;
-    task.secondBasedFiles = taskWrapper.secondBasedFiles;
+    // Copy back the deduplicated files
+    taskData.firstBasedFiles = wrapper.firstBasedFiles;
+    taskData.secondBasedFiles = wrapper.secondBasedFiles;
   }
-
+  
   /**
    * Deduplicate files across all languages
    */
@@ -1030,10 +902,11 @@ export class CreateBuildPage implements OnInit {
     
     // Helper function to deduplicate files across languages
     const deduplicateCategory = (categoryPath: string, category: string) => {
-      // Create maps for unique tracking
-      const urlMap = new Map<string, {lang: string, index: number, file: any}>();
-      const idMap = new Map<string, {lang: string, index: number, file: any}>();
-      const pathMap = new Map<string, {lang: string, index: number, file: any}>();
+      // Create maps for unique tracking - the value is the file and its priority
+      // Higher priority files will replace lower priority ones
+      const urlMap = new Map<string, {lang: string, index: number, file: any, priority: number}>();
+      const idMap = new Map<string, {lang: string, index: number, file: any, priority: number}>();
+      const pathMap = new Map<string, {lang: string, index: number, file: any, priority: number}>();
       
       // First pass: collect all files and their unique identifiers
       ['uz', 'ru', 'en'].forEach(lang => {
@@ -1041,30 +914,55 @@ export class CreateBuildPage implements OnInit {
         files.forEach((file: any, index: number) => {
           if (!file) return;
           
+          // Calculate priority - replacements and newer files get higher priority
+          let priority = 0;
+          if (file.isReplacement) priority += 100; // Highest priority for replacements
+          if (!file.existing) priority += 50;     // Higher priority for new uploads
+          if (file.server_modified) {
+            // Add a small priority based on modification time
+            const modTime = new Date(file.server_modified).getTime();
+            priority += modTime / 1000000000; // Normalize to a reasonable number
+          }
+          
           // Track by URL (primary key)
           if (file.url) {
             if (urlMap.has(file.url)) {
-              console.log(`Found duplicate URL across languages in ${category}: ${file.url}`);
+              const existing = urlMap.get(file.url)!;
+              // Only replace if the new file has higher priority
+              if (priority > existing.priority) {
+                console.log(`Replacing file with URL ${file.url} with higher priority file`);
+                urlMap.set(file.url, {lang, index, file, priority});
+              }
             } else {
-              urlMap.set(file.url, {lang, index, file});
+              urlMap.set(file.url, {lang, index, file, priority});
             }
           }
           
           // Track by Dropbox ID if available
           if (file.id) {
             if (idMap.has(file.id)) {
-              console.log(`Found duplicate Dropbox ID across languages in ${category}: ${file.id}`);
+              const existing = idMap.get(file.id)!;
+              // Only replace if the new file has higher priority
+              if (priority > existing.priority) {
+                console.log(`Replacing file with ID ${file.id} with higher priority file`);
+                idMap.set(file.id, {lang, index, file, priority});
+              }
             } else {
-              idMap.set(file.id, {lang, index, file});
+              idMap.set(file.id, {lang, index, file, priority});
             }
           }
           
           // Track by path if available
           if (file.path) {
             if (pathMap.has(file.path)) {
-              console.log(`Found duplicate path across languages in ${category}: ${file.path}`);
+              const existing = pathMap.get(file.path)!;
+              // Only replace if the new file has higher priority
+              if (priority > existing.priority) {
+                console.log(`Replacing file with path ${file.path} with higher priority file`);
+                pathMap.set(file.path, {lang, index, file, priority});
+              }
             } else {
-              pathMap.set(file.path, {lang, index, file});
+              pathMap.set(file.path, {lang, index, file, priority});
             }
           }
         });
@@ -1245,23 +1143,53 @@ export class CreateBuildPage implements OnInit {
       return;
     }
 
+    // Get the existing file to preserve metadata when possible
+    let existingFile: any = null;
+    let fileCategory: 'firstBasedFiles' | 'secondBasedFiles' = 
+      this.isFirstClassFileCategory(category) ? 'firstBasedFiles' : 'secondBasedFiles';
+
+    if (this.isFirstClassFileCategory(category)) {
+      existingFile = this.task.firstBasedFiles[category]?.[lang]?.[index];
+    } else if (this.isSecondClassFileCategory(category)) {
+      existingFile = this.task.secondBasedFiles[category]?.[lang]?.[index];
+    }
+
+    // Create the new file object, preserving existing metadata
     const newFile = {
       name: file.name,
       size: file.size,
       file: file,
+      // Preserve these fields from the existing file if they exist
+      id: existingFile?.id,
+      path: existingFile?.path,
+      path_lower: existingFile?.path_lower,
+      rev: existingFile?.rev,
+      // Add a flag to indicate this is a replacement
+      isReplacement: true,
+      replacedFileUrl: existingFile?.url,
+      replacedFileId: existingFile?.id
     };
 
+    // Replace the file in the appropriate category
     if (this.isFirstClassFileCategory(category)) {
       if (this.task.firstBasedFiles[category]?.[lang]) {
+        // Remove the URL to trigger a new upload
+        if (existingFile) delete existingFile.url;
+        // Replace the existing file with the new one
         this.task.firstBasedFiles[category][lang][index] = newFile;
       }
       this.toastr.success('Fayl muvaffaqiyatli o\'zgartirildi');
     } else if (this.isSecondClassFileCategory(category)) {
       if (this.task.secondBasedFiles[category]?.[lang]) {
+        // Remove the URL to trigger a new upload
+        if (existingFile) delete existingFile.url;
+        // Replace the existing file with the new one
         this.task.secondBasedFiles[category][lang][index] = newFile;
       }
       this.toastr.success('Fayl muvaffaqiyatli o\'zgartirildi');
     }
+    
+    console.log(`File replaced in ${category}.${lang} at index ${index}:`, newFile);
   }
 
   goBack(): void {
