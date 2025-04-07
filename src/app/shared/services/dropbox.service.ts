@@ -4,7 +4,6 @@ import { environment } from 'src/environments/environment';
 import { Observable, from, throwError, defer, of } from 'rxjs';
 import { catchError, map, shareReplay, switchMap } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
-import { DropboxAuthService } from './dropbox.auth.service';
 
 declare var Dropbox: any;
 
@@ -12,26 +11,26 @@ declare var Dropbox: any;
   providedIn: 'root',
 })
 export class DropboxService {
+  private readonly token: string = environment.dropboxToken;
+
   constructor(
     private http: HttpClient,
-    private toastr: ToastrService,
-    private dropboxAuthService: DropboxAuthService
-  ) {}
+    private toastr: ToastrService
+  ) {
+    if (!this.token) {
+      console.error('No Dropbox token found in environment. Please add the token to your environment file.');
+    }
+  }
 
   /**
-   * Get the authentication token from auth service
+   * Get the authentication token from environment
    */
-  private getAuthToken(): string | null {
-    // Get token from auth service
-    const token = this.dropboxAuthService.getAccessToken();
-    
-    if (!token) {
-      console.error('No Dropbox token available');
+  private getAuthToken(): string {
+    if (!this.token) {
+      console.error('No Dropbox token available in environment');
       this.toastr.error('Dropbox token not configured', 'Configuration Error');
-      return null;
     }
-    
-    return token;
+    return this.token;
   }
 
   /**
@@ -39,17 +38,17 @@ export class DropboxService {
    * @returns Observable with the user account info if valid, error if invalid
    */
   validateToken(): Observable<any> {
-    const token = this.dropboxAuthService.getAccessToken();
+    const token = sessionStorage.getItem('accessToken');
     if (!token) {
       return throwError(() => new Error('No token available'));
     }
-
+  
     const url = 'https://api.dropboxapi.com/2/users/get_current_account';
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${token}`,
       // DON'T set Content-Type for this request
     });
-
+  
     return this.http.post(url, null, { headers }).pipe(
       catchError(error => {
         console.error('Token validation error:', error);
@@ -156,24 +155,19 @@ export class DropboxService {
     const checkLinkUrl = 'https://api.dropboxapi.com/2/sharing/list_shared_links';
     const createLinkUrl = 'https://api.dropboxapi.com/2/sharing/create_shared_link_with_settings';
 
-    return this.makeSharedLinkRequest(checkLinkUrl, createLinkUrl, token, filePath);
-  }
+    const fetchApi = (url: string, options: RequestInit): Observable<Response> => 
+      from(fetch(url, options));
 
-  // Helper method for shared link creation
-  private makeSharedLinkRequest(checkUrl: string, createUrl: string, token: string, filePath: string): Observable<string> {
-    const fetchApi = (url: string, body: any): Observable<Response> => 
-      from(fetch(url, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      }));
-
-    return fetchApi(checkUrl, {
-      path: filePath,
-      direct_only: true,
+    return fetchApi(checkLinkUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        path: filePath,
+        direct_only: true,
+      }),
     }).pipe(
       switchMap((response) => {
         if (!response.ok) {
@@ -186,11 +180,18 @@ export class DropboxService {
           return from(Promise.resolve(data.links[0].url.replace('?dl=0', '?dl=1')));
         }
 
-        return fetchApi(createUrl, {
-          path: filePath,
-          settings: {
-            requested_visibility: 'public',
+        return fetchApi(createLinkUrl, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
           },
+          body: JSON.stringify({
+            path: filePath,
+            settings: {
+              requested_visibility: 'public',
+            },
+          }),
         }).pipe(
           switchMap((createResponse) => {
             if (!createResponse.ok) {
@@ -201,9 +202,9 @@ export class DropboxService {
           map((createData: any) => createData.url.replace('?dl=0', '?dl=1'))
         );
       }),
-      catchError(error => {
-        console.error('Error creating shared link:', error);
-        return throwError(() => error);
+      catchError((error) => {
+        console.error('Error creating or fetching shared link:', error);
+        return throwError(() => new Error('Error occurred while creating or fetching shared link'));
       })
     );
   }
@@ -223,21 +224,23 @@ export class DropboxService {
     const newFileName = `${fileNameParts.join('.')}_${timestamp}.${ext}`;
     const newFilePath = [...filePathParts, newFileName].join('/');
 
-    return from(
-      fetch(url, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/octet-stream',
-          'Dropbox-API-Arg': JSON.stringify({
-            path: newFilePath,
-            mode: 'add',
-            autorename: true,
-            mute: false,
-          }),
-        },
-        body: fileContent,
-      })
+    return defer(() =>
+      from(
+        fetch(url, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/octet-stream',
+            'Dropbox-API-Arg': JSON.stringify({
+              path: newFilePath,
+              mode: 'add',
+              autorename: true,
+              mute: false,
+            }),
+          },
+          body: fileContent,
+        })
+      )
     ).pipe(
       switchMap((response) => {
         if (!response.ok) {
@@ -249,7 +252,7 @@ export class DropboxService {
       }),
       map((result: any) => {
         console.log('Upload result from Dropbox API:', result);
-        // Return the full metadata object plus additional fields
+        // Return the full metadata object instead of just the path
         return {
           ...result,
           original_path: filePath,
@@ -257,7 +260,7 @@ export class DropboxService {
         };
       }),
       catchError((error) => {
-        console.error('Error uploading file to Dropbox:', error);
+        console.error('Error during upload:', error);
         return throwError(() => error);
       })
     );

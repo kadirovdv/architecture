@@ -47,57 +47,16 @@
     "remember-me": "Meni eslab qolish",
     "forgot-password": "Parolni unutdingizmi?",
     "sign-in": "Dropbox ga kirish",
-    "access-files": "Fayllaringizni boshqarish uchun Dropbox hisobingizga kiring.",
     "auth-info": "Ushbu ilovada fayllarni boshqarish uchun Dropbox hisobingizga kirish huquqini berishingiz kerak. Havfsiz ulanish uchun quyidagi tugmani bosing.",
     "continue-with": "Dropbox orqali davom ettirish",
-    "sign-in-button": "Dropbox orqali kirish",
     "connecting": "Ulanmoqda...",
-    "auth-note": "Xavfsiz autentifikatsiya uchun yangi oynada Dropbox saytiga yo'naltirilasiz.",
+    "auth-note": "Eslatma: Siz Dropbox orqali kirishga yo'naltirilasiz. Bu ilova hech qanday parollarni saqlamaydi.",
     "no-account": "Dropbox hisobingiz yo'qmi?",
     "sign-up": "Ro'yhatdan o'tish",
     "terms": "Tizimga kirib, siz Dropbox kompaniyasining",
     "terms-link": "Foydalanish shartlariga rozilik bildirasiz",
     "auth-success": "Dropbox hisobingiz muvaffaqiyatli ulandi",
     "auth-failed": "Autentifikatsiya amalga oshmadi",
-    "use-oauth": "Iltimos, autentifikatsiya uchun \"Dropbox orqali davom ettirish\" tugmasidan foydalaning",
-    
-    "manual-token": {
-      "title": "Kirish bilan muammo bormi?",
-      "description": "Agar avtomatik ulanish ishlamasa, tokenni qo'lda kiritishingiz mumkin.",
-      "instructions-button": "Tokenni qanday olish",
-      "placeholder": "Access_token ni shu yerga joylashtiring",
-      "use-token": "Tokenni ishlatish",
-      "token-required": "Iltimos, tokenni kiriting",
-      "token-extracted": "Token URL dan muvaffaqiyatli ajratib olindi",
-      "extraction-failed": "Berilgan URL dan tokenni ajratib olish imkonsiz",
-      "token-set": "Token o'rnatildi. Tekshirilmoqda..."
-    },
-    
-    "success": {
-      "title": "Muvaffaqiyatli ulandi",
-      "description": "Sizning Dropbox hisobingiz ilovaga ulandi.",
-      "continue": "Ilovaga o'tish",
-      "test-connection": "Ulanishni tekshirish",
-      "disconnect": "Uzish",
-      "disconnected": "Dropbox dan uzildi"
-    },
-    
-    "errors": {
-      "expired": "Sizning Dropbox hisobingizga kirish vaqti tugadi. Iltimos, qayta kiring.",
-      "auth-required": "Autentifikatsiya talab qilinadi",
-      "auth-failed": "Autentifikatsiya amalga oshmadi. Iltimos, Dropbox ga qayta kiring.",
-      "connection-failed": "Dropbox API ga ulanib bo'lmadi",
-      "session-expired": "Sizning Dropbox sessiyangiz vaqti tugadi. Iltimos, qayta kiring.",
-      "popup-blocked": "Autentifikatsiya sahifasini avtomatik ochish uchun qalqib chiquvchi oynalarga ruxsat bering"
-    },
-    
-    "instructions": {
-      "step1": "Ushbu URL manzilini yangi oynada oching:",
-      "step2": "Dropbox ga kiring va ilovaga ruxsat bering",
-      "step3": "Ruxsat berganingizdan so'ng, URL manzilida \"#access_token=\" qismi bo'lgan sahifaga yo'naltirilasiz",
-      "step4": "Brauzeringiz manzil satridan TO'LIQ URL ni nusxalang",
-      "step5": "Uni quyidagi maydonchaga joylang (token avtomatik ajratib olinadi)",
-      "note": "Agar faqat tokenning o'zini ko'rsangiz, uni to'g'ridan-to'g'ri joylashtirish mumkin."
-    }
+    "use-oauth": "Iltimos, autentifikatsiya uchun \"Dropbox orqali davom ettirish\" tugmasidan foydalaning"
   }
 }

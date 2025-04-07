@@ -21,11 +21,6 @@ const routes: Routes = [
             {
                 path: 'dropbox-login',
                 component: DropboxLoginComponent
-            },
-            {
-                path: 'callback',
-                component: DropboxLoginComponent,
-                // This route is for handling the OAuth callback
             }
         ]
     }
