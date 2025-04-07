@@ -512,9 +512,43 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.selectedFilesSubject.next(newFiles);
+    
+    // Calculate the delay based on the number of files in each language
+    let maxFilesCount = 0;
+    
+    if (category === 'firstBasedFiles' && fileType in newFiles.firstBasedFiles) {
+      const filesObj = newFiles.firstBasedFiles[fileType as keyof FirstClassFileGroups] as any;
+      if (filesObj && typeof filesObj === 'object' && 'uz' in filesObj && 'ru' in filesObj && 'en' in filesObj) {
+        maxFilesCount = Math.max(
+          Array.isArray(filesObj.uz) ? filesObj.uz.length : 0,
+          Array.isArray(filesObj.ru) ? filesObj.ru.length : 0,
+          Array.isArray(filesObj.en) ? filesObj.en.length : 0
+        );
+      }
+    } else if (category === 'secondBasedFiles' && fileType in newFiles.secondBasedFiles) {
+      if (fileType === 'taskVideoUrls') {
+        const videos = newFiles.secondBasedFiles.taskVideoUrls;
+        maxFilesCount = Array.isArray(videos) ? videos.length : 0;
+      } else {
+        const filesObj = newFiles.secondBasedFiles[fileType as keyof SecondClassFileGroups] as any;
+        if (filesObj && typeof filesObj === 'object' && 'uz' in filesObj && 'ru' in filesObj && 'en' in filesObj) {
+          maxFilesCount = Math.max(
+            Array.isArray(filesObj.uz) ? filesObj.uz.length : 0,
+            Array.isArray(filesObj.ru) ? filesObj.ru.length : 0,
+            Array.isArray(filesObj.en) ? filesObj.en.length : 0
+          );
+        }
+      }
+    }
+    
+    // Apply a 100ms delay for each file
+    const delayTime = maxFilesCount > 1 ? maxFilesCount * 100 : 0;
+    
+    console.log(`Setting delay of ${delayTime}ms for ${maxFilesCount} files`);
+    
     setTimeout(() => {
       this.isLoadingFile = false;
-    }, Math.abs(this.currentSlideIndex - this.websiteLessons.length) * 1000);
+    }, delayTime);
   }
 
   private updateFilesOnLanguageChange(): void {
