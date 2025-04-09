@@ -1,200 +1,250 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, NgZone } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
-import { environment } from 'src/environments/environment';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { catchError, finalize, delay } from 'rxjs/operators';
+import { of, Observable } from 'rxjs';
 import { DropboxAuthService } from 'src/app/shared/services/dropbox.auth.service';
-import { DropboxService } from 'src/app/shared/services/dropbox.service';
+import { environment } from 'src/environments/environment';
 
 @Component({
   selector: 'app-dropbox-login',
   templateUrl: './dropbox-login.component.html',
-  styleUrls: ['./dropbox-login.component.scss']
+  styleUrls: ['./dropbox-login.component.scss'],
 })
 export class DropboxLoginComponent implements OnInit {
-  isAuthorizing = false;
-  isLoggedIn = false;
-  returnUrl: string = '/dashboard';
-  userAccountInfo: any = null;
-  
+  isAuthenticated = false;
+  isLoading = true;
+  isConnecting = false;
+  returnUrl: string = '';
+  userInfo: any = null;
+  error: string | null = null;
+  processing = false;
+
   constructor(
     private router: Router,
     private route: ActivatedRoute,
     private toastr: ToastrService,
-    private dropboxService: DropboxService,
+    private zone: NgZone,
+    private http: HttpClient,
     private dropboxAuthService: DropboxAuthService
   ) {}
 
   ngOnInit(): void {
-    // Get returnUrl from route parameters or from stored original path
-    this.route.queryParams.subscribe(params => {
-      this.returnUrl = params['returnUrl'] || this.dropboxAuthService.getOriginalPath();
-    });
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
     
-    // Check if we have a token in URL hash (for OAuth callback)
-    if (window.location.hash && window.location.hash.includes('access_token=')) {
-      this.handleAuthCallback();
-      return;
-    }
+    // Show loading indicator
+    this.isLoading = true;
     
-    // Check if we already have a valid token
-    if (this.dropboxAuthService.isAuthenticated() && !this.dropboxAuthService.isTokenExpired()) {
-      this.isLoggedIn = true;
-      // If we already have a valid token and there's a return URL, go there directly
-      if (this.returnUrl && this.returnUrl !== '/auth/dropbox-login') {
-        this.continueToApp();
-      } else {
-        // Verify the token and get user info
-        this.verifyToken();
-      }
-      return;
-    }
-    
-    // Try the environment token as a last resort
-    const envToken = environment.dropboxToken;
-    if (envToken) {
-      this.dropboxAuthService.setToken(envToken, 'environment');
-      this.verifyToken();
+    // Check for hash fragment in URL (Dropbox OAuth redirect)
+    if (window.location.hash) {
+      // Add a small delay to ensure the component is fully loaded
+      setTimeout(() => {
+        this.extractTokenAndValidate();
+      }, 500);
+    } else {
+      setTimeout(() => {
+        this.isLoading = false;
+      }, 1500);
+
+      this.checkAuthenticated();
     }
   }
+
   
-  /**
-   * Verify if the current token is valid
-   */
-  private verifyToken(): void {
-    this.dropboxService.validateToken().subscribe({
-      next: (accountInfo) => {
-        this.isLoggedIn = true;
-        this.userAccountInfo = accountInfo;
-        console.log('Account info:', accountInfo);
-        
-        // Auto-redirect if we just validated the token and have a return URL
-        if (this.returnUrl && this.returnUrl !== '/auth/dropbox-login') {
-          this.continueToApp();
-        }
-      },
-      error: () => {
-        this.isLoggedIn = false;
-        this.dropboxAuthService.clearToken();
-      }
-    });
-  }
-  
-  /**
-   * Handles the OAuth callback with token in URL fragment
-   */
-  private handleAuthCallback(): void {
-    try {
-      // Extract and save the token from the URL
-      this.dropboxAuthService.setAccessTokenFromUrl(window.location.href);
-      
-      // Check if token was successfully set
-      if (this.dropboxAuthService.isAuthenticated()) {
-        this.isLoggedIn = true;
-        this.toastr.success('Successfully authenticated with Dropbox');
-        
-        // Clear the fragment from URL without page reload
-        if (window.history && window.history.replaceState) {
-          const cleanUrl = window.location.pathname + window.location.search;
-          window.history.replaceState({}, document.title, cleanUrl);
-        }
-        
-        // Test the connection to ensure token works
-        this.verifyTokenAndRedirect();
-      } else {
-        this.toastr.error('Failed to authenticate with Dropbox');
-      }
-    } catch (error) {
-      console.error('Error handling auth callback:', error);
-      this.toastr.error('Failed to authenticate with Dropbox');
-    }
-  }
-  
-  /**
-   * Verify token and redirect if valid
-   */
-  private verifyTokenAndRedirect(): void {
-    this.dropboxService.validateToken().subscribe({
-      next: (accountInfo) => {
-        this.userAccountInfo = accountInfo;
-        // Automatically continue to app if we just got a valid token from login
-        if (this.returnUrl) {
-          this.continueToApp();
-        }
-      },
-      error: (error) => {
-        this.toastr.error('Failed to verify Dropbox token: ' + error.message);
-        this.isLoggedIn = false;
-        this.dropboxAuthService.clearToken();
-      }
-    });
-  }
-  
-  /**
-   * Initiate login process with Dropbox
-   */
-  login(): void {
-    if (this.isAuthorizing) return;
+  connect(): void {
+    this.isConnecting = true;
+    this.error = null;
     
-    // First try with existing token if available
-    if (this.dropboxAuthService.isAuthenticated() && !this.dropboxAuthService.isTokenExpired()) {
-      this.verifyToken();
-      return;
+    if (this.returnUrl) {
+      sessionStorage.setItem('dropbox_auth_return_url', this.returnUrl);
     }
     
-    // Open Dropbox auth in a new tab
-    this.loginWithRedirect();
+    this.toastr.info('Initiating Dropbox authentication...', 'Connecting');
+    
+    window.open(this.getDropboxAuthUrl(), '_blank');
+    
+    this.toastr.info('Please complete authorization in the new tab, then return to this page and click "Refresh".', 'Authorization Started');
+    this.isConnecting = false;
   }
-  
-  /**
-   * Initiate login process with Dropbox via redirect
-   */
-  loginWithRedirect(): void {
-    this.isAuthorizing = true;
-    this.dropboxAuthService.loginWithRedirect();
-    this.isAuthorizing = false;
+
+
+  private getDropboxAuthUrl(): string {
+    const redirectUri = window.location.origin + window.location.pathname;
+    const appKey = this.getAppKey();
+    return `https://www.dropbox.com/oauth2/authorize?response_type=token&client_id=${appKey}&redirect_uri=${redirectUri}`;
   }
+
   
-  /**
-   * Log out from Dropbox
-   */
-  logout(): void {
-    this.dropboxAuthService.clearToken();
-    this.isLoggedIn = false;
-    this.userAccountInfo = null;
+  private getAppKey(): string {
+    return environment.appKEY;
+  }
+
+  connectDirect(): void {
+    this.isConnecting = true;
+    this.error = null;
+    this.processing = true;
+
+    if (this.returnUrl) {
+      sessionStorage.setItem('dropbox_auth_return_url', this.returnUrl);
+    }
+    
+    this.toastr.info('Redirecting to Dropbox...', 'Please wait');
+    
+    this.dropboxAuthService.startOAuth();
+  }
+
+  
+  disconnect(): void {
+    sessionStorage.removeItem('accessToken');
+    this.isAuthenticated = false;
+    this.userInfo = null;
     this.toastr.info('Disconnected from Dropbox');
   }
+
   
-  /**
-   * Continue to application
-   */
   continueToApp(): void {
-    // Clear the stored original path as we're now navigating to it
-    this.dropboxAuthService.clearOriginalPath();
-    
-    // Navigate to the return URL
-    this.router.navigateByUrl(this.returnUrl);
+    const returnUrl = sessionStorage.getItem('dropbox_auth_return_url') || '/';
+    this.router.navigateByUrl(returnUrl);
   }
-  
-  /**
-   * Test Dropbox connection
-   */
-  testConnection(): void {
-    this.dropboxService.validateToken().subscribe(
-      accountInfo => {
-        this.userAccountInfo = accountInfo;
-        this.toastr.success('Successfully connected to Dropbox API');
-        console.log('Dropbox account info:', accountInfo);
+
+
+  private checkAuthenticated(): void {
+    this.isLoading = true;
+    
+    this.dropboxAuthService.validateToken().subscribe(
+      isValid => {
+        this.isAuthenticated = isValid;
+        if (isValid) {
+          this.fetchUserInfo();
+        } else {
+          this.isLoading = false;
+        }
       },
       error => {
-        this.toastr.error('Failed to connect to Dropbox API: ' + error.message);
-        console.error('Dropbox test error:', error);
-        
-        // Check if token expired (based on error)
-        if (error.status === 401) {
-          this.logout();
-          this.toastr.warning('Your Dropbox session has expired. Please log in again.');
-        }
+        this.error = 'Error validating token: ' + error.message;
+        this.isLoading = false;
       }
     );
   }
-} 
+
+  private fetchUserInfo(): void {
+    const token = this.dropboxAuthService.getAccessToken();
+    if (!token) {
+      this.isLoading = false;
+      return;
+    }
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+    });
+
+    this.http.post('https://api.dropboxapi.com/2/users/get_current_account', null, { headers })
+      .subscribe(
+        (data: any) => {
+          this.userInfo = data;
+          this.isLoading = false;
+        },
+        error => {
+          this.error = 'Error fetching user info: ' + error.message;
+          this.isLoading = false;
+        }
+      );
+  }
+
+  private extractTokenAndValidate(): void {
+    this.isLoading = true;
+    this.error = null;
+    
+    try {
+      // Extract and store the access_token from the URL hash
+      this.extractTokenFromUrl();
+      
+      // Add a delay before validation to ensure token is properly stored
+      setTimeout(() => {
+        // Then validate it using the service
+        this.dropboxAuthService.validateToken().subscribe(
+          isValid => {
+            this.isAuthenticated = isValid;
+            if (isValid) {
+              this.fetchUserInfo();
+              this.toastr.success('Connected to Dropbox successfully!', 'Success');
+            } else {
+              this.error = 'Invalid or expired token. Please try connecting again.';
+              this.isLoading = false;
+            }
+          },
+          error => {
+            this.error = 'Error validating token: ' + error.message;
+            this.isLoading = false;
+          }
+        );
+      }, 1500); // Add 1.5 second delay to ensure token is stored
+    } catch (err) {
+      this.error = 'Error processing authentication: ' + (err instanceof Error ? err.message : String(err));
+      this.isLoading = false;
+    }
+  }
+
+  private extractTokenFromUrl(): void {
+    const hash = window.location.hash;
+    const params = new URLSearchParams(hash.slice(1));
+    const accessToken: any = encodeURIComponent(params.get('access_token') || '');
+    
+    setTimeout(() => {
+        sessionStorage.setItem('accessToken', accessToken);
+        // Add debugging to check if token was properly stored
+        console.log('Token stored in session storage:', accessToken);
+        this.debugCheckToken();
+      if (accessToken?.length) {
+      } else {
+        // If we have a hash but no access_token, show an error
+        this.error = 'Authentication failed: No access token received from Dropbox';
+        this.isLoading = false;
+        console.error('No access_token found in URL hash:', hash);
+      }
+    }, 1000);
+  }
+  
+  /**
+   * Debug method to check if token is correctly stored in session storage
+   */
+  private debugCheckToken(): void {
+    setTimeout(() => {
+      const storedToken = sessionStorage.getItem('accessToken');
+      console.log('Token in session storage after delay:', storedToken);
+    }, 1200);
+  }
+
+  refreshAuthStatus(): void {
+    this.isLoading = true;
+    this.error = null;
+    
+    if (window.location.hash) {
+      this.extractTokenAndValidate();
+    } else {
+      this.checkAuthenticated();
+    }
+  }
+
+  getUserName(): string {
+    if (this.userInfo && this.userInfo.name) {
+      return `${this.userInfo.name.given_name || ''} ${this.userInfo.name.surname || ''}`.trim();
+    }
+    return 'Dropbox User';
+  }
+
+  getUserEmail(): string {
+    if (this.userInfo && this.userInfo.email) {
+      return this.userInfo.email;
+    }
+    return '';
+  }
+
+  redirectToReturnUrl(): void {
+    const returnUrl = sessionStorage.getItem('dropbox_auth_return_url') || '/';
+    this.zone.run(() => {
+      this.router.navigateByUrl(returnUrl);
+    });
+  }
+}

@@ -30,7 +30,7 @@ export class AuthInterceptor implements HttpInterceptor {
     if (token) {
       request = request.clone({
         setHeaders: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${sessionStorage.getItem('accessToken')}`
         }
       });
       console.log('Added Dropbox Bearer token to request:', request.url);

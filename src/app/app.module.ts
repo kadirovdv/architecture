@@ -23,16 +23,9 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { LoaderWithLogoComponent } from './shared/components/loader/loader-with-logo.component';
 import { LoadingInterceptor } from './shared/interceptors/loading.interceptor';
 import { AuthInterceptor } from './shared/interceptors/auth.interceptor';
-import { DropboxAuthInterceptor } from './shared/interceptors/dropbox-auth.interceptor';
-import { DropboxInitializerService } from './shared/services/dropbox-initializer.service';
 
 export function HttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http);
-}
-
-// Factory function for APP_INITIALIZER
-export function initializeDropbox(dropboxInitializer: DropboxInitializerService) {
-  return () => dropboxInitializer.initializeDropbox();
 }
 
 @NgModule({
@@ -62,18 +55,8 @@ export function initializeDropbox(dropboxInitializer: DropboxInitializerService)
     FormsModule,
   ],
   providers: [
-    // HTTP Interceptors
     { provide: HTTP_INTERCEPTORS, useClass: LoadingInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
-    { provide: HTTP_INTERCEPTORS, useClass: DropboxAuthInterceptor, multi: true },
-    
-    // App Initializer - runs on app startup
-    {
-      provide: APP_INITIALIZER,
-      useFactory: initializeDropbox,
-      deps: [DropboxInitializerService],
-      multi: true
-    }
   ],
   bootstrap: [AppComponent],
 })

@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from './shared/guards/auth.guard';
+import { DropboxAuthGuard } from './shared/guards/dropbox-auth.guard';
 
 const routes: Routes = [
   {
@@ -10,6 +11,7 @@ const routes: Routes = [
   },
   {
     path: 'pages',
+    canActivate: [DropboxAuthGuard],
     loadChildren: () =>
       import('./pages/pages.module').then((module) => module.PagesModule),
   },

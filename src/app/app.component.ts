@@ -2,7 +2,7 @@ import { Component, ElementRef, OnInit } from '@angular/core';
 import DisableDevtool from 'disable-devtool';
 import { SearchService } from './shared/services/search.global.service';
 import { TranslateService } from '@ngx-translate/core';
-
+import { environment } from 'src/environments/environment';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -17,6 +17,7 @@ export class AppComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    sessionStorage.setItem('accessToken', environment.dropboxToken);
     // DisableDevtool();
     const textContent = this.extractText(this.el.nativeElement);
     this.searchService.indexTextWithRoute(textContent, '/pages');

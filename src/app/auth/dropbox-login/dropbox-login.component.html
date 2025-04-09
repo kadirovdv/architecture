@@ -1,65 +1,142 @@
 <div class="dropbox-login-container">
-  <div class="login-card">
-    <div class="logo">
-      <img src="assets/img/dropbox-logo.png" alt="Dropbox Logo" class="dropbox-logo">
-    </div>
-    
-    <!-- Not logged in state -->
-    <div *ngIf="!isLoggedIn" class="login-content">
-      <h2>Sign in to Dropbox</h2>
-      <p class="description">Access your Dropbox account to manage your files.</p>
-      
-      <button 
-        (click)="login()" 
-        [disabled]="isAuthorizing" 
-        class="login-button">
-        <span>Sign in with Dropbox</span>
-      </button>
-      
-      <div class="info-text">
-        <small>You'll be redirected to Dropbox in a new tab for secure authentication.</small>
-      </div>
-    </div>
-    
-    <!-- Logged in state -->
-    <div *ngIf="isLoggedIn" class="login-content success">
-      <div class="success-icon">
-        <svg viewBox="0 0 24 24" width="48" height="48">
-          <path fill="#0061FE" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"></path>
+  <div class="login-panel" [class.authenticated]="isAuthenticated">
+    <!-- Header with logo -->
+    <div class="panel-header">
+      <div class="logo-container">
+        <svg width="42" height="40" viewBox="0 0 42 40" class="dropbox-logo">
+          <path d="M12.6 0L0 8.3L8.7 15.2L21 7.8L12.6 0Z" fill="#0061FF"/>
+          <path d="M0 22.2L12.6 30.5L21 22.6L8.7 15.2L0 22.2Z" fill="#0061FF"/>
+          <path d="M21 22.6L29.4 30.5L42 22.2L33.3 15.2L21 22.6Z" fill="#0061FF"/>
+          <path d="M42 8.3L29.4 0L21 7.8L33.3 15.2L42 8.3Z" fill="#0061FF"/>
+          <path d="M21.1 24.1L12.6 32.2L8.9 29.6V32.6L21.1 40L33.3 32.6V29.6L29.6 32.2L21.1 24.1Z" fill="#0061FF"/>
         </svg>
+        <h1 class="app-name">Dropbox Integration</h1>
       </div>
-      
-      <h2>Successfully Connected</h2>
-      
-      <!-- User account info if available -->
-      <div *ngIf="userAccountInfo" class="user-info">
-        <div *ngIf="userAccountInfo.profile_photo_url" class="user-photo">
-          <img [src]="userAccountInfo.profile_photo_url" alt="Profile Photo" class="profile-photo">
+    </div>
+
+    <div class="panel-content">
+      <div *ngIf="isLoading" class="loading-container">
+        <div class="spinner"></div>
+        <p class="loading-text">Checking authentication...</p>
+      </div>
+
+      <div *ngIf="error && !isLoading" class="error-message">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <div>
+          <p>{{ error }}</p>
+          <small *ngIf="error.includes('invalid_request')" class="error-hint">
+            Try using the "Connect directly" option instead of the popup.
+          </small>
+          <small *ngIf="error.includes('expired')" class="error-hint">
+            Your session has expired. Please reconnect to Dropbox to continue.
+          </small>
+          <small *ngIf="error.includes('not configured')" class="error-hint">
+            Dropbox API credentials are not properly configured. Please check your environment settings.
+          </small>
         </div>
-        <p class="user-name">{{ userAccountInfo.name.display_name }}</p>
-        <p class="user-email">{{ userAccountInfo.email }}</p>
       </div>
-      <p *ngIf="!userAccountInfo" class="description">Your Dropbox account is now linked to the application.</p>
-      
-      <button 
-        (click)="continueToApp()" 
-        class="login-button continue-button">
-        Continue to App
-      </button>
-      
-      <div class="secondary-actions">
-        <button 
-          (click)="testConnection()" 
-          class="secondary-button">
-          Test Connection
-        </button>
+
+      <div *ngIf="!isAuthenticated && !isLoading" class="unauthenticated">
+        <h2>Connect to Dropbox</h2>
+        <p class="description">
+          This application needs access to your Dropbox account to:
+        </p>
+        <ul class="features-list">
+          <li>Access and manage your files</li>
+          <li>Upload content to your Dropbox</li>
+          <li>Create shared links for content</li>
+        </ul>
+        
+        <div *ngIf="processing" class="oauth-status">
+          <div class="spinner small"></div>
+          <p>Processing OAuth authentication...</p>
+        </div>
         
         <button 
-          (click)="logout()" 
-          class="secondary-button disconnect">
-          Disconnect
+          [disabled]="isConnecting || processing" 
+          (click)="connect()" 
+          class="connect-button">
+          <span *ngIf="!isConnecting">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 12h-9.5m7.5 3l3-3-3-3"></path>
+              <path d="M4 5v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"></path>
+            </svg>
+            Connect to Dropbox
+            <small>(opens in new tab)</small>
+          </span>
+          <span *ngIf="isConnecting" class="button-spinner"></span>
         </button>
+        
+        <div class="alternate-login">
+          <span>or</span>
+          <button (click)="connectDirect()" class="text-button">
+            Connect directly (redirects this page)
+          </button>
+        </div>
+        
+        <div class="refresh-auth">
+          <button (click)="refreshAuthStatus()" class="text-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 2v6h-6"></path>
+              <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
+              <path d="M3 22v-6h6"></path>
+              <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
+            </svg>
+            Already connected in another tab? Click to refresh
+          </button>
+        </div>
       </div>
+
+      <div *ngIf="isAuthenticated && !isLoading" class="authenticated">
+        <div class="success-badge">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+        </div>
+        
+        <h2>Connected to Dropbox</h2>
+        <p class="description">Your Dropbox account is successfully connected.</p>
+        
+        <div class="user-info">
+          <div class="user-avatar">
+            <span>{{ getUserName().charAt(0) }}</span>
+          </div>
+          <div class="user-details">
+            <div class="user-name">{{ getUserName() }}</div>
+            <div class="user-email">{{ getUserEmail() }}</div>
+          </div>
+        </div>
+        
+        <div class="actions">
+          <button (click)="continueToApp()" class="primary-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14"></path>
+              <path d="M12 5l7 7-7 7"></path>
+            </svg>
+            Continue to App
+          </button>
+          <button (click)="disconnect()" class="secondary-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Disconnect
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-footer">
+      <p>
+        By connecting, you agree to the 
+        <a href="https://www.dropbox.com/privacy" target="_blank" rel="noopener noreferrer">Dropbox Terms</a>
+      </p>
     </div>
   </div>
 </div> 
