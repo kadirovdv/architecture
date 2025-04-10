@@ -17,7 +17,6 @@ export class AppComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    sessionStorage.setItem('accessToken', environment.dropboxToken);
     // DisableDevtool();
     const textContent = this.extractText(this.el.nativeElement);
     this.searchService.indexTextWithRoute(textContent, '/pages');

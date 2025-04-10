@@ -11,12 +11,13 @@ declare var Dropbox: any;
   providedIn: 'root',
 })
 export class DropboxService {
-  private readonly token: string = environment.dropboxToken;
+  private readonly token: string = sessionStorage.getItem('accessToken') || '';
 
   constructor(
     private http: HttpClient,
     private toastr: ToastrService
   ) {
+    console.log('Dropbox token:', this.token);
     if (!this.token) {
       console.error('No Dropbox token found in environment. Please add the token to your environment file.');
     }
@@ -213,16 +214,40 @@ export class DropboxService {
     const token = this.getAuthToken();
     if (!token) return throwError(() => new Error('Dropbox token not configured'));
     
+    // Check for valid file to upload
+    if (!fileContent || !(fileContent instanceof Blob)) {
+      console.error('Invalid file content provided for upload:', fileContent);
+      return throwError(() => new Error('Invalid file content: must be a Blob or File object'));
+    }
+    
+    // Log file details for debugging
+    let fileDetails = 'Unknown type';
+    if (fileContent instanceof File) {
+      fileDetails = `File: ${fileContent.name}, size: ${fileContent.size} bytes, type: ${fileContent.type}`;
+    } else if (fileContent instanceof Blob) {
+      fileDetails = `Blob: size: ${fileContent.size} bytes, type: ${fileContent.type}`;
+    }
+    console.log(`Uploading to Dropbox: ${fileDetails}`);
+    
     const url = 'https://content.dropboxapi.com/2/files/upload';
     
-    // Add timestamp to filename to prevent conflicts
+    // Simplify path handling - just use the filename with timestamp
     const timestamp = new Date().getTime();
-    const filePathParts = filePath.split('/');
-    const fileName = filePathParts.pop();
-    const fileNameParts = fileName?.split('.') || [];
-    const ext = fileNameParts.pop();
-    const newFileName = `${fileNameParts.join('.')}_${timestamp}.${ext}`;
-    const newFilePath = [...filePathParts, newFileName].join('/');
+    
+    // Get just the filename, regardless of any path structure
+    let fileName = filePath;
+    if (fileName.includes('/')) {
+      fileName = fileName.split('/').pop() || '';
+    }
+    
+    // Add timestamp to filename to ensure uniqueness
+    const fileNameParts = fileName.split('.');
+    const ext = fileNameParts.length > 1 ? fileNameParts.pop() : '';
+    const newFileName = ext ? 
+      `${fileNameParts.join('.')}_${timestamp}.${ext}` : 
+      `${fileName}_${timestamp}`;
+    
+    console.log(`Uploading to Dropbox with filename: /${newFileName}`);
 
     return defer(() =>
       from(
@@ -232,7 +257,7 @@ export class DropboxService {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/octet-stream',
             'Dropbox-API-Arg': JSON.stringify({
-              path: newFilePath,
+              path: `/${newFileName}`,
               mode: 'add',
               autorename: true,
               mute: false,
@@ -252,7 +277,6 @@ export class DropboxService {
       }),
       map((result: any) => {
         console.log('Upload result from Dropbox API:', result);
-        // Return the full metadata object instead of just the path
         return {
           ...result,
           original_path: filePath,
@@ -261,6 +285,7 @@ export class DropboxService {
       }),
       catchError((error) => {
         console.error('Error during upload:', error);
+        this.toastr.error(`Failed to upload file: ${error.message}`);
         return throwError(() => error);
       })
     );

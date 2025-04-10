@@ -9,11 +9,11 @@ import { Router } from '@angular/router';
 })
 export class DropboxAuthService {
   private storageKey = 'accessToken';
-
+  public token: string = sessionStorage.getItem(this.storageKey) || environment.dropboxToken;
   constructor(private http: HttpClient, private router: Router) {}
 
   getAccessToken(): string | null {
-    return sessionStorage.getItem(this.storageKey) || environment.dropboxToken;
+    return this.token;
   }
 
   validateToken(): Observable<any> {
@@ -21,16 +21,15 @@ export class DropboxAuthService {
     if (!token) {
       return throwError(() => new Error('No token available'));
     }
-  
+
     const url = 'https://api.dropboxapi.com/2/users/get_current_account';
     const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`,
-      // DON'T set Content-Type for this request
+      Authorization: `Bearer ${token}`,
     });
-  
+
     return this.http.post(url, null, { headers }).pipe(
-      catchError(error => {
-        console.error('Token validation error:', error);
+      catchError((error) => {
+        sessionStorage.removeItem(this.storageKey);
         return throwError(() => error);
       })
     );
@@ -54,4 +53,8 @@ export class DropboxAuthService {
     window.location.href = authUrl;
   }
 
+  setTokenManually(token: string): void {
+    this.token = token;
+    sessionStorage.setItem(this.storageKey, this.token);
+  }
 }

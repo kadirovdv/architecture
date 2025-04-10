@@ -134,6 +134,7 @@ export class CreateBuildPage implements OnInit {
       name: file.name,
       size: file.size,
       file: file,
+      type: file.type
     }));
 
     // Initialize file structures if they don't exist
@@ -503,10 +504,13 @@ export class CreateBuildPage implements OnInit {
         if (!this.task[categoryPath]?.[category]?.[lang]) return;
         
         this.task[categoryPath][category][lang].forEach((file: any, index: number) => {
-          if (file && file.file) {
-            // This is a file that needs to be uploaded
+          // Properly check if we have a valid File object
+          if (file && file.file && file.file instanceof File) {
+            // Get the actual File object, not the wrapper
             const fileObj = file.file;
             const fileName = file.name || fileObj.name;
+            
+            console.log(`Found uploadable file: ${fileName} (${fileObj.size} bytes, type: ${fileObj.type})`);
             
             // Check if this is a replacement
             if (file.isReplacement) {
@@ -528,9 +532,9 @@ export class CreateBuildPage implements OnInit {
               }
             }
             
-            // Add to upload queue
+            // Add to upload queue with the actual File object, not the wrapper
             allFilesToUpload.push({
-              file: fileObj,
+              file: fileObj,  // This is the actual File object
               categoryPath,
               category,
               lang,
@@ -543,6 +547,8 @@ export class CreateBuildPage implements OnInit {
                 originalId: file.id
               }
             });
+          } else if (file && !file.url && !(file.file instanceof File)) {
+            console.warn(`Found file entry without valid File object at ${categoryPath}.${category}.${lang}[${index}]:`, file);
           }
         });
       });
@@ -564,10 +570,19 @@ export class CreateBuildPage implements OnInit {
     // Create an array of observable file uploads
     return allFilesToUpload.map(uploadInfo => {
       const { file, categoryPath, category, lang, index, metadata } = uploadInfo;
-      const folderName = this.lesson?.lessonTitle?.uz || 'untitled';
-      const filePath = `/${folderName}/${category}/${lang}/${file.name}`;
+      // Use just the file name instead of creating a folder structure
+      const fileName = file.name;
       
-      return this.dropboxService.uploadFile(filePath, file).pipe(
+      // Make sure we're sending the actual File object to dropbox service
+      console.log(`Uploading file ${fileName} (${file.size} bytes) directly to Dropbox`);
+      
+      // Ensure file is actually a File object before sending to Dropbox
+      if (!(file instanceof File)) {
+        console.error('Attempting to upload invalid file object:', file);
+        return of(null);
+      }
+      
+      return this.dropboxService.uploadFile(fileName, file).pipe(
         switchMap((response: any) => {
           console.log(`Successfully uploaded ${file.name} to Dropbox:`, response);
           return this.dropboxService.createSharedLink(response.path_display).pipe(
@@ -602,6 +617,9 @@ export class CreateBuildPage implements OnInit {
             rev: dropboxResponse.rev,
             server_modified: dropboxResponse.server_modified,
             client_modified: dropboxResponse.client_modified,
+            // Store the category metadata for reference even though we simplified the paths
+            category: category,
+            language: lang,
             isReplacement: metadata.isReplacement,
             replacedFileUrl: metadata.replacedFileUrl,
             replacedFileId: metadata.replacedFileId
@@ -1158,7 +1176,8 @@ export class CreateBuildPage implements OnInit {
     const newFile = {
       name: file.name,
       size: file.size,
-      file: file,
+      type: file.type,
+      file: file, // This is a proper File object
       // Preserve these fields from the existing file if they exist
       id: existingFile?.id,
       path: existingFile?.path,
@@ -1372,7 +1391,8 @@ export class CreateBuildPage implements OnInit {
     const fileObj = {
       name: file.name,
       size: file.size,
-      file: file,
+      type: file.type,
+      file: file, // This is a proper File object
     };
 
     this.task.firstBasedFiles ??= {
