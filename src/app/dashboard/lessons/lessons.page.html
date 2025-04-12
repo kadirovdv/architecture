@@ -38,7 +38,7 @@
           <div class="d-flex position-absolute right-0 top-0 action-btns">
             <div
               class="action-btn cursor-pointer"
-              (click)="openDropdown(lesson, i, $event)"
+              (click)="toggleDropdown(lesson, i, $event)"
             >
               <img src="/assets/svg/arrow-down.svg" width="30px" alt="" />
             </div>
@@ -46,7 +46,7 @@
               <img src="/assets/img/edit.png" width="30px" alt="" />
             </div>
           </div>
-          <div class="action-dropdown" *ngIf="selectedIndex === i">
+          <div class="action-dropdown" *ngIf="dropdownVisible && selectedIndex === i">
             <div class="d-flex align-items-center">
               <input
                 class="form-control me-2"
@@ -60,7 +60,7 @@
                 class="cursor-pointer"
                 width="30px"
                 alt=""
-                (click)="addTaskToLesson($event)"
+                (click)="addTask($event)"
               />
               <ng-container *ngIf="editingTaskId">
                 <img
@@ -68,23 +68,23 @@
                   width="30px"
                   alt=""
                   class="cursor-pointer ms-1"
-                  (click)="saveTaskEdit($event)"
+                  (click)="saveEdit($event)"
                 />
                 <img
                   src="/assets/svg/cancel.svg"
                   width="30px"
                   alt=""
                   class="cursor-pointer ms-1"
-                  (click)="cancelTaskEdit($event)"
+                  (click)="cancelEdit($event)"
                 />
               </ng-container>
             </div>
-            <div *ngIf="isDropdownLoading" class="dropdown-loading">
+            <div *ngIf="isSubmitting" class="dropdown-loading">
               <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
               </div>
             </div>
-            <div *ngIf="!isDropdownLoading">
+            <div *ngIf="!isSubmitting">
               <div class="my-2 ms-1" *ngFor="let item of tasksInLesson">
                 <span class="d-flex align-items-center justify-content-between">
                   {{ item.index }}. {{ item.title }}
@@ -101,7 +101,7 @@
                       width="20px"
                       alt=""
                       class="cursor-pointer ms-1"
-                      (click)="deleteTaskFromLesson(item, $event)"
+                      (click)="deleteTask(item, $event)"
                     />
                   </div>
                 </span>
@@ -129,7 +129,7 @@
           <div class="d-flex position-absolute align-items-center right-0 top-0 action-btns">
             <div
               class="action-btn cursor-pointer"
-              (click)="openDropdown(lesson, i, $event)"
+              (click)="toggleDropdown(lesson, i, $event)"
             >
               <img src="/assets/svg/arrow-down.svg" width="30px" alt="" />
             </div>
@@ -146,7 +146,7 @@
               <img src="/assets/img/edit.png" width="30px" alt="" />
             </div>
           </div>
-          <div class="action-dropdown" *ngIf="selectedIndex === i">
+          <div class="action-dropdown" *ngIf="dropdownVisible && selectedIndex === i">
             <div class="d-flex align-items-center">
               <input
                 class="form-control me-2"
@@ -160,7 +160,7 @@
                 class="cursor-pointer"
                 width="30px"
                 alt=""
-                (click)="addTaskToLesson($event)"
+                (click)="addTask($event)"
               />
               <ng-container *ngIf="editingTaskId">
                 <img
@@ -168,24 +168,24 @@
                   width="30px"
                   alt=""
                   class="cursor-pointer ms-1"
-                  (click)="saveTaskEdit($event)"
+                  (click)="saveEdit($event)"
                 />
                 <img
                   src="/assets/svg/cancel.svg"
                   width="30px"
                   alt=""
                   class="cursor-pointer ms-1"
-                  (click)="cancelTaskEdit($event)"
+                  (click)="cancelEdit($event)"
                 />
               </ng-container>
             </div>
-            <div *ngIf="isDropdownLoading" class="dropdown-loading">
+            <div *ngIf="isSubmitting" class="dropdown-loading">
               <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
               </div>
             </div>
-            <div *ngIf="!isDropdownLoading">
-              <div class="my-1 ms-1" *ngFor="let item of tasksInLesson">
+            <div *ngIf="!isSubmitting">
+              <div class="my-2 ms-1" *ngFor="let item of tasksInLesson">
                 <span class="d-flex align-items-center justify-content-between">
                   {{ item.index }}. {{ item.title }}
                   <div class="d-flex align-items-center">
@@ -201,7 +201,7 @@
                       width="20px"
                       alt=""
                       class="cursor-pointer ms-1"
-                      (click)="deleteTaskFromLesson(item, $event)"
+                      (click)="deleteTask(item, $event)"
                     />
                   </div>
                 </span>
@@ -228,6 +228,15 @@
     >
       <span class="me-2">Fanlarga resurs qo'shish</span>
       <img src="/assets/svg/plus.svg" width="30px" alt="" />
+    </div>
+  </div>
+  <div class="add-news-card">
+    <div class="add-news-card-header">
+      <h4>SO'NGGI YANGILIKLAR</h4>
+      <img src="/assets/svg/plus.svg" width="30px">
+    </div>
+    <div class="add-news-card-body">
+
     </div>
   </div>
 </div>

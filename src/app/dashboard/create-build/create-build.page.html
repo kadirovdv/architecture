@@ -55,10 +55,20 @@
           [compareWith]="compareTaskById"
         >
           <ng-template ng-option-tmp let-item="item">
-            {{ getTaskTitleString(item) }}
+            <div>
+              {{ getTaskTitleString(item) }}
+              <span *ngIf="item.source === 'website'" class="ms-2 badge bg-info">Website</span>
+              <span *ngIf="item.source === 'regular'" class="ms-2 badge bg-secondary">Regular</span>
+              <span *ngIf="item.hasData" class="ms-2 badge bg-success">Data</span>
+            </div>
           </ng-template>
           <ng-template ng-label-tmp let-item="item">
-            {{ getTaskTitleString(item) }}
+            <div>
+              {{ getTaskTitleString(item) }}
+              <span *ngIf="item.source === 'website'" class="ms-2 badge bg-info">Website</span>
+              <span *ngIf="item.source === 'regular'" class="ms-2 badge bg-secondary">Regular</span>
+              <span *ngIf="item.hasData" class="ms-2 badge bg-success">Data</span>
+            </div>
           </ng-template>
         </ng-select>
         <div class="container my-4">
@@ -265,7 +275,7 @@
                 <app-file-list
                   [files]="task?.secondBasedFiles?.taskTitleFiles || { uz: [], ru: [], en: [] }"
                   [category]="'taskTitleFiles'"
-                  [placeholder]="'MA’RUZA MATNI'"
+                  [placeholder]="'MARUZA MATNI'"
                   [hasError]="hasError('taskTitleFiles')"
                   [selectedLang]="selectedLanguage"
                   [autoSaveOnDelete]="!!existingLesson"
@@ -422,7 +432,7 @@
                 <app-file-list
                   [files]="task?.secondBasedFiles?.taskLiteratureFiles || { uz: [], ru: [], en: [] }"
                   [category]="'taskLiteratureFiles'"
-                  [placeholder]="'FAN BO’YICHA  ADABIYOTLAR'"
+                  [placeholder]="'FAN BOYICHA ADABIYOTLAR'"
                   [hasError]="hasError('taskLiteratureFiles')"
                   [selectedLang]="selectedLanguage"
                   [autoSaveOnDelete]="!!existingLesson"

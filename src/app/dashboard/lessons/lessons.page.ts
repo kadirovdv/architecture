@@ -6,8 +6,6 @@ import { CrudService } from 'src/app/shared/services/crud.service';
 import { DropboxService } from 'src/app/shared/services/dropbox.service';
 import { LoadingService } from 'src/app/shared/services/loading.service';
 import { Router } from '@angular/router';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-import { TaskDeleteConfirmationComponent } from './delete-confirmation/delete-confirmation.component';
 
 @Component({
   selector: 'app-dashboard-lessons',
@@ -15,16 +13,24 @@ import { TaskDeleteConfirmationComponent } from './delete-confirmation/delete-co
   styleUrls: ['./lessons.page.scss'],
 })
 export class LessonsPage implements OnInit {
+  // Collection data
   lessons: Lesson[] = [];
   websiteLessons: Lesson[] = [];
-  loader: boolean = false;
-  selectedIndex: number = -1;
-  selectedId: string = '';
-  tasksInLesson: any[] = [];
+  
+  // Cached task data
+  allLessonTasks = new Map<string, Task[]>();
+  allWebsiteLessonTasks = new Map<string, Task[]>();
+  
+  // UI state
   activeTab: 'lessons' | 'website-lessons' = 'lessons';
+  dropdownVisible = false;
+  selectedIndex = -1;
+  selectedId = '';
+  tasksInLesson: Task[] = [];
   editingTaskId: string | null = null;
-  isDropdownLoading: boolean = false;
-  isSubmitting: boolean = false;
+  isSubmitting = false;
+  
+  // Form data
   task: Task = {
     title: '',
     id: '',
@@ -33,266 +39,172 @@ export class LessonsPage implements OnInit {
     firstBasedFiles: {},
     secondBasedFiles: {},
   };
-  editingTask: Task = {
-    title: '',
-    index: 0,
-    id: '',
-  };
 
   constructor(
     private crudService: CrudService,
     private toastr: ToastrService,
-    private dropboxService: DropboxService,
-    private sanitizer: DomSanitizer,
     private loadingService: LoadingService,
-    private router: Router,
-    private modalService: NgbModal
+    private router: Router
   ) {}
 
   ngOnInit() {
-    this.getLessons();
-    this.getWebsiteLessons();
+    this.loadAllData();
   }
 
-  getLessons() {
-    console.log('Getting lessons from collection: lessons');
-    this.lessons = [];
+  // Data Loading -------------------------------------------
+
+  loadAllData() {
     this.loadingService.show();
-    this.crudService.getDocuments('lessons').subscribe({
-      next: (res) => {
-        this.lessons = res as Lesson[];
-        this.lessons = this.lessons.sort((a: Lesson, b: Lesson) => {
-          const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-          const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-          return dateA - dateB;
-        });
-        console.log(`Loaded ${this.lessons.length} lessons`, this.lessons);
-        this.loadingService.hide();
-      },
-      error: (error) => {
-        console.error('Error loading lessons:', error);
-        this.toastr.error(
-          'Error loading lessons: ' + (error.message || 'Unknown error')
-        );
-        this.loadingService.hide();
-      },
+    
+    // Use Promise.all to load both collections in parallel
+    Promise.all([
+      this.fetchCollection('lessons'),
+      this.fetchCollection('website-lessons')
+    ]).finally(() => {
+      this.loadingService.hide();
     });
   }
 
-  getWebsiteLessons() {
-    console.log('Getting lessons from collection: website-lessons');
-    this.loadingService.show();
-    this.crudService.getDocuments('website-lessons').subscribe({
-      next: (res) => {
-        this.websiteLessons = res as Lesson[];
-        this.websiteLessons = this.websiteLessons.sort(
-          (a: Lesson, b: Lesson) => {
+  fetchCollection(collectionName: 'lessons' | 'website-lessons') {
+    return new Promise<void>((resolve) => {
+      this.crudService.getDocuments(collectionName).subscribe({
+        next: (data) => {
+          const sortedData = (data as Lesson[]).sort((a, b) => {
             const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
             const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
             return dateA - dateB;
+          });
+          
+          if (collectionName === 'lessons') {
+            this.lessons = sortedData;
+            this.cacheTasks(sortedData, this.allLessonTasks);
+          } else {
+            this.websiteLessons = sortedData;
+            this.cacheTasks(sortedData, this.allWebsiteLessonTasks);
           }
-        );
-        console.log(
-          `Loaded ${this.websiteLessons.length} website lessons`,
-          this.websiteLessons
-        );
-        this.loadingService.hide();
-      },
-      error: (error) => {
-        console.error('Error loading website lessons:', error);
-        this.toastr.error(
-          'Error loading website lessons: ' + (error.message || 'Unknown error')
-        );
-        this.loadingService.hide();
-      },
+          
+          resolve();
+        },
+        error: (error) => {
+          this.toastr.error(`Error loading ${collectionName}: ${error.message || 'Unknown error'}`);
+          resolve();
+        }
+      });
     });
   }
 
-  openDropdown(lesson: Lesson, index: number, event: Event) {
-    // Prevent event propagation
-    event.stopPropagation();
+  cacheTasks(lessons: Lesson[], targetMap: Map<string, Task[]>) {
+    targetMap.clear();
+    lessons.forEach(lesson => {
+      if (lesson.id && lesson.tasks) {
+        const normalizedTasks = this.normalizeTasks(lesson.tasks);
+        targetMap.set(lesson.id, normalizedTasks);
+      }
+    });
+  }
 
-    // If the same dropdown is already open, close it
-    if (this.selectedIndex === index) {
+  normalizeTasks(tasks: any[]): Task[] {
+    return tasks.map((task: any) => ({
+      ...task,
+      firstBasedFiles: {
+        taskExampleFiles: task.firstBasedFiles?.taskExampleFiles || { uz: [], ru: [], en: [] },
+        taskSolutionFiles: task.firstBasedFiles?.taskSolutionFiles || { uz: [], ru: [], en: [] }
+      },
+      secondBasedFiles: {
+        taskTitleFiles: task.secondBasedFiles?.taskTitleFiles || { uz: [], ru: [], en: [] },
+        taskPresentationFiles: task.secondBasedFiles?.taskPresentationFiles || { uz: [], ru: [], en: [] },
+        taskLiteratureFiles: task.secondBasedFiles?.taskLiteratureFiles || { uz: [], ru: [], en: [] },
+        taskVideoUrls: task.secondBasedFiles?.taskVideoUrls || []
+      }
+    }));
+  }
+
+  // Dropdown Management -------------------------------------------
+
+  toggleDropdown(lesson: Lesson, index: number, event?: Event) {
+    event?.preventDefault();
+    event?.stopPropagation();
+    
+    // If clicking the same dropdown, toggle it
+    if (this.selectedIndex === index && this.dropdownVisible) {
       this.closeDropdown();
       return;
     }
-
-    // Close any previously open dropdown
+    
+    // Close any open dropdown
     this.closeDropdown();
-
-    // Open the new dropdown with loading indicator
-    this.isDropdownLoading = true;
-
-    // Set the new selection
+    
+    // Open the new dropdown
     this.selectedIndex = index;
     this.selectedId = lesson.id || '';
-
-    if (!this.selectedId) {
-      this.toastr.error('Invalid lesson: missing ID');
-      this.isDropdownLoading = false;
-      this.closeDropdown();
-      return;
-    }
-
-    // If there are tasks, load them
-    if (lesson.tasks && lesson.tasks.length > 0) {
-      console.log('Using existing tasks', lesson.tasks);
-
-      // Normalize tasks to ensure proper structure
-      this.tasksInLesson = lesson.tasks.map((task: any) => {
-        return {
-          ...task,
-          firstBasedFiles: {
-            taskExampleFiles: task.firstBasedFiles?.taskExampleFiles || {
-              uz: [],
-              ru: [],
-              en: [],
-            },
-            taskSolutionFiles: task.firstBasedFiles?.taskSolutionFiles || {
-              uz: [],
-              ru: [],
-              en: [],
-            },
-          },
-          secondBasedFiles: {
-            taskTitleFiles: task.secondBasedFiles?.taskTitleFiles || {
-              uz: [],
-              ru: [],
-              en: [],
-            },
-            taskPresentationFiles: task.secondBasedFiles
-              ?.taskPresentationFiles || { uz: [], ru: [], en: [] },
-            taskLiteratureFiles: task.secondBasedFiles?.taskLiteratureFiles || {
-              uz: [],
-              ru: [],
-              en: [],
-            },
-            taskVideoUrls: task.secondBasedFiles?.taskVideoUrls || [],
-          },
-        };
-      });
-
-      this.isDropdownLoading = false;
-    } else {
-      // Load tasks from the server if they don't exist
-      const collectionName =
-        this.activeTab === 'lessons' ? 'lessons' : 'website-lessons';
-
-      console.log(
-        `Loading tasks from server for ${collectionName} with ID: ${this.selectedId}`
-      );
-
-      this.crudService
-        .getDocumentById(collectionName, this.selectedId)
-        .subscribe({
-          next: (retrievedLesson: any) => {
-            if (retrievedLesson && retrievedLesson.tasks) {
-              console.log('Retrieved tasks from server', retrievedLesson.tasks);
-
-              // Normalize tasks to ensure proper structure
-              this.tasksInLesson = retrievedLesson.tasks.map((task: any) => {
-                return {
-                  ...task,
-                  firstBasedFiles: {
-                    taskExampleFiles: task.firstBasedFiles
-                      ?.taskExampleFiles || { uz: [], ru: [], en: [] },
-                    taskSolutionFiles: task.firstBasedFiles
-                      ?.taskSolutionFiles || { uz: [], ru: [], en: [] },
-                  },
-                  secondBasedFiles: {
-                    taskTitleFiles: task.secondBasedFiles?.taskTitleFiles || {
-                      uz: [],
-                      ru: [],
-                      en: [],
-                    },
-                    taskPresentationFiles: task.secondBasedFiles
-                      ?.taskPresentationFiles || { uz: [], ru: [], en: [] },
-                    taskLiteratureFiles: task.secondBasedFiles
-                      ?.taskLiteratureFiles || { uz: [], ru: [], en: [] },
-                    taskVideoUrls: task.secondBasedFiles?.taskVideoUrls || [],
-                  },
-                };
-              });
-            } else {
-              console.log('No tasks found for this lesson or lesson not found');
-              this.tasksInLesson = [];
-            }
-            this.isDropdownLoading = false;
-          },
-          error: (error) => {
-            console.error('Error loading lesson tasks:', error);
-            this.toastr.error(
-              'Error loading tasks: ' + (error.message || 'Unknown error')
-            );
-            this.isDropdownLoading = false;
-            this.closeDropdown();
-          },
-        });
+    this.dropdownVisible = true;
+    
+    // Load tasks from cache
+    if (this.selectedId) {
+      const taskMap = this.activeTab === 'lessons' ? this.allLessonTasks : this.allWebsiteLessonTasks;
+      this.tasksInLesson = taskMap.get(this.selectedId) || [];
     }
   }
 
   closeDropdown() {
-    if (this.selectedIndex === -1) return;
-
-    const dropdowns = document.querySelectorAll('.action-dropdown');
-
-    dropdowns.forEach((dropdown) => {
-      dropdown.classList.add('dropdown-exit');
-    });
-
-    setTimeout(() => {
-      this.selectedIndex = -1;
-      this.selectedId = '';
-      this.tasksInLesson = [];
-
-      if (this.editingTaskId) {
-        this.cancelTaskEdit();
-      }
-
-      dropdowns.forEach((dropdown) => {
-        dropdown.classList.remove('dropdown-exit');
-      });
-    }, 200); 
+    this.dropdownVisible = false;
+    this.selectedIndex = -1;
+    this.selectedId = '';
+    this.tasksInLesson = [];
+    this.resetTaskForm();
   }
 
-  addTaskToLesson(event?: Event) {
-    // Prevent event from bubbling up
-    event?.stopPropagation();
+  // Tab Management -------------------------------------------
 
-    // Prevent multiple submissions
-    if (this.isSubmitting) {
+  switchTab(tab: 'lessons' | 'website-lessons') {
+    this.activeTab = tab;
+    this.closeDropdown();
+  }
+
+  // Task Operations -------------------------------------------
+
+  addTask(event?: Event) {
+    event?.preventDefault();
+    event?.stopPropagation();
+    
+    if (this.isSubmitting || !this.task.title || !this.selectedId) {
+      this.task.title ? null : this.toastr.warning('Grafik topshiriqni kiriting');
+      this.selectedId ? null : this.toastr.error('No lesson selected');
       return;
     }
-
+    
+    // Check for duplicates in current lesson
+    if (this.tasksInLesson.some(t => t.title === this.task.title)) {
+      this.toastr.error('Bu grafik topshiriq mavjud');
+      return;
+    }
+    
+    // Check for duplicates in the opposite collection
+    const oppositeCollection = this.activeTab === 'lessons' ? this.allWebsiteLessonTasks : this.allLessonTasks;
+    let duplicateLessonName = '';
+    
+    // Find any task with the same title in the opposite collection
+    for (const [lessonId, tasks] of oppositeCollection.entries()) {
+      if (tasks.some(t => t.title === this.task.title)) {
+        const lessonList = this.activeTab === 'lessons' ? this.websiteLessons : this.lessons;
+        const lesson = lessonList.find(l => l.id === lessonId);
+        duplicateLessonName = lesson?.lessonTitle?.uz || 'unknown lesson';
+        break;
+      }
+    }
+    
+    if (duplicateLessonName) {
+      const message = this.activeTab === 'lessons' 
+        ? `Bu grafik topshiriq sayt bo'limida mavjud: ${duplicateLessonName}` 
+        : `Bu grafik topshiriq asosiy bo'limda mavjud: ${duplicateLessonName}`;
+      this.toastr.error(message);
+      return;
+    }
+    
+    // Create new task
     this.isSubmitting = true;
     this.loadingService.show();
-
-    if (!this.task.title) {
-      this.toastr.warning('Grafik topshiriqni kiriting');
-      this.loadingService.hide();
-      this.isSubmitting = false;
-      return;
-    }
-
-    if (!this.selectedId) {
-      this.toastr.error('No lesson selected');
-      this.loadingService.hide();
-      this.isSubmitting = false;
-      return;
-    }
-
-    const titleExists = this.tasksInLesson.some(
-      (t) => t.title === this.task.title
-    );
-    if (titleExists) {
-      this.toastr.error('Bu grafik topshiriq mavjud');
-      this.loadingService.hide();
-      this.isSubmitting = false;
-      return;
-    }
-
-    // Prepare new task with proper structure
+    
     const newTask: Task = {
       title: this.task.title,
       index: this.tasksInLesson.length + 1,
@@ -309,298 +221,185 @@ export class LessonsPage implements OnInit {
         taskVideoUrls: [],
       },
     };
-
-    const collectionName =
-      this.activeTab === 'lessons' ? 'lessons' : 'website-lessons';
-
-    // Create a copy of the current tasks and add the new one
-    const updatedTasks = [...this.tasksInLesson, newTask];
     
-    // Store the currently selected index to reopen the dropdown later
-    const currentIndex = this.selectedIndex;
-    const currentId = this.selectedId;
-
-    // Update the document directly
-    this.crudService
-      .updateDocument(collectionName, this.selectedId, {
-        tasks: updatedTasks,
-      })
-      .subscribe(
-        (res) => {
-          console.log('Task added successfully');
-          this.toastr.success("Grafik topshiriq qo'shildi");
-
-          // Reset task input
-          this.task = {
-            title: '',
-            id: '',
-            index: 0,
-            createdAt: '',
-            firstBasedFiles: {},
-            secondBasedFiles: {},
-          };
-
-          // Update local state to include the new task
-          this.tasksInLesson = updatedTasks;
-
-          // Reset submission flag and hide loader
-          this.isSubmitting = false;
-          this.loadingService.hide();
-          
-          // Don't close the dropdown, just keep it open with the updated list
-          // Instead of this.closeDropdown()
-        },
-        (error) => {
-          console.error('Error adding task:', error);
-          this.toastr.error(
-            'Error adding task: ' + (error.message || 'Unknown error')
-          );
-          this.isSubmitting = false;
-          this.loadingService.hide();
-        }
-      );
-  }
-
-  deleteTaskFromLesson(task: Task, event?: Event) {
-    // Prevent event from bubbling up
-    event?.stopPropagation();
-
-    // Prevent multiple operations while processing
-    if (this.isSubmitting) {
-      return;
-    }
-
-    // Open confirmation modal
-    const modalRef = this.modalService.open(TaskDeleteConfirmationComponent);
-    modalRef.componentInstance.taskTitle = task.title;
-
-    modalRef.result.then(
-      (result) => {
-        if (result === 'confirm') {
-          this.isSubmitting = true;
-          this.loadingService.show();
-
-          console.log('Deleting task', {
-            taskId: task.id,
-            taskTitle: task.title,
-            selectedId: this.selectedId,
-          });
-
-          const collectionName =
-            this.activeTab === 'lessons' ? 'lessons' : 'website-lessons';
-
-          // First get the current document to ensure we have the latest data
-          this.crudService
-            .getDocumentById(collectionName, this.selectedId)
-            .subscribe({
-              next: (currentLesson: any) => {
-                if (!currentLesson) {
-                  this.toastr.error('Lesson not found');
-                  this.isSubmitting = false;
-                  this.loadingService.hide();
-                  return;
-                }
-
-                // Filter out the task to delete
-                const existingTasks = currentLesson.tasks || [];
-                const updatedTasks = existingTasks.filter(
-                  (t: any) => t.id !== task.id
-                );
-
-                console.log('Current lesson:', currentLesson);
-                console.log('Updated tasks:', updatedTasks);
-
-                // Update the document with the new tasks array
-                this.crudService
-                  .updateDocument(collectionName, this.selectedId, {
-                    tasks: updatedTasks,
-                  })
-                  .subscribe({
-                    next: () => {
-                      console.log('Task deleted successfully');
-                      this.toastr.success(
-                        "Topshiriq muvaffaqiyatli o'chirildi"
-                      );
-
-                      // Update local state
-                      this.tasksInLesson = updatedTasks;
-
-                      // Reset task input if we were editing this task
-                      if (this.editingTaskId === task.id) {
-                        this.cancelTaskEdit();
-                      }
-
-                      // Reset submission flag and hide loader
-                      this.isSubmitting = false;
-                      this.loadingService.hide();
-                    },
-                    error: (error) => {
-                      console.error('Error updating document:', error);
-                      this.toastr.error(
-                        'Error deleting task: ' +
-                          (error.message || 'Unknown error')
-                      );
-                      this.isSubmitting = false;
-                      this.loadingService.hide();
-                    },
-                  });
-              },
-              error: (error) => {
-                console.error('Error getting lesson document:', error);
-                this.toastr.error(
-                  'Error getting lesson: ' + (error.message || 'Unknown error')
-                );
-                this.isSubmitting = false;
-                this.loadingService.hide();
-              },
-            });
-        }
-      },
-      () => {
-        // Modal dismissed, do nothing
-      }
-    );
+    // Update UI immediately
+    const updatedTasks = [...this.tasksInLesson, newTask];
+    this.updateTasksEverywhere(updatedTasks);
+    
+    // Save to database
+    this.saveTasksToDatabase(updatedTasks);
   }
 
   editTask(task: Task, event?: Event) {
-    // Prevent event from bubbling up to document
+    event?.preventDefault();
     event?.stopPropagation();
-
+    
     this.editingTaskId = task.id || '';
     this.task.title = task.title || '';
   }
 
-  saveTaskEdit(event?: Event) {
-    // Prevent event from bubbling up
+  saveEdit(event?: Event) {
+    event?.preventDefault();
     event?.stopPropagation();
-
-    // Prevent multiple operations while processing
-    if (this.isSubmitting) {
+    
+    if (this.isSubmitting || !this.task.title || !this.selectedId || !this.editingTaskId) {
+      this.task.title ? null : this.toastr.warning('Grafik topshiriqni kiriting');
       return;
     }
-
-    if (!this.task.title) {
-      this.toastr.warning('Grafik topshiriqni kiriting');
+    
+    // Check for duplicates in current lesson (excluding the task being edited)
+    if (this.tasksInLesson.some(t => t.title === this.task.title && t.id !== this.editingTaskId)) {
+      this.toastr.error('Bu grafik topshiriq mavjud');
       return;
     }
-
+    
+    // Check for duplicates in the opposite collection
+    const oppositeCollection = this.activeTab === 'lessons' ? this.allWebsiteLessonTasks : this.allLessonTasks;
+    let duplicateLessonName = '';
+    
+    // Find any task with the same title in the opposite collection
+    for (const [lessonId, tasks] of oppositeCollection.entries()) {
+      if (tasks.some(t => t.title === this.task.title)) {
+        const lessonList = this.activeTab === 'lessons' ? this.websiteLessons : this.lessons;
+        const lesson = lessonList.find(l => l.id === lessonId);
+        duplicateLessonName = lesson?.lessonTitle?.uz || 'unknown lesson';
+        break;
+      }
+    }
+    
+    if (duplicateLessonName) {
+      const message = this.activeTab === 'lessons' 
+        ? `Bu grafik topshiriq sayt bo'limida mavjud: ${duplicateLessonName}` 
+        : `Bu grafik topshiriq asosiy bo'limda mavjud: ${duplicateLessonName}`;
+      this.toastr.error(message);
+      return;
+    }
+    
+    // Update task
     this.isSubmitting = true;
     this.loadingService.show();
-    const collectionName =
-      this.activeTab === 'lessons' ? 'lessons' : 'website-lessons';
+    
+    // Find and update the task
+    const taskIndex = this.tasksInLesson.findIndex(t => t.id === this.editingTaskId);
+    if (taskIndex === -1) {
+      this.toastr.error('Task not found');
+      this.isSubmitting = false;
+      this.loadingService.hide();
+      return;
+    }
+    
+    const updatedTasks = [...this.tasksInLesson];
+    updatedTasks[taskIndex] = {
+      ...updatedTasks[taskIndex],
+      title: this.task.title
+    };
+    
+    // Update UI immediately
+    this.updateTasksEverywhere(updatedTasks);
+    this.resetTaskForm();
+    
+    // Save to database
+    this.saveTasksToDatabase(updatedTasks);
+  }
 
-    console.log('Saving edited task', {
-      taskId: this.editingTaskId,
-      taskTitle: this.task.title,
-      selectedId: this.selectedId,
-    });
-
-    // First get the current document to ensure we have the latest data
-    this.crudService
-      .getDocumentById(collectionName, this.selectedId)
-      .subscribe({
-        next: (currentLesson: any) => {
-          if (!currentLesson) {
-            this.toastr.error('Lesson not found');
-            this.isSubmitting = false;
-            this.loadingService.hide();
-            return;
-          }
-
-          // Find and update the task
-          const existingTasks = currentLesson.tasks || [];
-          const taskIndex = existingTasks.findIndex(
-            (t: any) => t.id === this.editingTaskId
-          );
-
-          if (taskIndex === -1) {
-            this.toastr.error('Task not found');
-            this.isSubmitting = false;
-            this.loadingService.hide();
-            return;
-          }
-
-          // Get the existing task to preserve its structure
-          const existingTask = existingTasks[taskIndex];
-
-          // Create updated tasks array
-          const updatedTasks = [...existingTasks];
-          updatedTasks[taskIndex] = {
-            ...existingTask,
-            title: this.task.title,
-            // Ensure proper structure for firstBasedFiles and secondBasedFiles
-            firstBasedFiles: {
-              taskExampleFiles: existingTask.firstBasedFiles
-                ?.taskExampleFiles || { uz: [], ru: [], en: [] },
-              taskSolutionFiles: existingTask.firstBasedFiles
-                ?.taskSolutionFiles || { uz: [], ru: [], en: [] },
-            },
-            secondBasedFiles: {
-              taskTitleFiles: existingTask.secondBasedFiles?.taskTitleFiles || {
-                uz: [],
-                ru: [],
-                en: [],
-              },
-              taskPresentationFiles: existingTask.secondBasedFiles
-                ?.taskPresentationFiles || { uz: [], ru: [], en: [] },
-              taskLiteratureFiles: existingTask.secondBasedFiles
-                ?.taskLiteratureFiles || { uz: [], ru: [], en: [] },
-              taskVideoUrls: existingTask.secondBasedFiles?.taskVideoUrls || [],
-            },
-          };
-
-          console.log('Current lesson:', currentLesson);
-          console.log('Updated tasks:', updatedTasks);
-
-          // Update the document with the new tasks array
-          this.crudService
-            .updateDocument(collectionName, this.selectedId, {
-              tasks: updatedTasks,
-            })
-            .subscribe({
-              next: () => {
-                console.log('Task updated successfully');
-                this.toastr.success('Task updated successfully');
-
-                // Update local state
-                this.tasksInLesson = updatedTasks;
-
-                // Reset task editing state
-                this.editingTaskId = null;
-                this.task.title = '';
-
-                // Reset submission flag and hide loader
-                this.isSubmitting = false;
-                this.loadingService.hide();
-              },
-              error: (error) => {
-                console.error('Error updating document:', error);
-                this.toastr.error(
-                  'Error updating task: ' + (error.message || 'Unknown error')
-                );
-                this.isSubmitting = false;
-                this.loadingService.hide();
-              },
-            });
-        },
-        error: (error) => {
-          console.error('Error getting lesson document:', error);
-          this.toastr.error(
-            'Error getting lesson: ' + (error.message || 'Unknown error')
-          );
-          this.isSubmitting = false;
-          this.loadingService.hide();
-        },
+  deleteTask(task: Task, event?: Event) {
+    event?.preventDefault();
+    event?.stopPropagation();
+    
+    if (this.isSubmitting || !this.selectedId || !task.id) {
+      return;
+    }
+    
+    this.isSubmitting = true;
+    this.loadingService.show();
+    
+    // Remove the task
+    const updatedTasks = this.tasksInLesson.filter(t => t.id !== task.id);
+    
+    // Update UI immediately
+    this.updateTasksEverywhere(updatedTasks);
+    
+    // Reset editing if we were editing this task
+    if (this.editingTaskId === task.id) {
+      this.resetTaskForm();
+    }
+    
+    // Save to database
+    this.saveTasksToDatabase(updatedTasks)
+      .then(() => {
+        this.toastr.success("Topshiriq muvaffaqiyatli o'chirildi");
       });
   }
 
-  cancelTaskEdit(event?: Event) {
-    // Prevent event from bubbling up
+  cancelEdit(event?: Event) {
+    event?.preventDefault();
     event?.stopPropagation();
-
-    this.editingTaskId = null;
-    this.task.title = '';
+    
+    this.resetTaskForm();
   }
+
+  resetTaskForm() {
+    this.editingTaskId = null;
+    this.task = {
+      title: '',
+      id: '',
+      index: 0,
+      createdAt: '',
+      firstBasedFiles: {},
+      secondBasedFiles: {},
+    };
+  }
+
+  // Update UI and database -------------------------------------------
+
+  updateTasksEverywhere(tasks: Task[]) {
+    if (!this.selectedId) return;
+    
+    // Update tasks in the dropdown
+    this.tasksInLesson = tasks;
+    
+    // Update tasks in cache
+    const taskMap = this.activeTab === 'lessons' ? this.allLessonTasks : this.allWebsiteLessonTasks;
+    taskMap.set(this.selectedId, [...tasks]);
+    
+    // Update tasks in the original lesson object
+    const lessonsList = this.activeTab === 'lessons' ? this.lessons : this.websiteLessons;
+    const lessonIndex = lessonsList.findIndex(l => l.id === this.selectedId);
+    if (lessonIndex !== -1) {
+      lessonsList[lessonIndex].tasks = tasks;
+    }
+  }
+
+  saveTasksToDatabase(tasks: Task[]) {
+    if (!this.selectedId) {
+      this.isSubmitting = false;
+      this.loadingService.hide();
+      return Promise.reject('No lesson selected');
+    }
+    
+    const collectionName = this.activeTab === 'lessons' ? 'lessons' : 'website-lessons';
+    
+    return new Promise<void>((resolve, reject) => {
+      this.crudService
+        .updateDocument(collectionName, this.selectedId, { tasks })
+        .subscribe({
+          next: () => {
+            this.isSubmitting = false;
+            this.loadingService.hide();
+            resolve();
+          },
+          error: (error) => {
+            console.error('Error updating tasks:', error);
+            this.toastr.error('Error: ' + (error.message || 'Unknown error'));
+            this.isSubmitting = false;
+            this.loadingService.hide();
+            reject(error);
+          }
+        });
+    });
+  }
+
+  // Navigation -------------------------------------------
 
   editLesson(lesson: Lesson) {
     this.router.navigate(['/dashboard/create-lesson'], {
@@ -614,65 +413,52 @@ export class LessonsPage implements OnInit {
     });
   }
 
-  switchTab(tab: 'lessons' | 'website-lessons') {
-    this.activeTab = tab;
-    this.selectedIndex = -1;
-    this.selectedId = '';
-    this.tasksInLesson = [];
-  }
+  // Toggle lesson visibility -------------------------------------------
 
-  // Toggle lesson visibility in website
   toggleLessonActive(lesson: Lesson, event?: Event): void {
     if (!lesson.id) return;
-
-    // Prevent event from bubbling up
+    
+    event?.preventDefault();
     event?.stopPropagation();
-
+    
     this.loadingService.show();
-
-    // Toggle the active state
+    
     const updatedActive = !lesson.active;
-
     this.crudService
-      .updateDocument('website-lessons', lesson.id, {
-        active: updatedActive,
-      })
-      .subscribe(() => {
-        setTimeout(() => {
+      .updateDocument('website-lessons', lesson.id, { active: updatedActive })
+      .subscribe({
+        next: () => {
+          lesson.active = updatedActive;
           this.toastr.success(
             updatedActive ? "Dars saytda ko'rinadi" : "Dars saytda ko'rinmaydi"
           );
-  
-          // Update local state
-          lesson.active = updatedActive;
           this.loadingService.hide();
-        }, Math.random() * 1000);
+        },
+        error: (error) => {
+          this.toastr.error('Error: ' + (error.message || 'Unknown error'));
+          this.loadingService.hide();
+        }
       });
   }
 
-  // Handle clicks outside the dropdown
-  @HostListener('document:click', ['$event'])
+  // Document click handler -------------------------------------------
+
+  @HostListener('document:click')
   handleDocumentClick(event: MouseEvent) {
-    // Get the element that was clicked
-    const clickedElement = event.target as HTMLElement;
-
-    // Check if the click was inside a dropdown, action button, toggle switch, or edit button
-    const isInsideDropdown = clickedElement.closest('.action-dropdown');
-    const isActionButton = clickedElement.closest('.action-btn');
-    const isToggleSwitch = clickedElement.closest('.toggle-switch');
-    const isToggleInput = clickedElement.closest('input[type="checkbox"]');
-    const isEditButton = clickedElement.closest(
-      '.action-btn img[src*="edit.png"]'
-    );
-
-    // If the click was outside all of these elements, close the dropdown
-    if (
-      !isInsideDropdown &&
-      !isActionButton &&
-      !isToggleSwitch &&
-      !isToggleInput &&
-      !isEditButton
-    ) {
+    if (!this.dropdownVisible) return;
+    
+    const target = event.target as HTMLElement;
+    const isDropdownRelated = 
+      target.closest('.action-dropdown') || 
+      target.closest('.action-btn') || 
+      target.closest('.toggle-switch') ||
+      target.closest('img[src*="plus.svg"]') ||
+      target.closest('img[src*="save.svg"]') ||
+      target.closest('img[src*="cancel.svg"]') ||
+      target.closest('img[src*="trash.svg"]') ||
+      target.closest('img[src*="edit.png"]');
+    
+    if (!isDropdownRelated) {
       this.closeDropdown();
     }
   }

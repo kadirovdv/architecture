@@ -31,6 +31,7 @@ import {
   map,
   catchError,
   of,
+  throwError,
 } from 'rxjs';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { VideoUploadComponent } from './video-upload/video-upload.component';
@@ -567,16 +568,11 @@ export class CreateBuildPage implements OnInit {
       });
     }
     
-    // Create an array of observable file uploads
     return allFilesToUpload.map(uploadInfo => {
       const { file, categoryPath, category, lang, index, metadata } = uploadInfo;
-      // Use just the file name instead of creating a folder structure
       const fileName = file.name;
       
-      // Make sure we're sending the actual File object to dropbox service
-      console.log(`Uploading file ${fileName} (${file.size} bytes) directly to Dropbox`);
       
-      // Ensure file is actually a File object before sending to Dropbox
       if (!(file instanceof File)) {
         console.error('Attempting to upload invalid file object:', file);
         return of(null);
@@ -602,10 +598,18 @@ export class CreateBuildPage implements OnInit {
             downloadUrl = linkResponse.replace(/[\?&]dl=\d/g, '').concat('?dl=1');
           }
           
-          // Get the existing file array from task to update in place
+          // Ensure the file arrays exist
+          if (!this.task[categoryPath][category]) {
+            this.task[categoryPath][category] = { uz: [], ru: [], en: [] };
+          }
+          
+          if (!this.task[categoryPath][category][lang]) {
+            this.task[categoryPath][category][lang] = [];
+          }
+          
+          // Get the file array to modify
           const fileArray = this.task[categoryPath][category][lang];
           
-          // Create the file info object with all metadata
           const fileInfo = {
             name: file.name,
             url: downloadUrl,
@@ -617,7 +621,6 @@ export class CreateBuildPage implements OnInit {
             rev: dropboxResponse.rev,
             server_modified: dropboxResponse.server_modified,
             client_modified: dropboxResponse.client_modified,
-            // Store the category metadata for reference even though we simplified the paths
             category: category,
             language: lang,
             isReplacement: metadata.isReplacement,
@@ -627,11 +630,18 @@ export class CreateBuildPage implements OnInit {
           
           console.log(`Complete file info for ${file.name}:`, fileInfo);
           
-          // Update the file in place if it's a replacement
+          // If this is a replacement, update the existing file
           if (metadata.isReplacement) {
             console.log(`Replacing file at index ${index} with new upload`);
             fileArray[index] = fileInfo;
+          } else {
+            // Otherwise add to the array
+            console.log(`Adding new file to ${categoryPath}.${category}.${lang} array`);
+            fileArray.push(fileInfo);
           }
+          
+          // Log the updated array state
+          console.log(`${categoryPath}.${category}.${lang} array now has ${fileArray.length} files`);
           
           return {
             fileInfo,
@@ -686,6 +696,9 @@ export class CreateBuildPage implements OnInit {
       // Get the final count of uploads
       this.totalUploads = uploadObservables.length;
 
+      // Create an array to track successful upload results
+      const uploadResults: any[] = [];
+
       // Process uploads sequentially with a delay between each
       from(uploadObservables)
         .pipe(
@@ -693,6 +706,9 @@ export class CreateBuildPage implements OnInit {
             return obs.pipe(
               tap((result) => {
                 if (result) {
+                  // Track successful upload
+                  uploadResults.push(result);
+                  
                   const { fileInfo } = result;
                   this.currentUploadFile = { name: fileInfo.name, size: fileInfo.size };
                   this.uploadedCount++;
@@ -709,12 +725,33 @@ export class CreateBuildPage implements OnInit {
           })
         )
         .subscribe({
-          next: () => {
-            console.log(`Upload progress: ${this.progress}% (${this.uploadedCount}/${this.totalUploads})`);
+          next: (result) => {
+            if (result) {
+              console.log(`Upload progress: ${this.progress}% (${this.uploadedCount}/${this.totalUploads})`);
+            }
           },
           complete: () => {
             this.progress = 100;
+            
+            // Log summary of uploads
+            console.log(`Upload completed: ${this.uploadedCount}/${this.totalUploads} files uploaded successfully`);
+            console.log('Upload result summary:', 
+              Object.entries(this.task.firstBasedFiles || {}).map(([category, langs]) => 
+                `${category}: ${Object.entries(langs as any).map(([lang, files]) => 
+                  `${lang}: ${(files as any[]).length} files`
+                ).join(', ')}`
+              ).join('; ') + '; ' +
+              Object.entries(this.task.secondBasedFiles || {})
+                .filter(([category]) => category !== 'taskVideoUrls')
+                .map(([category, langs]) => 
+                  `${category}: ${Object.entries(langs as any).map(([lang, files]) => 
+                    `${lang}: ${(files as any[]).length} files`
+                  ).join(', ')}`
+                ).join('; ')
+            );
+            
             this.toastr.success('Fayllar muvaffaqiyatli yuklandi');
+            
             // Save the task with the updated files
             this.saveToFirebase(this.task);
           },
@@ -749,6 +786,7 @@ export class CreateBuildPage implements OnInit {
     // Ensure all files have been properly deduplicated 
     this.deduplicateTaskData(taskCopy);
 
+    // Prepare the task data for saving
     const taskToSave = {
       id: taskCopy.id,
       title: taskCopy.title,
@@ -758,109 +796,201 @@ export class CreateBuildPage implements OnInit {
       secondBasedFiles: taskCopy.secondBasedFiles
     };
 
-    console.log('Task prepared for saving:', taskToSave);
-
-    this.crudService
-      .getDocuments('website-lessons')
-      .pipe(
-        take(1),
-        switchMap((websiteData: any[]) => {
-          console.log('Retrieved Website Lessons Data:', websiteData);
-          
-          const existingLesson = websiteData.find(
-            (l: any) => 
-              (this.lesson?.id && l.id === this.lesson.id) || 
-              (this.lesson?.lessonTitle?.uz && l.lessonTitle?.uz === this.lesson.lessonTitle.uz)
-          );
-          
-          console.log('Existing lesson found:', existingLesson);
-          
-          if (existingLesson) {
-            const existingTasks = existingLesson.tasks || [];
+    // Determine which collection to save to based on task source
+    const taskSource = (taskData as any).source || 'unknown';
+    console.log(`Saving task from source: ${taskSource}`);
+    
+    // If task is from website collection, update it there; otherwise, save to lessons collection
+    if (taskSource === 'website' && this.existingLesson) {
+      console.log('Updating task in website-lessons collection');
+      
+      this.crudService
+        .getDocuments('website-lessons')
+        .pipe(
+          take(1),
+          switchMap((websiteData: any[]) => {
+            console.log('Retrieved Website Lessons Data:', websiteData);
             
-            const existingTaskIndex = existingTasks.findIndex(
-              (t: any) => (taskToSave.id && t.id === taskToSave.id) || 
-                          (taskToSave.title && t.title === taskToSave.title)
+            const existingLesson = websiteData.find(
+              (l: any) => 
+                (this.existingLesson?.id && l.id === this.existingLesson.id) || 
+                (this.existingLesson?.lessonTitle?.uz && l.lessonTitle?.uz === this.existingLesson.lessonTitle.uz)
             );
             
-            console.log('Existing task index:', existingTaskIndex);
+            console.log('Existing website lesson found:', existingLesson);
             
-            if (existingTaskIndex !== -1) {
-              console.log('Found existing task, updating it');
-              // Replace the task completely with our updated version
-              existingTasks[existingTaskIndex] = taskToSave;
+            if (existingLesson) {
+              const existingTasks = existingLesson.tasks || [];
+              
+              const existingTaskIndex = existingTasks.findIndex(
+                (t: any) => (taskToSave.id && t.id === taskToSave.id) || 
+                            (taskToSave.title && t.title === taskToSave.title)
+              );
+              
+              console.log('Existing task index:', existingTaskIndex);
+              
+              if (existingTaskIndex !== -1) {
+                console.log('Found existing task, updating it');
+                // Replace the task completely with our updated version
+                existingTasks[existingTaskIndex] = taskToSave;
+              } else {
+                console.log('Task doesn\'t exist in this lesson, adding it');
+                existingTasks.push(taskToSave);
+              }
+              
+              const updatedLesson = {
+                ...existingLesson,
+                tasks: existingTasks
+              };
+              
+              console.log('Updating existing website lesson:', updatedLesson);
+              return this.crudService.updateDocument<Lesson>('website-lessons', existingLesson.id, updatedLesson);
             } else {
-              console.log('Task doesn\'t exist in this lesson, adding it');
-              existingTasks.push(taskToSave);
+              console.error('Could not find the website lesson to update');
+              return throwError(() => new Error('Website lesson not found'));
             }
+          })
+        )
+        .subscribe({
+          next: () => {
+            this.loaderService.hide();
+            this.uploading = false;
+            this.toastr.success('Ma\'lumotlar saqlandi!');
+            console.log('Data saved successfully to website-lessons');
             
-            const updatedLesson = {
-              ...existingLesson,
-              tasks: existingTasks
-            };
-            
-            console.log('Updating existing lesson:', updatedLesson);
-            return this.crudService.updateDocument<Lesson>('website-lessons', existingLesson.id, updatedLesson);
-          } else {
-            const newLesson = {
-              id: this.lesson?.id || this.crudService.generateId(),
-              lessonTitle: this.lesson?.lessonTitle || { uz: '', ru: '', en: '' },
-              thumbnail: this.lesson?.thumbnail || '',
-              index: this.lesson?.index || 0,
-              createdAt: this.lesson?.createdAt || new Date().toISOString(),
-              tasks: [taskToSave],
-              active: true
-            };
-            
-            console.log('Creating new lesson:', newLesson);
-            return this.crudService.addDocument('website-lessons', newLesson);
+            this.getWebsiteLessons();
+          },
+          error: (error: any) => {
+            console.error('Error saving data to website-lessons:', error);
+            this.loaderService.hide();
+            this.uploading = false;
+            this.toastr.error('Ma\'lumotlarni saqlashda xatolik!');
           }
-        })
-      )
-      .subscribe({
-        next: () => {
-          this.loaderService.hide();
-          this.uploading = false;
-          this.toastr.success('Ma\'lumotlar saqlandi!');
-          console.log('Data saved successfully');
-          
-          this.getWebsiteLessons();
-        },
-        error: (error: any) => {
-          console.error('Error saving data:', error);
-          this.loaderService.hide();
-          this.uploading = false;
-          this.toastr.error('Ma\'lumotlarni saqlashda xatolik!');
-        }
-      });
+        });
+    } else {
+      // Save to regular lessons collection
+      console.log('Saving task to regular lessons collection');
+      
+      this.crudService
+        .getDocuments('lessons')
+        .pipe(
+          take(1),
+          switchMap((lessonsData: any[]) => {
+            console.log('Retrieved Lessons Data:', lessonsData);
+            
+            // Find the lesson in the regular lessons collection
+            const regularLesson = lessonsData.find(
+              (l: any) => 
+                (this.lesson?.id && l.id === this.lesson.id) || 
+                (this.lesson?.lessonTitle?.uz && l.lessonTitle?.uz === this.lesson.lessonTitle.uz)
+            );
+            
+            if (regularLesson) {
+              console.log('Found existing lesson in lessons collection:', regularLesson);
+              
+              const existingTasks = regularLesson.tasks || [];
+              
+              const existingTaskIndex = existingTasks.findIndex(
+                (t: any) => (taskToSave.id && t.id === taskToSave.id) || 
+                            (taskToSave.title && t.title === taskToSave.title)
+              );
+              
+              if (existingTaskIndex !== -1) {
+                console.log('Found existing task, updating it');
+                existingTasks[existingTaskIndex] = taskToSave;
+              } else {
+                console.log('Task doesn\'t exist in this lesson, adding it');
+                existingTasks.push(taskToSave);
+              }
+              
+              const updatedLesson = {
+                ...regularLesson,
+                tasks: existingTasks
+              };
+              
+              console.log('Updating existing regular lesson:', updatedLesson);
+              return this.crudService.updateDocument<Lesson>('lessons', regularLesson.id, updatedLesson);
+            } else {
+              // Create a new lesson in the lessons collection
+              console.log('Creating new lesson in lessons collection');
+              
+              const newLesson = {
+                id: this.lesson?.id || this.crudService.generateId(),
+                lessonTitle: this.lesson?.lessonTitle || { uz: '', ru: '', en: '' },
+                thumbnail: this.lesson?.thumbnail || '',
+                index: this.lesson?.index || 0,
+                createdAt: this.lesson?.createdAt || new Date().toISOString(),
+                tasks: [taskToSave],
+                active: true
+              };
+              
+              console.log('Creating new lesson:', newLesson);
+              return this.crudService.addDocument('lessons', newLesson);
+            }
+          })
+        )
+        .subscribe({
+          next: () => {
+            this.loaderService.hide();
+            this.uploading = false;
+            this.toastr.success('Ma\'lumotlar saqlandi!');
+            console.log('Data saved successfully to lessons collection');
+            
+            this.getLessons();
+          },
+          error: (error: any) => {
+            console.error('Error saving data to lessons collection:', error);
+            this.loaderService.hide();
+            this.uploading = false;
+            this.toastr.error('Ma\'lumotlarni saqlashda xatolik!');
+          }
+        });
+    }
   }
 
   /**
    * Clean up task data by removing temporary upload fields
    */
   private cleanupTaskData(taskData: any): void {
+    console.log('Cleaning up task data before save...');
+    
     // Process first class files
     if (taskData.firstBasedFiles) {
       ['taskExampleFiles', 'taskSolutionFiles'].forEach(category => {
         ['uz', 'ru', 'en'].forEach(lang => {
           if (taskData.firstBasedFiles[category]?.[lang]) {
+            console.log(`Processing ${category}.${lang}: ${taskData.firstBasedFiles[category][lang].length} files`);
+            
             taskData.firstBasedFiles[category][lang] = 
               taskData.firstBasedFiles[category][lang]
-                // Filter out files without URLs (they weren't uploaded)
-                .filter((file: any) => file && file.url)
+                // Filter out files without URLs (they weren't uploaded) and not File objects
+                .filter((file: any) => file && (file.url || (file.file instanceof File)))
                 // Clean up temporary fields
-                .map((file: any) => ({
-                  name: file.name,
-                  url: file.url,
-                  size: file.size,
-                  type: file.type || '',
-                  path: file.path || '',
-                  path_lower: file.path_lower || '',
-                  id: file.id || '',
-                  rev: file.rev || '',
-                  server_modified: file.server_modified || null,
-                  client_modified: file.client_modified || null
-                }));
+                .map((file: any) => {
+                  // If this is a file object that still needs uploading, skip cleanup
+                  if (file.file instanceof File) {
+                    console.warn(`File ${file.name} in ${category}.${lang} still has a File object but no URL`);
+                    return file;
+                  }
+                  
+                  return {
+                    name: file.name,
+                    url: file.url,
+                    size: file.size,
+                    type: file.type || '',
+                    path: file.path || '',
+                    path_lower: file.path_lower || '',
+                    id: file.id || '',
+                    rev: file.rev || '',
+                    server_modified: file.server_modified || null,
+                    client_modified: file.client_modified || null,
+                    // Preserve any metadata
+                    category: file.category || category,
+                    language: file.language || lang
+                  };
+                });
+                
+            console.log(`After cleanup: ${taskData.firstBasedFiles[category][lang].length} files in ${category}.${lang}`);
           }
         });
       });
@@ -871,27 +1001,45 @@ export class CreateBuildPage implements OnInit {
       ['taskTitleFiles', 'taskPresentationFiles', 'taskLiteratureFiles'].forEach(category => {
         ['uz', 'ru', 'en'].forEach(lang => {
           if (taskData.secondBasedFiles[category]?.[lang]) {
+            console.log(`Processing ${category}.${lang}: ${taskData.secondBasedFiles[category][lang].length} files`);
+            
             taskData.secondBasedFiles[category][lang] = 
               taskData.secondBasedFiles[category][lang]
-                // Filter out files without URLs (they weren't uploaded)
-                .filter((file: any) => file && file.url)
+                // Filter out files without URLs (they weren't uploaded) and not File objects
+                .filter((file: any) => file && (file.url || (file.file instanceof File)))
                 // Clean up temporary fields
-                .map((file: any) => ({
-                  name: file.name,
-                  url: file.url,
-                  size: file.size,
-                  type: file.type || '',
-                  path: file.path || '',
-                  path_lower: file.path_lower || '',
-                  id: file.id || '',
-                  rev: file.rev || '',
-                  server_modified: file.server_modified || null,
-                  client_modified: file.client_modified || null
-                }));
+                .map((file: any) => {
+                  // If this is a file object that still needs uploading, skip cleanup
+                  if (file.file instanceof File) {
+                    console.warn(`File ${file.name} in ${category}.${lang} still has a File object but no URL`);
+                    return file;
+                  }
+                  
+                  return {
+                    name: file.name,
+                    url: file.url,
+                    size: file.size,
+                    type: file.type || '',
+                    path: file.path || '',
+                    path_lower: file.path_lower || '',
+                    id: file.id || '',
+                    rev: file.rev || '',
+                    server_modified: file.server_modified || null,
+                    client_modified: file.client_modified || null,
+                    // Preserve any metadata
+                    category: file.category || category,
+                    language: file.language || lang
+                  };
+                });
+                
+            console.log(`After cleanup: ${taskData.secondBasedFiles[category][lang].length} files in ${category}.${lang}`);
           }
         });
       });
     }
+    
+    // Log summary
+    console.log('Task data cleanup complete');
   }
 
   /**
@@ -1237,7 +1385,8 @@ export class CreateBuildPage implements OnInit {
       return;
     }
 
-    const existingLesson = this.websiteLessons.find(
+    // Find the corresponding lesson in the website-lessons collection
+    const existingWebsiteLesson = this.websiteLessons.find(
       (lesson) => 
         (lesson.id && selectedLesson.id && lesson.id === selectedLesson.id) ||
         (lesson.lessonTitle?.uz && 
@@ -1245,22 +1394,160 @@ export class CreateBuildPage implements OnInit {
          lesson.lessonTitle.uz === selectedLesson.lessonTitle.uz)
     );
 
+    // Process the selected lesson's tasks
+    const regularLessonTasks = selectedLesson.tasks || [];
+    const websiteLessonTasks = existingWebsiteLesson?.tasks || [];
+    
+    console.log('Regular lesson tasks:', regularLessonTasks);
+    console.log('Website lesson tasks:', websiteLessonTasks);
+
+    // Normalize all tasks to ensure they have proper structure
+    const normalizedRegularTasks = regularLessonTasks.map((task: Task, index: number) => ({
+      id: task.id || this.crudService.generateId(),
+      title: task.title || `Task ${index + 1}`,
+      index: task.index || index + 1,
+      createdAt: task.createdAt || new Date().toISOString(),
+      firstBasedFiles: task.firstBasedFiles || {
+        taskExampleFiles: { uz: [], ru: [], en: [] },
+        taskSolutionFiles: { uz: [], ru: [], en: [] }
+      },
+      secondBasedFiles: task.secondBasedFiles || {
+        taskTitleFiles: { uz: [], ru: [], en: [] },
+        taskPresentationFiles: { uz: [], ru: [], en: [] },
+        taskLiteratureFiles: { uz: [], ru: [], en: [] },
+        taskVideoUrls: []
+      },
+      source: 'regular'
+    }));
+
+    const normalizedWebsiteTasks = websiteLessonTasks.map((task: Task, index: number) => ({
+      id: task.id || this.crudService.generateId(),
+      title: task.title || `Website Task ${index + 1}`,
+      index: task.index || index + 1,
+      createdAt: task.createdAt || new Date().toISOString(),
+      firstBasedFiles: task.firstBasedFiles || {
+        taskExampleFiles: { uz: [], ru: [], en: [] },
+        taskSolutionFiles: { uz: [], ru: [], en: [] }
+      },
+      secondBasedFiles: task.secondBasedFiles || {
+        taskTitleFiles: { uz: [], ru: [], en: [] },
+        taskPresentationFiles: { uz: [], ru: [], en: [] },
+        taskLiteratureFiles: { uz: [], ru: [], en: [] },
+        taskVideoUrls: []
+      },
+      source: 'website'
+    }));
+
+    // Create a set of task titles to track duplicates
+    const taskTitles = new Set<string>();
+    
+    // Combine tasks from both sources, prioritizing tasks with data
+    // and avoiding duplicates based on title
+    const combinedTasks: any[] = [];
+    
+    // Helper function to check if a task has any data
+    const hasData = (task: any): boolean => {
+      if (!task) return false;
+      
+      // Check first-based files
+      const hasFirstBasedFiles = Object.values(task.firstBasedFiles || {}).some(
+        (fileGroup: any) => 
+          Object.values(fileGroup || {}).some(
+            (files: any) => files && files.length > 0
+          )
+      );
+      
+      // Check second-based files
+      const hasSecondBasedFiles = Object.values(task.secondBasedFiles || {})
+        .filter((group: any) => group !== undefined)
+        .some(
+          (fileGroup: any) => {
+            if (Array.isArray(fileGroup)) {
+              return fileGroup.length > 0;
+            }
+            return Object.values(fileGroup || {}).some(
+              (files: any) => files && files.length > 0
+            );
+          }
+        );
+      
+      return hasFirstBasedFiles || hasSecondBasedFiles;
+    };
+    
+    // First add all tasks with data (from both sources)
+    // Start with website tasks since they are likely to have more complete data
+    normalizedWebsiteTasks.forEach(task => {
+      if (hasData(task) && task.title) {
+        taskTitles.add(task.title);
+        combinedTasks.push({
+          ...task,
+          hasData: true
+        });
+      }
+    });
+    
+    // Then add regular tasks with data, avoiding duplicates
+    normalizedRegularTasks.forEach(task => {
+      if (hasData(task) && task.title && !taskTitles.has(task.title)) {
+        taskTitles.add(task.title);
+        combinedTasks.push({
+          ...task,
+          hasData: true
+        });
+      }
+    });
+    
+    // Then add all empty tasks from both sources (first website, then regular)
+    // starting with website tasks
+    normalizedWebsiteTasks.forEach(task => {
+      if (!hasData(task) && task.title && !taskTitles.has(task.title)) {
+        taskTitles.add(task.title);
+        combinedTasks.push({
+          ...task,
+          hasData: false
+        });
+      }
+    });
+    
+    // Finally add empty regular tasks
+    normalizedRegularTasks.forEach(task => {
+      if (!hasData(task) && task.title && !taskTitles.has(task.title)) {
+        taskTitles.add(task.title);
+        combinedTasks.push({
+          ...task,
+          hasData: false
+        });
+      }
+    });
+    
+    // Sort combined tasks - first by hasData (true first), then by index
+    combinedTasks.sort((a, b) => {
+      if (a.hasData !== b.hasData) {
+        return a.hasData ? -1 : 1; // Tasks with data come first
+      }
+      // If both have same data status, sort by index
+      return (a.index || 0) - (b.index || 0);
+    });
+    
+    console.log('Combined tasks:', combinedTasks);
+
+    // Create the lesson object with the combined tasks
     this.lesson = {
       id: selectedLesson.id || this.crudService.generateId(),
       lessonTitle: selectedLesson.lessonTitle || { uz: '', ru: '', en: '' },
       thumbnail: selectedLesson.thumbnail,
       index: selectedLesson.index,
       createdAt: selectedLesson.createdAt || new Date().toISOString(),
-      tasks: selectedLesson.tasks || []
+      tasks: combinedTasks
     };
     
-    if (existingLesson) {
-      console.log('Existing website lesson found:', existingLesson);
-      this.existingLesson = existingLesson;
+    if (existingWebsiteLesson) {
+      console.log('Existing website lesson found:', existingWebsiteLesson);
+      this.existingLesson = existingWebsiteLesson;
       this.toastr.info("Mavjud fan topildi. Topshiriq tanlang.");
       
-      if (existingLesson.lessonTitle?.uz !== selectedLesson.lessonTitle?.uz) {
-        this.lesson.lessonTitle = existingLesson.lessonTitle;
+      if (existingWebsiteLesson.lessonTitle?.uz !== selectedLesson.lessonTitle?.uz) {
+        this.lesson.lessonTitle = existingWebsiteLesson.lessonTitle;
       }
     } else {
       console.log('New lesson will be created:', this.lesson);
@@ -1278,24 +1565,34 @@ export class CreateBuildPage implements OnInit {
       return;
     }
 
+    // Determine the source of the task
+    const taskSource = (selectedTask as any).source || 'unknown';
+    console.log(`Task source: ${taskSource}`);
+    
+    // Find the existing task based on the source
     let existingTask = null;
-    if (this.existingLesson?.tasks) {
-      console.log('Looking in existing lesson tasks:', this.existingLesson.tasks);
+    
+    if (taskSource === 'website' && this.existingLesson?.tasks) {
+      // Look for the task in the website-lessons collection
       existingTask = this.existingLesson.tasks.find(
         (task: Task) =>
           (task.id && selectedTask.id && task.id === selectedTask.id) ||
           (task.title && selectedTask.title && task.title === selectedTask.title)
       );
+      console.log('Found existing task in website collection:', existingTask);
+    } else if (taskSource === 'regular') {
+      // For regular tasks, we already have the data in the selectedTask
+      existingTask = selectedTask;
+      console.log('Using regular task:', existingTask);
     }
 
-    console.log('Found existing task:', existingTask);
-    console.log('Existing task files:', existingTask?.firstBasedFiles, existingTask?.secondBasedFiles);
+    console.log('Task files:', existingTask?.firstBasedFiles, existingTask?.secondBasedFiles);
     
     this.task = {
-      id: existingTask?.id || selectedTask.id || this.crudService.generateId(),
-      title: existingTask?.title || selectedTask.title || '',
-      index: existingTask?.index || selectedTask.index || (this.lesson.tasks?.length || 0) + 1,
-      createdAt: existingTask?.createdAt || selectedTask.createdAt || new Date().toISOString(),
+      id: selectedTask.id || this.crudService.generateId(),
+      title: selectedTask.title || '',
+      index: selectedTask.index || 0,
+      createdAt: selectedTask.createdAt || new Date().toISOString(),
       firstBasedFiles: {
         taskExampleFiles: { uz: [], ru: [], en: [] },
         taskSolutionFiles: { uz: [], ru: [], en: [] }
@@ -1308,6 +1605,7 @@ export class CreateBuildPage implements OnInit {
       }
     };
     
+    // Copy file data from the existing task if available
     if (existingTask) {
       try {
         ['taskExampleFiles', 'taskSolutionFiles'].forEach(category => {
@@ -1345,8 +1643,8 @@ export class CreateBuildPage implements OnInit {
     console.log('Literature Files:', this.task.secondBasedFiles.taskLiteratureFiles);
     console.log('Video URLs:', this.task.secondBasedFiles.taskVideoUrls);
 
-    if (existingTask) {
-      console.log('Using existing task with files:', this.task);
+    if ((selectedTask as any).hasData) {
+      console.log('Using existing task with data:', this.task);
       this.toastr.info('Mavjud topshiriq ma\'lumotlari bilan ishlayapsiz.');
     } else {
       console.log('Creating new task structure:', this.task);
@@ -1463,5 +1761,40 @@ export class CreateBuildPage implements OnInit {
     }
     
     return fileInfo;
+  }
+
+  /**
+   * Check if a task has any uploaded files or data
+   */
+  hasTaskData(task: any): boolean {
+    if (!task) return false;
+    
+    // Check first-based files
+    const hasFirstBasedFiles = Object.values(task.firstBasedFiles || {}).some(
+      (fileGroup: any) => 
+        Object.values(fileGroup || {}).some(
+          (files: any) => files && files.length > 0
+        )
+    );
+    
+    // Check second-based files
+    const hasSecondBasedFiles = Object.values(task.secondBasedFiles || {})
+      .filter((group: any) => group !== undefined)
+      .some(
+        (fileGroup: any) => {
+          if (Array.isArray(fileGroup)) {
+            return fileGroup.length > 0;
+          }
+          return Object.values(fileGroup || {}).some(
+            (files: any) => files && files.length > 0
+          );
+        }
+      );
+    
+    return hasFirstBasedFiles || hasSecondBasedFiles;
+  }
+  
+  isTaskDuplicate(task: Task): boolean {
+    return !!(task && (task as any).isDuplicate);
   }
 }
