@@ -76,7 +76,7 @@
                 >
                   <iframe
                     #pdfViewer
-                    *ngIf="i < visibleFiles.length && visibleFiles[i].visible"
+                    *ngIf="shouldShowFile(i)"
                     [src]="sanitizeUrl(file?.url || '')"
                     width="100%"
                     height="1000px"
@@ -102,7 +102,7 @@
                 >
                   <iframe
                     #pdfViewer
-                    *ngIf="i < visibleFiles.length && visibleFiles[i].visible"
+                    *ngIf="shouldShowFile(i)"
                     [src]="sanitizeUrl(file?.url || '')"
                     width="100%"
                     height="1000px"
@@ -129,7 +129,7 @@
                 >
                   <iframe
                     #pdfViewer
-                    *ngIf="i < visibleFiles.length && visibleFiles[i].visible"
+                    *ngIf="shouldShowFile(i)"
                     [src]="sanitizeUrl(file?.url || '')"
                     width="100%"
                     height="1000px"
@@ -155,7 +155,7 @@
                 >
                   <iframe
                     #pdfViewer
-                    *ngIf="i < visibleFiles.length && visibleFiles[i].visible"
+                    *ngIf="shouldShowFile(i)"
                     [src]="sanitizeUrl(file?.url || '')"
                     width="100%"
                     height="1000px"
@@ -182,7 +182,7 @@
                 >
                   <h4 class="video-title">{{ getVideoName(video) }}</h4>
                   <iframe
-                    *ngIf="i < visibleFiles.length && visibleFiles[i].visible"
+                    *ngIf="shouldShowFile(i)"
                     [src]="getEmbeddedVideoUrl(getVideoUrl(video))"
                     width="100%"
                     height="500"

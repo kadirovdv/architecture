@@ -8,6 +8,7 @@ import {
   ViewChild,
   ViewChildren,
   QueryList,
+  Renderer2
 } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CrudService } from 'src/app/shared/services/crud.service';
@@ -89,7 +90,10 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   selectedTaskId: string | null = null;
   isLiteratureDropdownVisible = false;
 
-  visibleFiles: Array<{url: string, visible: boolean}> = [];
+  filesQueue: Array<{ type: string, url: string, index: number }> = [];
+  currentLoadingIndex = 0;
+  filesLoaded: boolean = false;
+  loadingInProgress: boolean = false;
 
   constructor(
     private navService: ToggleNavVisibilityService,
@@ -98,7 +102,8 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     private activatedRoute: ActivatedRoute,
     private i18n: i18nService,
     private loaderService: LoaderService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private renderer: Renderer2
   ) {
     // Subscribe to selectedFiles changes
     this.selectedFiles$.pipe(takeUntil(this.destroy$)).subscribe((files) => {
@@ -477,7 +482,10 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     this.isLoadingFile = true;
     this.currentFileTypeSubject.next(fileType);
     this.sanitizedUrls.clear(); // Clear cache when changing files
-    this.visibleFiles = []; // Reset visible files
+    this.filesQueue = []; // Reset files queue
+    this.currentLoadingIndex = 0;
+    this.filesLoaded = false;
+    this.loadingInProgress = false;
 
     const newFiles = {
       firstBasedFiles: {
@@ -516,50 +524,91 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
     this.selectedFilesSubject.next(newFiles);
     
-    // Prepare files to be shown sequentially
-    let filesToShow: Array<{url: string}> = [];
+    // Build the files queue
+    this.buildFilesQueue(category, fileType, newFiles);
     
+    // Start loading files after a short delay
+    setTimeout(() => {
+      this.isLoadingFile = false;
+      this.loadNextFile();
+    }, 100);
+  }
+
+  // Build a queue of files to load
+  private buildFilesQueue(
+    category: 'firstBasedFiles' | 'secondBasedFiles',
+    fileType: string,
+    newFiles: any
+  ): void {
     if (category === 'firstBasedFiles' && fileType in newFiles.firstBasedFiles) {
       const filesObj = newFiles.firstBasedFiles[fileType as keyof FirstClassFileGroups] as any;
       if (filesObj && typeof filesObj === 'object' && this.lang in filesObj && Array.isArray(filesObj[this.lang])) {
-        filesToShow = [...filesObj[this.lang]];
+        filesObj[this.lang].forEach((file: any, index: number) => {
+          this.filesQueue.push({
+            type: 'pdf',
+            url: file.url || '',
+            index
+          });
+        });
       }
     } else if (category === 'secondBasedFiles') {
       if (fileType === 'taskVideoUrls') {
         const videos = newFiles.secondBasedFiles.taskVideoUrls;
         if (Array.isArray(videos)) {
-          filesToShow = videos.map(video => ({ url: this.getVideoUrl(video) }));
+          videos.forEach((video: any, index: number) => {
+            this.filesQueue.push({
+              type: 'video',
+              url: this.getVideoUrl(video),
+              index
+            });
+          });
         }
       } else if (fileType in newFiles.secondBasedFiles) {
         const filesObj = newFiles.secondBasedFiles[fileType as keyof SecondClassFileGroups] as any;
         if (filesObj && typeof filesObj === 'object' && this.lang in filesObj && Array.isArray(filesObj[this.lang])) {
-          filesToShow = [...filesObj[this.lang]];
+          filesObj[this.lang].forEach((file: any, index: number) => {
+            this.filesQueue.push({
+              type: 'pdf',
+              url: file.url || '',
+              index
+            });
+          });
         }
       }
     }
     
-    // Initialize visibility state for all files (initially all hidden)
-    this.visibleFiles = filesToShow.map(file => ({
-      url: file.url || '',
-      visible: false
-    }));
-    
-    // Show loading state briefly
-    setTimeout(() => {
-      this.isLoadingFile = false;
-      
-      // Show files sequentially with delay
-      this.visibleFiles.forEach((file, index) => {
-        setTimeout(() => {
-          this.visibleFiles[index].visible = true;
-        }, index * 300); // 300ms delay between each file
-      });
-    }, 100); // Short initial delay
+    console.log(`Added ${this.filesQueue.length} files to the queue`);
   }
-
+  
+  // Load the next file in the queue
+  loadNextFile(): void {
+    if (this.currentLoadingIndex >= this.filesQueue.length || this.loadingInProgress) {
+      console.log('All files loaded or loading in progress');
+      this.filesLoaded = this.currentLoadingIndex >= this.filesQueue.length;
+      return;
+    }
+    
+    this.loadingInProgress = true;
+    
+    const fileInfo = this.filesQueue[this.currentLoadingIndex];
+    console.log(`Loading file ${this.currentLoadingIndex + 1}/${this.filesQueue.length}: ${fileInfo.url}`);
+    
+    // Increment the index to show the next file
+    this.currentLoadingIndex++;
+  }
+  
+  // Check if a file should be visible based on its index
+  shouldShowFile(index: number): boolean {
+    return index < this.currentLoadingIndex;
+  }
+  
+  // Update other methods
   private updateFilesOnLanguageChange(): void {
     if (this.selectedLesson) {
-      this.visibleFiles = []; // Clear visible files
+      this.filesQueue = []; // Clear files queue
+      this.currentLoadingIndex = 0;
+      this.filesLoaded = false;
+      this.loadingInProgress = false;
       this.setLessonFiles('firstBasedFiles', this.currentFileType);
     }
   }
@@ -568,12 +617,26 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     if (!fileId) return;
     console.log('✅ PDF loaded successfully!');
     this.iframeErrors[fileId] = false;
+    
+    // Mark the current file as loaded and load the next one
+    this.loadingInProgress = false;
+    
+    // Use setTimeout to give the browser a chance to finish rendering
+    setTimeout(() => {
+      this.loadNextFile();
+    }, 300); // 300ms delay between loading files
   }
 
   onIframeError(fileId: string | undefined) {
     if (!fileId) return;
     console.log('❌ Error loading PDF');
     this.iframeErrors[fileId] = true;
+    
+    // Even if there's an error, we should move on to the next file
+    this.loadingInProgress = false;
+    setTimeout(() => {
+      this.loadNextFile();
+    }, 300);
   }
 
   hasIframeError(url: string | undefined): boolean {
@@ -595,7 +658,10 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
     this.selectedTaskId = task.id;
     this.isTaskModalVisible = false;
-    this.visibleFiles = []; // Reset visible files
+    this.filesQueue = []; // Clear files queue
+    this.currentLoadingIndex = 0;
+    this.filesLoaded = false;
+    this.loadingInProgress = false;
 
     if (this.selectedLesson?.tasks) {
       const newFiles = {
@@ -629,41 +695,12 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       };
       this.selectedFilesSubject.next(newFiles);
       
-      // Prepare visible files initially
-      const fileType = this.currentFileType;
-      let filesToShow: Array<{url: string}> = [];
+      // Build the files queue for the selected task
+      this.buildFilesQueue('firstBasedFiles', this.currentFileType, newFiles);
       
-      // Get files for the current selected file type
-      if (fileType in newFiles.firstBasedFiles) {
-        const filesObj = newFiles.firstBasedFiles[fileType as keyof FirstClassFileGroups] as any;
-        if (filesObj && typeof filesObj === 'object' && this.lang in filesObj && Array.isArray(filesObj[this.lang])) {
-          filesToShow = [...filesObj[this.lang]];
-        }
-      } else if (fileType === 'taskVideoUrls') {
-        const videos = newFiles.secondBasedFiles.taskVideoUrls;
-        if (Array.isArray(videos)) {
-          filesToShow = videos.map(video => ({ url: this.getVideoUrl(video) }));
-        }
-      } else if (fileType in newFiles.secondBasedFiles) {
-        const filesObj = newFiles.secondBasedFiles[fileType as keyof SecondClassFileGroups] as any;
-        if (filesObj && typeof filesObj === 'object' && this.lang in filesObj && Array.isArray(filesObj[this.lang])) {
-          filesToShow = [...filesObj[this.lang]];
-        }
-      }
-      
-      // Initialize visibility state for all files (initially all hidden)
-      this.visibleFiles = filesToShow.map(file => ({
-        url: file.url || '',
-        visible: false
-      }));
-      
-      // Show files sequentially with delay
+      // Start loading files after a short delay
       setTimeout(() => {
-        this.visibleFiles.forEach((file, index) => {
-          setTimeout(() => {
-            this.visibleFiles[index].visible = true;
-          }, index * 300); // 300ms delay between each file
-        });
+        this.loadNextFile();
       }, 100);
     }
   }
