@@ -8,7 +8,7 @@ import {
   ViewChild,
   ViewChildren,
   QueryList,
-  Renderer2
+  Renderer2,
 } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CrudService } from 'src/app/shared/services/crud.service';
@@ -90,7 +90,7 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   selectedTaskId: string | null = null;
   isLiteratureDropdownVisible = false;
 
-  filesQueue: Array<{ type: string, url: string, index: number }> = [];
+  filesQueue: Array<{ type: string; url: string; index: number }> = [];
   currentLoadingIndex = 0;
   filesLoaded: boolean = false;
   loadingInProgress: boolean = false;
@@ -177,8 +177,8 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
         switchMap((res: unknown) => {
           const allLessons = res as Lesson[];
           // Filter for active lessons only
-          const lessons = allLessons.filter(lesson => lesson.active);
-          
+          const lessons = allLessons.filter((lesson) => lesson.active);
+
           if (lessons.length === 0) {
             this.websiteLessons = lessons;
             this.loaderService.hideLoader();
@@ -425,20 +425,21 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     if (!url) return null;
 
     if (this.sanitizedUrls.has(url)) {
-      return this.sanitizedUrls.get(url)!;
+      return this.sanitizedUrls.get(url) as SafeResourceUrl;
     }
 
-    const sanitizedUrl = this.sanitizePdfUrl(url);
-    const encodedUrl = encodeURIComponent(sanitizedUrl);
+    try {
+      const sanitizedUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+      this.sanitizedUrls.set(url, sanitizedUrl);
+      return sanitizedUrl;
+    } catch (error) {
+      console.error('Error sanitizing URL:', error);
+      return null;
+    }
+  }
 
-    // Ensure it remains a proper URL
-    const safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
-      `https://docs.google.com/viewer?url=${encodedUrl}&embedded=true`
-    );
-
-    this.sanitizedUrls.set(url, safeUrl);
-    console.log('safeUrl', safeUrl);
-    return safeUrl;
+  getRawUrl(url: string, type = 'pdf'): string {
+    return this.sanitizePdfUrl(url) || '';
   }
 
   getVideoUrl(video: Videos): string {
@@ -471,6 +472,10 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url.match(regExp);
     return match && match[2].length === 11 ? match[2] : null;
+  }
+
+  isYoutubeUrl(url: string): boolean {
+    return url.includes('youtube.com') || url.includes('youtu.be');
   }
 
   setLessonFiles(
@@ -523,10 +528,10 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this.selectedFilesSubject.next(newFiles);
-    
+
     // Build the files queue
     this.buildFilesQueue(category, fileType, newFiles);
-    
+
     // Start loading files after a short delay
     setTimeout(() => {
       this.isLoadingFile = false;
@@ -540,14 +545,24 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     fileType: string,
     newFiles: any
   ): void {
-    if (category === 'firstBasedFiles' && fileType in newFiles.firstBasedFiles) {
-      const filesObj = newFiles.firstBasedFiles[fileType as keyof FirstClassFileGroups] as any;
-      if (filesObj && typeof filesObj === 'object' && this.lang in filesObj && Array.isArray(filesObj[this.lang])) {
+    if (
+      category === 'firstBasedFiles' &&
+      fileType in newFiles.firstBasedFiles
+    ) {
+      const filesObj = newFiles.firstBasedFiles[
+        fileType as keyof FirstClassFileGroups
+      ] as any;
+      if (
+        filesObj &&
+        typeof filesObj === 'object' &&
+        this.lang in filesObj &&
+        Array.isArray(filesObj[this.lang])
+      ) {
         filesObj[this.lang].forEach((file: any, index: number) => {
           this.filesQueue.push({
             type: 'pdf',
             url: file.url || '',
-            index
+            index,
           });
         });
       }
@@ -559,49 +574,81 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
             this.filesQueue.push({
               type: 'video',
               url: this.getVideoUrl(video),
-              index
+              index,
             });
           });
         }
       } else if (fileType in newFiles.secondBasedFiles) {
-        const filesObj = newFiles.secondBasedFiles[fileType as keyof SecondClassFileGroups] as any;
-        if (filesObj && typeof filesObj === 'object' && this.lang in filesObj && Array.isArray(filesObj[this.lang])) {
+        const filesObj = newFiles.secondBasedFiles[
+          fileType as keyof SecondClassFileGroups
+        ] as any;
+        if (
+          filesObj &&
+          typeof filesObj === 'object' &&
+          this.lang in filesObj &&
+          Array.isArray(filesObj[this.lang])
+        ) {
           filesObj[this.lang].forEach((file: any, index: number) => {
             this.filesQueue.push({
               type: 'pdf',
               url: file.url || '',
-              index
+              index,
             });
           });
         }
       }
     }
-    
+
     console.log(`Added ${this.filesQueue.length} files to the queue`);
   }
-  
+
   // Load the next file in the queue
   loadNextFile(): void {
-    if (this.currentLoadingIndex >= this.filesQueue.length || this.loadingInProgress) {
-      console.log('All files loaded or loading in progress');
-      this.filesLoaded = this.currentLoadingIndex >= this.filesQueue.length;
+    if (this.currentLoadingIndex >= this.filesQueue.length) {
+      console.log('All files loaded');
+      this.filesLoaded = true;
       return;
     }
-    
+
+    if (this.loadingInProgress) {
+      console.log('Loading in progress, waiting...');
+      // If loading is stuck for some reason, set a timeout to force continue
+      setTimeout(() => {
+        console.log('Force continuing load sequence after timeout');
+        this.loadingInProgress = false;
+        this.loadNextFile();
+      }, 5000); // 5 second backup timeout
+      return;
+    }
+
     this.loadingInProgress = true;
-    
+
     const fileInfo = this.filesQueue[this.currentLoadingIndex];
-    console.log(`Loading file ${this.currentLoadingIndex + 1}/${this.filesQueue.length}: ${fileInfo.url}`);
-    
+    console.log(
+      `Loading file ${this.currentLoadingIndex + 1}/${
+        this.filesQueue.length
+      }: ${fileInfo.url}`
+    );
+
     // Increment the index to show the next file
     this.currentLoadingIndex++;
+
+    // Set a fallback timer in case the iframe load/error events don't fire
+    // This ensures the sequence continues even if there are issues
+    setTimeout(() => {
+      if (this.loadingInProgress) {
+        console.log(`Fallback timer triggered for file: ${fileInfo.url}`);
+        this.loadingInProgress = false;
+        this.loadNextFile();
+      }
+    }, 10000); // 10 second fallback
   }
-  
+
   // Check if a file should be visible based on its index
   shouldShowFile(index: number): boolean {
     return index < this.currentLoadingIndex;
   }
-  
+
   // Update other methods
   private updateFilesOnLanguageChange(): void {
     if (this.selectedLesson) {
@@ -614,34 +661,64 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onIframeLoad(fileId: string | undefined) {
-    if (!fileId) return;
-    console.log('✅ PDF loaded successfully!');
+    if (!fileId) {
+      console.log('Warning: iframe loaded but fileId is undefined');
+      setTimeout(() => {
+        this.loadingInProgress = false;
+        this.loadNextFile();
+      }, 1000);
+      return;
+    }
+
+    console.log(`✅ PDF loaded successfully: ${fileId}`);
     this.iframeErrors[fileId] = false;
-    
+
     // Mark the current file as loaded and load the next one
     this.loadingInProgress = false;
-    
+
     // Use setTimeout to give the browser a chance to finish rendering
     setTimeout(() => {
       this.loadNextFile();
-    }, 300); // 300ms delay between loading files
+    }, 1000); // 1000ms (1 second) delay between loading files
   }
 
   onIframeError(fileId: string | undefined) {
-    if (!fileId) return;
-    console.log('❌ Error loading PDF');
+    if (!fileId) {
+      console.log('Warning: iframe error but fileId is undefined');
+      setTimeout(() => {
+        this.loadingInProgress = false;
+        this.loadNextFile();
+      }, 1000);
+      return;
+    }
+
+    console.log(`❌ Error loading PDF: ${fileId}`);
     this.iframeErrors[fileId] = true;
-    
+
     // Even if there's an error, we should move on to the next file
     this.loadingInProgress = false;
     setTimeout(() => {
       this.loadNextFile();
-    }, 300);
+    }, 1000);
   }
 
   hasIframeError(url: string | undefined): boolean {
-    if (!url) return false;
-    return this.iframeErrors[url] || false;
+    return url ? this.iframeErrors[url] === true : false;
+  }
+
+  onDocViewerLoad(fileId: string | undefined) {
+    if (fileId) {
+      // Mark the file as loaded
+      this.iframeErrors[fileId] = false;
+    }
+  }
+
+  onDocViewerError(event: any, fileId: string | undefined) {
+    console.error('Doc viewer error:', event);
+    if (fileId) {
+      // Mark the file as having an error
+      this.iframeErrors[fileId] = true;
+    }
   }
 
   toggleTaskModal(event: Event): void {
@@ -694,10 +771,10 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
         },
       };
       this.selectedFilesSubject.next(newFiles);
-      
+
       // Build the files queue for the selected task
       this.buildFilesQueue('firstBasedFiles', this.currentFileType, newFiles);
-      
+
       // Start loading files after a short delay
       setTimeout(() => {
         this.loadNextFile();
@@ -757,12 +834,17 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   @HostListener('document:click', ['$event'])
   handleDocumentClick(event: MouseEvent): void {
     const clickedElement = event.target as HTMLElement;
-    const literatureSection = clickedElement.closest('.file-selection-card-item');
-    const insideLiteratureDropdown = clickedElement.closest('.literature-dropdown');
-    const isButton = clickedElement.closest('button') || 
-                    clickedElement.tagName === 'BUTTON' || 
-                    clickedElement.tagName === 'I' ||
-                    clickedElement.parentElement?.tagName === 'BUTTON';
+    const literatureSection = clickedElement.closest(
+      '.file-selection-card-item'
+    );
+    const insideLiteratureDropdown = clickedElement.closest(
+      '.literature-dropdown'
+    );
+    const isButton =
+      clickedElement.closest('button') ||
+      clickedElement.tagName === 'BUTTON' ||
+      clickedElement.tagName === 'I' ||
+      clickedElement.parentElement?.tagName === 'BUTTON';
 
     if (!literatureSection && !insideLiteratureDropdown && !isButton) {
       this.isTaskModalVisible = false;
@@ -799,16 +881,19 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
     if (!url) return;
 
-    this.dropboxService.openFileInNewTab(url).pipe(take(1)).subscribe({
-      next: () => this.loaderService.hideLoader(true),
-      error: () => this.loaderService.hideLoader(true),
-    });
+    this.dropboxService
+      .openFileInNewTab(url)
+      .pipe(take(1))
+      .subscribe({
+        next: () => this.loaderService.hideLoader(true),
+        error: () => this.loaderService.hideLoader(true),
+      });
   }
 
   downloadFile(event: Event, url?: string): void {
     event.preventDefault();
     event.stopPropagation();
-    
+
     if (!url) return;
 
     this.loaderService.showLoader();
@@ -828,6 +913,38 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
     if (this.isLiteratureDropdownVisible) {
       this.setLessonFiles('secondBasedFiles', 'taskLiteratureFiles');
+    }
+  }
+
+  // Add a reloadFile method to allow retrying failed loads
+  reloadFile(index: number): void {
+    console.log(`Attempting to reload file at index ${index}`);
+
+    if (index >= 0 && index < this.filesQueue.length) {
+      const fileInfo = this.filesQueue[index];
+
+      // Clear the error flag for this file
+      if (fileInfo.url) {
+        console.log(`Clearing error for file: ${fileInfo.url}`);
+        this.iframeErrors[fileInfo.url] = false;
+      }
+
+      // Force re-render of the iframe
+      // We'll use a workaround by temporarily removing the file from visible files
+      const currentIndex = this.currentLoadingIndex;
+
+      // If we're trying to reload a file that's already been shown
+      if (index < currentIndex) {
+        // Temporarily hide all files after this one
+        this.currentLoadingIndex = index;
+
+        // Then after a short delay, restore them
+        setTimeout(() => {
+          this.currentLoadingIndex = currentIndex;
+        }, 100);
+      }
+    } else {
+      console.error(`Invalid file index for reload: ${index}`);
     }
   }
 }

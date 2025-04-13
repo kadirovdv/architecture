@@ -74,19 +74,27 @@
                   class="file-preview"
                   *ngFor="let file of selectedFiles?.firstBasedFiles?.taskExampleFiles?.[lang]; let i = index"
                 >
-                  <iframe
-                    #pdfViewer
+                  <ngx-doc-viewer
                     *ngIf="shouldShowFile(i)"
-                    [src]="sanitizeUrl(file?.url || '')"
-                    width="100%"
-                    height="1000px"
-                    frameborder="0"
-                    (load)="onIframeLoad(file?.url)"
-                    (error)="onIframeError(file?.url)"
+                    [url]="getRawUrl(file?.url || '')"
+                    viewer="google"
+                    style="width:100%;height:1000px;border: 1px solid #eee;"
+                    (loaded)="onDocViewerLoad(file?.url)"
+                    (error)="onDocViewerError($event, file?.url)"
+                    [viewerUrl]="'https://docs.google.com/viewer?url=TARGET_URL&embedded=true'"
+                    queryParams="download=0&embedded=true"
                   >
-                  </iframe>
-                  <div *ngIf="hasIframeError(file?.url)" class="error-message">
-                    ❌ PDF failed to load. Please check the file link.
+                    <div class="ngx-doc-loading">
+                      <div class="text-center pt-5">
+                        <div class="spinner-border" role="status">
+                          <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading document...</p>
+                      </div>
+                    </div>
+                  </ngx-doc-viewer>
+                  <div *ngIf="shouldShowFile(i) && hasIframeError(file?.url)" class="error-message">
+                    ❌ PDF failed to load. Please check the file link or <a href="javascript:void(0)" (click)="reloadFile(i)">retry</a>.
                   </div>
                 </div>
               </div>
@@ -100,19 +108,27 @@
                   class="file-preview"
                   *ngFor="let file of selectedFiles?.firstBasedFiles?.taskSolutionFiles?.[lang]; let i = index"
                 >
-                  <iframe
-                    #pdfViewer
+                  <ngx-doc-viewer
                     *ngIf="shouldShowFile(i)"
-                    [src]="sanitizeUrl(file?.url || '')"
-                    width="100%"
-                    height="1000px"
-                    frameborder="0"
-                    (load)="onIframeLoad(file?.url)"
-                    (error)="onIframeError(file?.url)"
+                    [url]="getRawUrl(file?.url || '')"
+                    viewer="google"
+                    style="width:100%;height:1000px;border: 1px solid #eee;"
+                    (loaded)="onDocViewerLoad(file?.url)"
+                    (error)="onDocViewerError($event, file?.url)"
+                    [viewerUrl]="'https://docs.google.com/viewer?url=TARGET_URL&embedded=true'"
+                    queryParams="download=0&embedded=true"
                   >
-                  </iframe>
-                  <div *ngIf="hasIframeError(file?.url)" class="error-message">
-                    ❌ PDF failed to load. Please check the file link.
+                    <div class="ngx-doc-loading">
+                      <div class="text-center pt-5">
+                        <div class="spinner-border" role="status">
+                          <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading document...</p>
+                      </div>
+                    </div>
+                  </ngx-doc-viewer>
+                  <div *ngIf="shouldShowFile(i) && hasIframeError(file?.url)" class="error-message">
+                    ❌ PDF failed to load. Please check the file link or <a href="javascript:void(0)" (click)="reloadFile(i)">retry</a>.
                   </div>
                 </div>
               </div>
@@ -127,19 +143,27 @@
                   class="file-preview"
                   *ngFor="let file of selectedFiles?.secondBasedFiles?.taskPresentationFiles?.[lang]; let i = index"
                 >
-                  <iframe
-                    #pdfViewer
+                  <ngx-doc-viewer
                     *ngIf="shouldShowFile(i)"
-                    [src]="sanitizeUrl(file?.url || '')"
-                    width="100%"
-                    height="1000px"
-                    frameborder="0"
-                    (load)="onIframeLoad(file?.url)"
-                    (error)="onIframeError(file?.url)"
+                    [url]="getRawUrl(file?.url || '')"
+                    viewer="google"
+                    style="width:100%;height:1000px;border: 1px solid #eee;"
+                    (loaded)="onDocViewerLoad(file?.url)"
+                    (error)="onDocViewerError($event, file?.url)"
+                    [viewerUrl]="'https://docs.google.com/viewer?url=TARGET_URL&embedded=true'"
+                    queryParams="download=0&embedded=true"
                   >
-                  </iframe>
-                  <div *ngIf="hasIframeError(file?.url)" class="error-message">
-                    ❌ PDF failed to load. Please check the file link.
+                    <div class="ngx-doc-loading">
+                      <div class="text-center pt-5">
+                        <div class="spinner-border" role="status">
+                          <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading document...</p>
+                      </div>
+                    </div>
+                  </ngx-doc-viewer>
+                  <div *ngIf="shouldShowFile(i) && hasIframeError(file?.url)" class="error-message">
+                    ❌ PDF failed to load. Please check the file link or <a href="javascript:void(0)" (click)="reloadFile(i)">retry</a>.
                   </div>
                 </div>
               </div>
@@ -153,19 +177,27 @@
                   class="file-preview"
                   *ngFor="let file of selectedFiles?.secondBasedFiles?.taskTitleFiles?.[lang]; let i = index"
                 >
-                  <iframe
-                    #pdfViewer
+                  <ngx-doc-viewer
                     *ngIf="shouldShowFile(i)"
-                    [src]="sanitizeUrl(file?.url || '')"
-                    width="100%"
-                    height="1000px"
-                    frameborder="0"
-                    (load)="onIframeLoad(file?.url)"
-                    (error)="onIframeError(file?.url)"
+                    [url]="getRawUrl(file?.url || '')"
+                    viewer="google"
+                    style="width:100%;height:1000px;border: 1px solid #eee;"
+                    (loaded)="onDocViewerLoad(file?.url)"
+                    (error)="onDocViewerError($event, file?.url)"
+                    [viewerUrl]="'https://docs.google.com/viewer?url=TARGET_URL&embedded=true'"
+                    queryParams="download=0&embedded=true"
                   >
-                  </iframe>
-                  <div *ngIf="hasIframeError(file?.url)" class="error-message">
-                    ❌ PDF failed to load. Please check the file link.
+                    <div class="ngx-doc-loading">
+                      <div class="text-center pt-5">
+                        <div class="spinner-border" role="status">
+                          <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading document...</p>
+                      </div>
+                    </div>
+                  </ngx-doc-viewer>
+                  <div *ngIf="shouldShowFile(i) && hasIframeError(file?.url)" class="error-message">
+                    ❌ PDF failed to load. Please check the file link or <a href="javascript:void(0)" (click)="reloadFile(i)">retry</a>.
                   </div>
                 </div>
               </div>
@@ -181,16 +213,46 @@
                   *ngFor="let video of selectedFiles?.secondBasedFiles?.taskVideoUrls; let i = index"
                 >
                   <h4 class="video-title">{{ getVideoName(video) }}</h4>
+                  <!-- For YouTube videos, we'll still use an iframe as ngx-doc-viewer doesn't handle these well -->
                   <iframe
-                    *ngIf="shouldShowFile(i)"
+                    *ngIf="shouldShowFile(i) && isYoutubeUrl(getVideoUrl(video))"
                     [src]="getEmbeddedVideoUrl(getVideoUrl(video))"
                     width="100%"
                     height="500"
                     frameborder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowfullscreen
+                    (load)="onIframeLoad(getVideoUrl(video))"
+                    (error)="onIframeError(getVideoUrl(video))"
+                    loading="lazy"
+                    [attr.data-file-index]="i"
+                    [attr.data-file-url]="getVideoUrl(video)"
+                    style="border: 1px solid #eee;"
                   >
                   </iframe>
+                  <!-- For other video types, try to use ngx-doc-viewer -->
+                  <ngx-doc-viewer
+                    *ngIf="shouldShowFile(i) && !isYoutubeUrl(getVideoUrl(video))"
+                    [url]="getRawUrl(getVideoUrl(video))"
+                    viewer="google"
+                    style="width:100%;height:500px;border: 1px solid #eee;"
+                    (loaded)="onDocViewerLoad(getVideoUrl(video))"
+                    (error)="onDocViewerError($event, getVideoUrl(video))"
+                    [viewerUrl]="'https://docs.google.com/viewer?url=TARGET_URL&embedded=true'"
+                    queryParams="download=0&embedded=true"
+                  >
+                    <div class="ngx-doc-loading">
+                      <div class="text-center pt-5">
+                        <div class="spinner-border" role="status">
+                          <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading document...</p>
+                      </div>
+                    </div>
+                  </ngx-doc-viewer>
+                  <div *ngIf="shouldShowFile(i) && hasIframeError(getVideoUrl(video))" class="error-message">
+                    ❌ Video failed to load. Please check the link or <a href="javascript:void(0)" (click)="reloadFile(i)">retry</a>.
+                  </div>
                 </div>
               </div>
             </ng-container>

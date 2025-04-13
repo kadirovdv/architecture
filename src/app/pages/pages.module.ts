@@ -11,10 +11,19 @@ import { NgSelectModule } from '@ng-select/ng-select';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { TooltipDirective } from '../shared/directives/tooltip.directive';
+import { NgxDocViewerModule } from 'ngx-doc-viewer';
 
 @NgModule({
   declarations: [PagesPage, ThemePage, MainPage, AboutPage, LessonsPage, TooltipDirective],
-  imports: [PagesRoutingModule, SharedModule, CommonModule, NgSelectModule, FormsModule, TranslateModule],
+  imports: [
+    PagesRoutingModule, 
+    SharedModule, 
+    CommonModule, 
+    NgSelectModule, 
+    FormsModule, 
+    TranslateModule,
+    NgxDocViewerModule
+  ],
   exports: [ThemePage, PagesPage, MainPage],
 })
 export class PagesModule {}
