@@ -6,11 +6,12 @@ import { CrudService } from 'src/app/shared/services/crud.service';
 import { DropboxService } from 'src/app/shared/services/dropbox.service';
 import { LoadingService } from 'src/app/shared/services/loading.service';
 import { Router } from '@angular/router';
+import { AddNewsModalComponent } from '../add-news-modal/add-news-modal.component';
 
 @Component({
   selector: 'app-dashboard-lessons',
   templateUrl: './lessons.page.html',
-  styleUrls: ['./lessons.page.scss'],
+  styleUrls: ['./lessons.page.scss']
 })
 export class LessonsPage implements OnInit {
   // Collection data
@@ -40,6 +41,11 @@ export class LessonsPage implements OnInit {
     secondBasedFiles: {},
   };
 
+  // News Management -------------------------------------------
+  
+  showNewsModal = false;
+  newsList: {id: string, title: string, link: string, createdAt: string}[] = [];
+
   constructor(
     private crudService: CrudService,
     private toastr: ToastrService,
@@ -49,6 +55,7 @@ export class LessonsPage implements OnInit {
 
   ngOnInit() {
     this.loadAllData();
+    this.loadNews();
   }
 
   // Data Loading -------------------------------------------
@@ -408,6 +415,11 @@ export class LessonsPage implements OnInit {
   }
 
   editCreatedLesson(lesson: Lesson) {
+    if (!lesson || !lesson.id) {
+      this.toastr.error('Lesson ID is missing');
+      return;
+    }
+    
     this.router.navigate(['/dashboard/edit-build'], {
       queryParams: { id: lesson.id },
     });
@@ -460,6 +472,88 @@ export class LessonsPage implements OnInit {
     
     if (!isDropdownRelated) {
       this.closeDropdown();
+    }
+  }
+
+  // News Management -------------------------------------------
+  
+  openAddNewsModal() {
+    this.showNewsModal = true;
+  }
+  
+  closeNewsModal() {
+    this.showNewsModal = false;
+  }
+  
+  saveNews(newsData: {title: string, link: string}) {
+    if (!newsData.title || !newsData.link) {
+      this.toastr.warning('Sarlavha va havola kiritilmadi');
+      return;
+    }
+    
+    this.loadingService.show();
+    
+    // Create news object
+    const news = {
+      title: newsData.title,
+      link: newsData.link,
+      createdAt: new Date().toISOString(),
+      id: this.crudService.generateId()
+    };
+    
+    // Save to Firebase
+    this.crudService.addDocument('news', news).subscribe({
+      next: () => {
+        this.toastr.success('Yangilik muvaffaqiyatli qo\'shildi');
+        this.closeNewsModal();
+        this.loadingService.hide();
+        // Add to local list and re-sort
+        this.newsList.push(news);
+        this.sortNewsList();
+      },
+      error: (error) => {
+        this.toastr.error('Xatolik yuz berdi: ' + (error.message || 'Noma\'lum xato'));
+        this.loadingService.hide();
+      }
+    });
+  }
+  
+  loadNews() {
+    this.crudService.getDocuments('news').subscribe({
+      next: (data) => {
+        this.newsList = data as {id: string, title: string, link: string, createdAt: string}[];
+        this.sortNewsList();
+      },
+      error: (error) => {
+        this.toastr.error('Yangiliklar yuklanmadi: ' + (error.message || 'Noma\'lum xato'));
+      }
+    });
+  }
+  
+  sortNewsList() {
+    this.newsList.sort((a, b) => {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }
+
+  deleteNews(newsId: string, event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    if (confirm('Rostdan ham bu yangilikni o\'chirmoqchimisiz?')) {
+      this.loadingService.show();
+      
+      this.crudService.deleteDocument('news', newsId).subscribe({
+        next: () => {
+          this.toastr.success('Yangilik muvaffaqiyatli o\'chirildi');
+          this.newsList = this.newsList.filter(item => item.id !== newsId);
+          this.loadingService.hide();
+        },
+        error: (error) => {
+          this.toastr.error('Xatolik yuz berdi: ' + (error.message || 'Noma\'lum xato'));
+          this.loadingService.hide();
+        }
+      });
     }
   }
 }

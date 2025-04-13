@@ -39,4 +39,4 @@ export class VideoUploadComponent {
       this.video.url.en.trim() !== ''
     );
   }
-}
+} 

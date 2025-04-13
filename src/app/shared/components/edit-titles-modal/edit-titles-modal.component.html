@@ -1,0 +1,46 @@
+<div class="modal-header">
+  <h4 class="modal-title">{{ modalTitle }}</h4>
+  <button type="button" class="btn-close" aria-label="Close" (click)="cancel()"></button>
+</div>
+<div class="modal-body">
+  <div class="container">
+    <div class="row mb-4" *ngIf="isLessonEdit">
+      <div class="col">
+        <h5>Fan nomi</h5>
+        <div class="mb-3">
+          <label for="lessonTitleUz" class="form-label">O'zbek tilida:</label>
+          <input type="text" class="form-control" id="lessonTitleUz" [(ngModel)]="lessonTitle.uz" placeholder="Fan nomini kiritish...">
+        </div>
+        <div class="mb-3">
+          <label for="lessonTitleRu" class="form-label">Rus tilida:</label>
+          <input type="text" class="form-control" id="lessonTitleRu" [(ngModel)]="lessonTitle.ru" placeholder="Введите название урока...">
+        </div>
+        <div class="mb-3">
+          <label for="lessonTitleEn" class="form-label">Ingliz tilida:</label>
+          <input type="text" class="form-control" id="lessonTitleEn" [(ngModel)]="lessonTitle.en" placeholder="Enter lesson name...">
+        </div>
+      </div>
+    </div>
+    <div class="row" *ngIf="isTaskEdit">
+      <div class="col">
+        <h5>Topshiriq nomi</h5>
+        <div class="mb-3">
+          <label for="taskTitleUz" class="form-label">O'zbek tilida:</label>
+          <input type="text" class="form-control" id="taskTitleUz" [(ngModel)]="taskTitle.uz" placeholder="Grafik topshiriq nomini kiritish...">
+        </div>
+        <div class="mb-3">
+          <label for="taskTitleRu" class="form-label">Rus tilida:</label>
+          <input type="text" class="form-control" id="taskTitleRu" [(ngModel)]="taskTitle.ru" placeholder="Введите название графического задания...">
+        </div>
+        <div class="mb-3">
+          <label for="taskTitleEn" class="form-label">Ingliz tilida:</label>
+          <input type="text" class="form-control" id="taskTitleEn" [(ngModel)]="taskTitle.en" placeholder="Enter graphic task name...">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-secondary" (click)="cancel()">Bekor qilish</button>
+  <button type="button" class="btn btn-primary" (click)="save()">Saqlash</button>
+</div>

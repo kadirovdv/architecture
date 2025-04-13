@@ -7,13 +7,14 @@ import { NgbDropdownModule, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { FileListComponent } from './file-list/file-list.component';
 import { EditBuildRoutingModule } from './edit-build-routing.module';
 import { SharedModule } from '../../shared/shared.module';
+import { DeleteConfirmationComponent } from './delete-confirmation/delete-confirmation.component';
 import { VideoUploadComponent } from './video-upload/video-upload.component';
-import { DeleteConfirmationComponent } from '../create-build/delete-confirmation/delete-confirmation.component';
 
 @NgModule({
   declarations: [
     EditBuildPage,
     FileListComponent,
+    DeleteConfirmationComponent,
     VideoUploadComponent
   ],
   imports: [

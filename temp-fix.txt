@@ -1,0 +1,122 @@
+CHANGES NEEDED FOR EDIT-BUILD.PAGE.TS:
+
+1. Make the comparison methods public:
+
+```ts
+public compareLessonById(lesson1: ILesson, lesson2: ILesson): boolean {
+  return lesson1 && lesson2 ? lesson1.id === lesson2.id : lesson1 === lesson2;
+}
+
+public compareTaskById(task1: ITask, task2: ITask): boolean {
+  return task1 && task2 ? task1.id === task2.id : task1 === task2;
+}
+```
+
+2. Initialize task and currentUploadFile properly:
+
+```ts
+task: ITask | any = {
+  id: '',
+  title: { uz: '', ru: '', en: '' },
+  firstBasedFiles: {
+    taskExampleFiles: { uz: [], ru: [], en: [] },
+    taskSolutionFiles: { uz: [], ru: [], en: [] }
+  },
+  secondBasedFiles: {
+    taskTitleFiles: { uz: [], ru: [], en: [] },
+    taskPresentationFiles: { uz: [], ru: [], en: [] },
+    taskLiteratureFiles: { uz: [], ru: [], en: [] },
+    taskVideoUrls: []
+  }
+};
+
+// Upload properties
+currentUploadFile: { name: string; size: number } = { name: '', size: 0 };
+```
+
+3. Fix the uploadFile method:
+
+```ts
+uploadFile(file: File, category: string, language: string, index: number, replaceFile?: any): Observable<any> {
+  if (!this.currentUploadFile) {
+    this.currentUploadFile = { name: '', size: 0 };
+  }
+  
+  this.currentUploadFile.name = file.name;
+  this.currentUploadFile.size = file.size;
+  
+  // Rest of the method...
+}
+```
+
+4. Add hasTaskData method:
+
+```ts
+hasTaskData(task: ITask): boolean {
+  if (!task) return false;
+
+  // Check for files in first class files
+  const hasFirstClassFiles = !!task.firstBasedFiles && (
+    this.hasFilesInCategory(task.firstBasedFiles.taskExampleFiles) ||
+    this.hasFilesInCategory(task.firstBasedFiles.taskSolutionFiles)
+  );
+
+  // Check for files in second class files
+  const hasSecondClassFiles = !!task.secondBasedFiles && (
+    this.hasFilesInCategory(task.secondBasedFiles.taskTitleFiles) ||
+    this.hasFilesInCategory(task.secondBasedFiles.taskPresentationFiles) ||
+    this.hasFilesInCategory(task.secondBasedFiles.taskLiteratureFiles) ||
+    (!!task.secondBasedFiles.taskVideoUrls && task.secondBasedFiles.taskVideoUrls.length > 0)
+  );
+
+  return !!hasFirstClassFiles || !!hasSecondClassFiles;
+}
+
+private hasFilesInCategory(category: any): boolean {
+  if (!category) return false;
+  
+  return (
+    (category.uz && category.uz.length > 0) ||
+    (category.ru && category.ru.length > 0) ||
+    (category.en && category.en.length > 0)
+  );
+}
+```
+
+5. Updated the loadLessonById method to set task:
+
+```ts
+private loadLessonById(lessonId: string): void {
+  this.loading = true;
+  this.loadingService.show();
+  
+  // First check in website-lessons
+  this.crudService.getDocumentById('website-lessons', lessonId).subscribe({
+    next: (lessonData) => {
+      if (lessonData) {
+        console.log('Found lesson in website-lessons:', lessonData);
+        this.existingLesson = lessonData as ILesson;
+        this.lesson = { ...lessonData as ILesson };
+        
+        // Set as the only item in lessons array for the dropdown
+        this.lessons = [this.lesson];
+        
+        // Also set the selectedLesson for compatibility
+        this.selectedLesson = this.lesson;
+        
+        // If this lesson has tasks, select the first one
+        if (this.lesson.tasks && this.lesson.tasks.length > 0) {
+          this.onTaskSelect(this.lesson.tasks[0]);
+        }
+        
+        this.loading = false;
+        this.loadingService.hide();
+        this.toastr.success('Lesson loaded successfully');
+      } else {
+        // ... rest of existing method
+      }
+    },
+    // ... rest of existing method
+  });
+}
+``` 

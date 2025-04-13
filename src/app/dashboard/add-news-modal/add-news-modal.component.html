@@ -1,0 +1,32 @@
+<div class="modal-overlay">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h4>Yangi Yangilik Qo'shish</h4>
+      <button class="close-btn" (click)="onClose()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="newsTitle">Yangilik sarlavhasi</label>
+        <input 
+          type="text" 
+          id="newsTitle" 
+          class="form-control" 
+          [(ngModel)]="newsTitle" 
+          placeholder="Sarlavhani kiriting">
+      </div>
+      <div class="form-group">
+        <label for="newsLink">Yangilik havolasi</label>
+        <input 
+          type="url" 
+          id="newsLink" 
+          class="form-control" 
+          [(ngModel)]="newsLink" 
+          placeholder="https://example.com">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="onClose()">Bekor qilish</button>
+      <button class="btn btn-primary" [disabled]="!newsTitle || !newsLink" (click)="onSave()">Saqlash</button>
+    </div>
+  </div>
+</div>

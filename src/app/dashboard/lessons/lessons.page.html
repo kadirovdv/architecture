@@ -233,10 +233,35 @@
   <div class="add-news-card">
     <div class="add-news-card-header">
       <h4>SO'NGGI YANGILIKLAR</h4>
-      <img src="/assets/svg/plus.svg" width="30px">
+      <img src="/assets/svg/plus.svg" class="cursor-pointer" width="30px" (click)="openAddNewsModal()">
     </div>
     <div class="add-news-card-body">
-
+      <div *ngIf="newsList.length === 0" class="no-news">
+        <p>Yangiliklar mavjud emas</p>
+      </div>
+      <div class="news-list" *ngIf="newsList.length > 0">
+        <div class="news-item" *ngFor="let news of newsList">
+          <div class="d-flex justify-content-center position-relative">
+            <a [href]="news.link" target="_blank" class="news-link">
+              {{ news.link }}
+            </a>
+            <img 
+              src="/assets/img/delete-icon.png" 
+              width="30px" 
+              alt="Delete" 
+              class="cursor-pointer delete-news-btn position-absolute" 
+              style="right: 0; top: 50%; transform: translateY(-50%);"
+              (click)="deleteNews(news.id, $event)">
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
+
+<!-- News Modal -->
+<app-add-news-modal 
+  *ngIf="showNewsModal" 
+  (close)="closeNewsModal()" 
+  (save)="saveNews($event)">
+</app-add-news-modal>

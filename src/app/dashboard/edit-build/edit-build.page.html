@@ -14,29 +14,28 @@
       <div class="progress-text">{{progress}}%</div>
     </div>
     <div class="file-status" *ngIf="currentUploadFile">
-      <div class="file-name">{{ getFileName() }}</div>
+      <div class="file-name">{{ currentUploadFile.name }}</div>
     </div>
     <div class="upload-count">{{ uploadedCount }} / {{ totalUploads }} fayllar yuklandi</div>
   </div>
 </div>
 
-<div class="edit-build-content">
-  <div class="edit-build-card">
+<div class="create-build-content">
+  <div class="create-build-card">
     <button class="mb-3 bg-none border-0" style="width: 50px" (click)="goBack()">
       <img src="/assets/svg/arrow-left.svg" class="w-100" alt="arrow-left" />
     </button>
-    <h2 class="mb-4 text-center">Grafik topshiriq tahrirlash</h2>
     <div class="row">
       <div
         class="col-md-12 mb-3 d-flex justify-content-center align-items-center flex-column"
       >
-        <ng-select 
-          [(ngModel)]="selectedLesson"
+        <ng-select
+          [(ngModel)]="lesson"
           (ngModelChange)="onLessonSelect($event)"
-          class="edit-build-ng-select mb-4"
+          class="create-build-ng-select mb-4"
           [placeholder]="'Fanni tanlang...'"
-          [clearable]="true"
-          [items]="lessons" 
+          [clearable]="false"
+          [items]="lessons"
           [compareWith]="compareLessonById"
         >
           <ng-template ng-option-tmp let-item="item">
@@ -46,211 +45,184 @@
             {{ getLessonTitleString(item) }}
           </ng-template>
         </ng-select>
-        
-        <!-- Lesson Name Edit Input -->
-        <div class="form-group mb-4" *ngIf="selectedLesson && selectedLesson.lessonTitle">
-          <label>Dars nomi (O'zbek tilida):</label>
-          <input type="text" class="form-control" [(ngModel)]="selectedLesson.lessonTitle.uz">
-        </div>
-        
-        <div class="form-group mb-4" *ngIf="selectedLesson && selectedLesson.lessonTitle">
-          <label>Название урока (На русском):</label>
-          <input type="text" class="form-control" [(ngModel)]="selectedLesson.lessonTitle.ru">
-        </div>
-        
-        <div class="form-group mb-4" *ngIf="selectedLesson && selectedLesson.lessonTitle">
-          <label>Lesson Name (In English):</label>
-          <input type="text" class="form-control" [(ngModel)]="selectedLesson.lessonTitle.en">
-        </div>
-        
-        <ng-select 
-          [(ngModel)]="selectedTask"
+        <ng-select
+          [(ngModel)]="task"
           (ngModelChange)="onTaskSelect($event)"
-          class="edit-build-ng-select bg-yellow mb-4"
+          class="create-build-ng-select bg-yellow mb-4"
           [placeholder]="'Grafik topshiriqni tanlang'"
           [clearable]="true"
-          [items]="selectedLesson?.tasks || []"
+          [items]="lesson?.tasks || []"
           [compareWith]="compareTaskById"
-          [disabled]="!selectedLesson"
         >
           <ng-template ng-option-tmp let-item="item">
-            {{ getTaskTitleString(item) }}
+            <div>
+              {{ getTaskTitleString(item) }}
+              <span *ngIf="item.source === 'website'" class="ms-2 badge bg-info">Website</span>
+              <span *ngIf="item.source === 'regular'" class="ms-2 badge bg-secondary">Regular</span>
+              <span *ngIf="item.hasData" class="ms-2 badge bg-success">Data</span>
+            </div>
           </ng-template>
           <ng-template ng-label-tmp let-item="item">
-            {{ getTaskTitleString(item) }}
+            <div>
+              {{ getTaskTitleString(item) }}
+              <span *ngIf="item.source === 'website'" class="ms-2 badge bg-info">Website</span>
+              <span *ngIf="item.source === 'regular'" class="ms-2 badge bg-secondary">Regular</span>
+              <span *ngIf="item.hasData" class="ms-2 badge bg-success">Data</span>
+            </div>
           </ng-template>
         </ng-select>
-        
-        <!-- Task Name Edit Input -->
-        <div class="form-group mb-4" *ngIf="selectedTask && selectedTask.title && (selectedTask.title.uz !== undefined || selectedTask.title.ru !== undefined || selectedTask.title.en !== undefined)">
-          <label>Vazifa nomi (O'zbek tilida):</label>
-          <input type="text" class="form-control" [(ngModel)]="selectedTask.title.uz">
-        </div>
-        
-        <div class="form-group mb-4" *ngIf="selectedTask && selectedTask.title && (selectedTask.title.uz !== undefined || selectedTask.title.ru !== undefined || selectedTask.title.en !== undefined)">
-          <label>Название задания (На русском):</label>
-          <input type="text" class="form-control" [(ngModel)]="selectedTask.title.ru">
-        </div>
-        
-        <div class="form-group mb-4" *ngIf="selectedTask && selectedTask.title && (selectedTask.title.uz !== undefined || selectedTask.title.ru !== undefined || selectedTask.title.en !== undefined)">
-          <label>Task Name (In English):</label>
-          <input type="text" class="form-control" [(ngModel)]="selectedTask.title.en">
-        </div>
-        
-        <!-- Task Details Section -->
-        <div class="task-details-container mb-4 w-100" *ngIf="selectedTask">
-          <h4>Topshiriq ma'lumotlarini tahrirlash</h4>
-          
-          <div class="form-group mb-3">
-            <label for="taskDesc">Tavsif:</label>
-            <textarea 
-              id="taskDesc" 
-              class="form-control" 
-              [(ngModel)]="selectedTask.description"
-              placeholder="Topshiriq tavsifini kiriting"
-              rows="3"></textarea>
-          </div>
-          
-          <div class="form-group mb-3" *ngIf="selectedTask.duration !== undefined">
-            <label for="taskDuration">Davomiyligi (daqiqalarda):</label>
-            <input 
-              type="number" 
-              id="taskDuration" 
-              class="form-control" 
-              [(ngModel)]="selectedTask.duration"
-              placeholder="Davomiylikni kiriting">
-          </div>
-        </div>
-        
-        <!-- File Management Section -->
-        <div class="file-management-container" *ngIf="selectedTask">
-          <h3>Fayllarni boshqarish</h3>
-          
-          <!-- Videos Section -->
-          <div class="videos-container" *ngIf="selectedTask.videos?.length">
-            <h4>Videolar</h4>
-            <div class="row">
-              <div class="col-md-4 mb-3" *ngFor="let video of selectedTask.videos; let i = index">
-                <div class="video-item position-relative">
-                  <button 
-                    class="btn btn-danger btn-sm position-absolute-btn" 
-                    (click)="deleteFile(video, 'videos', i)">
-                    <i class="fas fa-times"></i>
-                  </button>
-                  <div class="language-link mb-2">
-                    <span class="badge bg-primary me-2">{{ video.language }}</span>
-                    <a [href]="video.url" target="_blank" title="{{ video.url }}">{{ video.name || 'Video ' + (i + 1) }}</a>
-                  </div>
-                  <button 
-                    class="btn btn-outline-primary btn-sm me-2" 
-                    (click)="uploadNewFile('videos', i)">
-                    Almashtirish
-                  </button>
-                </div>
-              </div>
-            </div>
-            <button 
-              class="btn btn-primary mt-3" 
-              (click)="uploadNewFile('videos')">
-              <i class="fas fa-plus me-2"></i>Yangi video qo'shish
-            </button>
-          </div>
-          
-          <div *ngIf="!selectedTask.videos?.length" class="mt-3">
-            <button 
-              class="btn btn-primary" 
-              (click)="uploadNewFile('videos')">
-              <i class="fas fa-plus me-2"></i>Video qo'shish
-            </button>
-          </div>
-          
-          <!-- Audio Files Section -->
-          <div class="videos-container" *ngIf="selectedTask.audios?.length">
-            <h4>Audio fayllar</h4>
-            <div class="row">
-              <div class="col-md-4 mb-3" *ngFor="let audio of selectedTask.audios; let i = index">
-                <div class="video-item position-relative">
-                  <button 
-                    class="btn btn-danger btn-sm position-absolute-btn" 
-                    (click)="deleteFile(audio, 'audios', i)">
-                    <i class="fas fa-times"></i>
-                  </button>
-                  <div class="language-link mb-2">
-                    <span class="badge bg-secondary me-2">{{ audio.language }}</span>
-                    <a [href]="audio.url" target="_blank" title="{{ audio.url }}">{{ audio.name || 'Audio ' + (i + 1) }}</a>
-                  </div>
-                  <button 
-                    class="btn btn-outline-primary btn-sm me-2" 
-                    (click)="uploadNewFile('audios', i)">
-                    Almashtirish
-                  </button>
-                </div>
-              </div>
-            </div>
-            <button 
-              class="btn btn-primary mt-3" 
-              (click)="uploadNewFile('audios')">
-              <i class="fas fa-plus me-2"></i>Yangi audio qo'shish
-            </button>
-          </div>
-          
-          <div *ngIf="!selectedTask.audios?.length" class="mt-3">
-            <button 
-              class="btn btn-primary" 
-              (click)="uploadNewFile('audios')">
-              <i class="fas fa-plus me-2"></i>Audio qo'shish
-            </button>
-          </div>
-          
-          <!-- Documents Section -->
-          <div class="videos-container" *ngIf="selectedTask.documents?.length">
-            <h4>Hujjatlar</h4>
-            <div class="row">
-              <div class="col-md-4 mb-3" *ngFor="let doc of selectedTask.documents; let i = index">
-                <div class="video-item position-relative">
-                  <button 
-                    class="btn btn-danger btn-sm position-absolute-btn" 
-                    (click)="deleteFile(doc, 'documents', i)">
-                    <i class="fas fa-times"></i>
-                  </button>
-                  <div class="language-link mb-2">
-                    <span class="badge bg-info me-2">{{ doc.language }}</span>
-                    <a [href]="doc.url" target="_blank" title="{{ doc.url }}">{{ doc.name || 'Hujjat ' + (i + 1) }}</a>
-                  </div>
-                  <button 
-                    class="btn btn-outline-primary btn-sm me-2" 
-                    (click)="uploadNewFile('documents', i)">
-                    Almashtirish
-                  </button>
-                </div>
-              </div>
-            </div>
-            <button 
-              class="btn btn-primary mt-3" 
-              (click)="uploadNewFile('documents')">
-              <i class="fas fa-plus me-2"></i>Yangi hujjat qo'shish
-            </button>
-          </div>
-          
-          <div *ngIf="!selectedTask.documents?.length" class="mt-3">
-            <button 
-              class="btn btn-primary" 
-              (click)="uploadNewFile('documents')">
-              <i class="fas fa-plus me-2"></i>Hujjat qo'shish
-            </button>
-          </div>
-        </div>
-        
-        <!-- Additional Files Section -->
-        <div class="edit-build-ng-card" *ngIf="selectedTask">Didaktik materiallar</div>
-        <div class="container my-4" *ngIf="selectedTask">
+        <div class="container my-4">
           <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-6">
               <div class="position-relative">
                 <input
                   type="file"
                   hidden
-                  #hiddenInput
+                  #taskExampleInput
+                  data-category="taskExampleFiles"
+                  multiple
+                  (change)="onFileSelected($event, 'taskExampleFiles', selectedLanguage)"
+                />
+                <div class="bg-none p-0 position-absolute-btn">
+                  <div ngbDropdown class="d-inline-block">
+                    <img
+                      src="/assets/svg/plus.svg"
+                      width="30px"
+                      alt="upload"
+                      ngbDropdownToggle
+                    />
+                    <div ngbDropdownMenu>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('uz', 'taskExampleFiles')"
+                      >
+                        <img
+                          src="/assets/svg/uz.svg"
+                          alt=""
+                          class="me-1"
+                        />O'zbek
+                      </button>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('ru', 'taskExampleFiles')"
+                      >
+                        <img
+                          src="/assets/svg/ru.svg"
+                          alt=""
+                          class="me-1"
+                        />Русский
+                      </button>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('en', 'taskExampleFiles')"
+                      >
+                        <img
+                          src="/assets/svg/en.svg"
+                          alt=""
+                          class="me-1"
+                        />English
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <app-file-list
+                  [files]="task?.firstBasedFiles?.taskExampleFiles || { uz: [], ru: [], en: [] }"
+                  [category]="'taskExampleFiles'"
+                  [placeholder]="'GRAFIK TOPSHIRIQ YECHIMI NAMUNALARI (PDF),(PPT)'"
+                  [hasError]="hasError('taskExampleFiles')"
+                  [selectedLang]="selectedLanguage"
+                  [autoSaveOnDelete]="!!existingLesson"
+                  (removeFile)="onRemoveFile($event)"
+                  (replaceFile)="onReplaceFile($event)"
+                  (addFile)="onFileTypeSelect($event.lang, $event.category)"
+                  (fileSelected)="onDirectFileSelected($event, 'taskExampleFiles', selectedLanguage)"
+                ></app-file-list>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="position-relative">
+                <input
+                  type="file"
+                  hidden
+                  #taskSolutionInput
+                  data-category="taskSolutionFiles"
+                  multiple
+                  (change)="onFileSelected($event, 'taskSolutionFiles', selectedLanguage)"
+                />
+                <div class="bg-none p-0 position-absolute-btn">
+                  <div ngbDropdown class="d-inline-block">
+                    <img
+                      src="/assets/svg/plus.svg"
+                      width="30px"
+                      alt="upload"
+                      ngbDropdownToggle
+                    />
+                    <div ngbDropdownMenu>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('uz', 'taskSolutionFiles')"
+                      >
+                        <img
+                          src="/assets/svg/uz.svg"
+                          alt=""
+                          class="me-1"
+                        />O'zbek
+                      </button>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('ru', 'taskSolutionFiles')"
+                      >
+                        <img
+                          src="/assets/svg/ru.svg"
+                          alt=""
+                          class="me-1"
+                        />Русский
+                      </button>
+                      <button
+                        class="d-flex align-items-center"
+                        ngbDropdownItem
+                        (click)="onFileTypeSelect('en', 'taskSolutionFiles')"
+                      >
+                        <img
+                          src="/assets/svg/en.svg"
+                          alt=""
+                          class="me-1"
+                        />English
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <app-file-list
+                  [files]="task?.firstBasedFiles?.taskSolutionFiles || { uz: [], ru: [], en: [] }"
+                  [category]="'taskSolutionFiles'"
+                  [placeholder]="'GRAFIK TOPSHIRIQLAR VARIANTLARI'"
+                  [hasError]="hasError('taskSolutionFiles')"
+                  [selectedLang]="selectedLanguage"
+                  [autoSaveOnDelete]="!!existingLesson"
+                  (removeFile)="onRemoveFile($event)"
+                  (replaceFile)="onReplaceFile($event)"
+                  (addFile)="onFileTypeSelect($event.lang, $event.category)"
+                  (fileSelected)="onDirectFileSelected($event, 'taskSolutionFiles', selectedLanguage)"
+                ></app-file-list>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="create-build-ng-card">Didaktik materiallar</div>
+        <div class="container my-4">
+          <div class="row">
+            <div class="col-md-3 mb-3"></div>
+            <div class="col-md-6 mb-3">
+              <div class="position-relative">
+                <input
+                  type="file"
+                  hidden
+                  #taskTitleInput
                   data-category="taskTitleFiles"
                   multiple
                   (change)="onFileSelected($event, 'taskTitleFiles', selectedLanguage)"
@@ -301,24 +273,26 @@
                   </div>
                 </div>
                 <app-file-list
-                  [files]="selectedTask.secondBasedFiles?.taskTitleFiles || { uz: [], ru: [], en: [] }"
+                  [files]="task?.secondBasedFiles?.taskTitleFiles || { uz: [], ru: [], en: [] }"
                   [category]="'taskTitleFiles'"
-                  [placeholder]="'NAZARIY'"
+                  [placeholder]="'MARUZA MATNI'"
                   [hasError]="hasError('taskTitleFiles')"
                   [selectedLang]="selectedLanguage"
+                  [autoSaveOnDelete]="!!existingLesson"
                   (removeFile)="onRemoveFile($event)"
                   (replaceFile)="onReplaceFile($event)"
-                  (addFile)="onFileTypeSelect(selectedLanguage, 'taskTitleFiles')"
+                  (addFile)="onFileTypeSelect($event.lang, $event.category)"
                   (fileSelected)="onDirectFileSelected($event, 'taskTitleFiles', selectedLanguage)"
                 ></app-file-list>
               </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3 mb-3"></div>
+            <div class="col-md-6 mb-3">
               <div class="position-relative">
                 <input
                   type="file"
                   hidden
-                  #hiddenInput
+                  #taskPresentationInput
                   data-category="taskPresentationFiles"
                   multiple
                   (change)="onFileSelected($event, 'taskPresentationFiles', selectedLanguage)"
@@ -369,24 +343,43 @@
                   </div>
                 </div>
                 <app-file-list
-                  [files]="selectedTask.secondBasedFiles?.taskPresentationFiles || { uz: [], ru: [], en: [] }"
+                  [files]="task?.secondBasedFiles?.taskPresentationFiles || { uz: [], ru: [], en: [] }"
                   [category]="'taskPresentationFiles'"
-                  [placeholder]="'PREZENTATSIYA'"
+                  [placeholder]="'PRESENTATSIYA'"
                   [hasError]="hasError('taskPresentationFiles')"
                   [selectedLang]="selectedLanguage"
+                  [autoSaveOnDelete]="!!existingLesson"
                   (removeFile)="onRemoveFile($event)"
                   (replaceFile)="onReplaceFile($event)"
-                  (addFile)="onFileTypeSelect(selectedLanguage, 'taskPresentationFiles')"
+                  (addFile)="onFileTypeSelect($event.lang, $event.category)"
                   (fileSelected)="onDirectFileSelected($event, 'taskPresentationFiles', selectedLanguage)"
                 ></app-file-list>
               </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-6">
+              <div class="position-relative">
+                <div class="bg-none p-0 position-absolute-btn">
+                  <img src="/assets/svg/plus.svg" width="30px" alt="upload" (click)="addVideo()" style="cursor: pointer;" />
+                </div>
+                <app-file-list
+                  [files]="task?.secondBasedFiles?.taskVideoUrls || []"
+                  [category]="'taskVideoUrls'"
+                  [placeholder]="'VIDEO DARS'"
+                  [hasError]="hasError('taskVideoUrls')"
+                  [selectedLang]="selectedLanguage"
+                  [autoSaveOnDelete]="!!existingLesson"
+                  (removeFile)="onRemoveFile($event)"
+                  (replaceFile)="onReplaceFile($event)"
+                ></app-file-list>
+              </div>
+            </div>
+            <div class="col-md-3"></div>
+            <div class="col-md-6 mb-3">
               <div class="position-relative">
                 <input
                   type="file"
                   hidden
-                  #hiddenInput
+                  #taskLiteratureInput
                   data-category="taskLiteratureFiles"
                   multiple
                   (change)="onFileSelected($event, 'taskLiteratureFiles', selectedLanguage)"
@@ -437,171 +430,32 @@
                   </div>
                 </div>
                 <app-file-list
-                  [files]="selectedTask.secondBasedFiles?.taskLiteratureFiles || { uz: [], ru: [], en: [] }"
+                  [files]="task?.secondBasedFiles?.taskLiteratureFiles || { uz: [], ru: [], en: [] }"
                   [category]="'taskLiteratureFiles'"
-                  [placeholder]="'ADABIYOT'"
+                  [placeholder]="'FAN BOYICHA ADABIYOTLAR'"
                   [hasError]="hasError('taskLiteratureFiles')"
                   [selectedLang]="selectedLanguage"
+                  [autoSaveOnDelete]="!!existingLesson"
                   (removeFile)="onRemoveFile($event)"
                   (replaceFile)="onReplaceFile($event)"
-                  (addFile)="onFileTypeSelect(selectedLanguage, 'taskLiteratureFiles')"
+                  (addFile)="onFileTypeSelect($event.lang, $event.category)"
                   (fileSelected)="onDirectFileSelected($event, 'taskLiteratureFiles', selectedLanguage)"
                 ></app-file-list>
               </div>
             </div>
+            <div class="col-md-3"></div>
           </div>
-        </div>
-        
-        <!-- Videos Section -->
-        <div class="row mt-4" *ngIf="selectedTask">
-          <div class="col-12">
-            <div class="videos-container">
-              <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4>Video darslar</h4>
-                <button class="btn btn-primary" (click)="addVideo()">
-                  <i class="fas fa-plus"></i> Video qo'shish
-                </button>
-              </div>
-              
-              <div class="videos-list" *ngIf="selectedTask?.secondBasedFiles?.taskVideoUrls?.length">
-                <div class="video-item mb-3" *ngFor="let video of (selectedTask?.secondBasedFiles?.taskVideoUrls || []); let i = index">
-                  <div class="card">
-                    <div class="card-body">
-                      <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 class="card-title">{{ video?.title || video?.name?.uz || video?.name?.ru || video?.name?.en || 'Video ' + (i + 1) }}</h5>
-                        <button class="btn btn-danger btn-sm" (click)="removeVideo(i)">
-                          <i class="fas fa-trash-alt"></i>
-                        </button>
-                      </div>
-                      <div class="video-links" *ngIf="video?.url">
-                        <div class="language-link mb-2" *ngIf="video?.url?.uz">
-                          <span class="badge bg-primary me-2">O'zbek</span>
-                          <a [href]="video.url.uz" target="_blank">{{ getShortUrl(video.url.uz) }}</a>
-                        </div>
-                        <div class="language-link mb-2" *ngIf="video?.url?.ru">
-                          <span class="badge bg-danger me-2">Русский</span>
-                          <a [href]="video.url.ru" target="_blank">{{ getShortUrl(video.url.ru) }}</a>
-                        </div>
-                        <div class="language-link mb-2" *ngIf="video?.url?.en">
-                          <span class="badge bg-success me-2">English</span>
-                          <a [href]="video.url.en" target="_blank">{{ getShortUrl(video.url.en) }}</a>
-                        </div>
-                        <!-- Single URL case -->
-                        <div class="language-link mb-2" *ngIf="video?.url && isStringUrl(video.url)">
-                          <a [href]="video.url" target="_blank">{{ getShortUrl(video.url) }}</a>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="no-videos" *ngIf="!selectedTask?.secondBasedFiles?.taskVideoUrls?.length">
-                <p class="text-muted">Hali videolar qo'shilmagan</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Example Files section -->
-        <div class="card mb-4" *ngIf="selectedTask">
-          <div class="card-header">
-            <h5>Example Files</h5>
-          </div>
-          <div class="card-body">
-            <div class="btn-group mb-3">
-              <button class="btn btn-outline-primary" [class.active]="selectedLanguage === 'uz'" (click)="selectedLanguage = 'uz'">UZ</button>
-              <button class="btn btn-outline-primary" [class.active]="selectedLanguage === 'ru'" (click)="selectedLanguage = 'ru'">RU</button>
-              <button class="btn btn-outline-primary" [class.active]="selectedLanguage === 'en'" (click)="selectedLanguage = 'en'">EN</button>
-            </div>
-            
-            <div class="mb-3">
-              <input type="file" #fileInput multiple class="form-control" (change)="onFileSelected($event, 'taskExampleFiles', selectedLanguage)">
-            </div>
-            
-            <div class="list-group" *ngIf="selectedTask?.firstBasedFiles?.taskExampleFiles?.[selectedLanguage]?.length">
-              <ng-container *ngIf="selectedTask?.firstBasedFiles?.taskExampleFiles?.[selectedLanguage] as exampleFiles">
-                <div class="list-group-item d-flex justify-content-between align-items-center" 
-                     *ngFor="let file of exampleFiles; let i = index">
-                  <span>{{ getFileName(file) }}</span>
-                  <button class="btn btn-sm btn-danger" (click)="onRemoveFile({file: file, category: 'taskExampleFiles', language: selectedLanguage})">
-                    <i class="fa fa-trash"></i> Remove
-                  </button>
-                </div>
-              </ng-container>
-            </div>
-            <div class="alert alert-info" *ngIf="!selectedTask?.firstBasedFiles?.taskExampleFiles?.[selectedLanguage]?.length">
-              No example files uploaded
-            </div>
-          </div>
-        </div>
-        
-        <!-- Solution Files section -->
-        <div class="card mb-4" *ngIf="selectedTask">
-          <div class="card-header">
-            <h5>Solution Files</h5>
-          </div>
-          <div class="card-body">
-            <div class="btn-group mb-3">
-              <button class="btn btn-outline-primary" [class.active]="selectedLanguage === 'uz'" (click)="selectedLanguage = 'uz'">UZ</button>
-              <button class="btn btn-outline-primary" [class.active]="selectedLanguage === 'ru'" (click)="selectedLanguage = 'ru'">RU</button>
-              <button class="btn btn-outline-primary" [class.active]="selectedLanguage === 'en'" (click)="selectedLanguage = 'en'">EN</button>
-            </div>
-            
-            <div class="mb-3">
-              <input type="file" #fileInput multiple class="form-control" (change)="onFileSelected($event, 'taskSolutionFiles', selectedLanguage)">
-            </div>
-            
-            <div class="list-group" *ngIf="selectedTask?.firstBasedFiles?.taskSolutionFiles?.[selectedLanguage]?.length">
-              <ng-container *ngIf="selectedTask?.firstBasedFiles?.taskSolutionFiles?.[selectedLanguage] as solutionFiles">
-                <div class="list-group-item d-flex justify-content-between align-items-center" 
-                     *ngFor="let file of solutionFiles; let i = index">
-                  <span>{{ getFileName(file) }}</span>
-                  <button class="btn btn-sm btn-danger" (click)="onRemoveFile({file: file, category: 'taskSolutionFiles', language: selectedLanguage})">
-                    <i class="fa fa-trash"></i> Remove
-                  </button>
-                </div>
-              </ng-container>
-            </div>
-            <div class="alert alert-info" *ngIf="!selectedTask?.firstBasedFiles?.taskSolutionFiles?.[selectedLanguage]?.length">
-              No solution files uploaded
-            </div>
-          </div>
-        </div>
-        
-        <!-- Add Video section -->
-        <div class="card mb-4" *ngIf="selectedTask">
-          <div class="card-header">
-            <h5>Video Lessons</h5>
-          </div>
-          <div class="card-body">
-            <button class="btn btn-primary mb-3" (click)="addVideo()">
-              <i class="fa fa-plus"></i> Add Video
-            </button>
-            
-            <div class="list-group" *ngIf="selectedTask?.secondBasedFiles?.taskVideoUrls?.length">
-              <ng-container *ngIf="selectedTask?.secondBasedFiles?.taskVideoUrls as videoUrls">
-                <div class="list-group-item d-flex justify-content-between align-items-center" 
-                     *ngFor="let video of videoUrls; let i = index">
-                  <span>{{ video?.title || 'Video ' + (i + 1) }}</span>
-                  <button class="btn btn-sm btn-danger" (click)="removeVideo(i)">
-                    <i class="fa fa-trash"></i> Remove
-                  </button>
-                </div>
-              </ng-container>
-            </div>
-            <div class="alert alert-info" *ngIf="!selectedTask?.secondBasedFiles?.taskVideoUrls?.length">
-              No videos added
-            </div>
-          </div>
-        </div>
-        
-        <!-- Action Buttons -->
-        <div class="action-buttons mt-4 d-flex justify-content-center" *ngIf="selectedTask">
-          <button class="btn btn-secondary me-2" (click)="goBack()">Bekor qilish</button>
-          <button class="btn btn-primary" (click)="saveChanges()">O'zgarishlarni saqlash</button>
         </div>
       </div>
+    </div>
+    <div class="d-flex justify-content-end pe-3">
+      <img
+        src="/assets/svg/save.svg"
+        class="cursor-pointer"
+        width="30px"
+        alt="next"
+        (click)="uploadAllFilesAndSaveData()"
+      />
     </div>
   </div>
 </div>
@@ -609,12 +463,7 @@
 <div class="container">
   <div class="row">
     <div class="col-md-12">
+      <!-- Video list will be shown in the ng-select above -->
     </div>
   </div>
-</div>
-
-<!-- Add save buttons -->
-<div class="d-flex justify-content-end mt-4">
-  <button class="btn btn-secondary me-2" routerLink="/dashboard">Cancel</button>
-  <button class="btn btn-primary" (click)="saveChanges()" [disabled]="!hasChanges()">Save Changes</button>
 </div>

@@ -36,7 +36,11 @@
                 alt="{{ lang }}"
                 class="lang-icon"
               />
-              <span class="option-name">{{ item.name }}</span>
+              <span class="option-name" [class]="getFileStatusClass(lang, i)">
+                {{ item.name }}
+                <span class="file-badge" *ngIf="isExistingFile(lang, i)">saved</span>
+                <span class="file-badge new" *ngIf="!isExistingFile(lang, i)">new</span>
+              </span>
               <div class="option-actions">
                 <span class="option-replace" (click)="onReplaceFile(lang, i, $event)" [class.replacing]="isReplacing(lang, i)">
                   <img src="/assets/svg/replace.svg" width="18px" alt="replace"/>
@@ -69,16 +73,27 @@
           </div>
         </div>
       </ng-container>
+
+      <!-- Language selector for adding new files -->
+      <div class="select-option add-file-option" *ngIf="!isVideos(files)">
+        <div class="language-buttons">
+          <button class="lang-btn" (click)="onAddFile('uz', $event)">
+            <img src="/assets/svg/uz.svg" alt="UZ" width="20px" />
+            <span>Add UZ file</span>
+          </button>
+          <button class="lang-btn" (click)="onAddFile('ru', $event)">
+            <img src="/assets/svg/ru.svg" alt="RU" width="20px" />
+            <span>Add RU file</span>
+          </button>
+          <button class="lang-btn" (click)="onAddFile('en', $event)">
+            <img src="/assets/svg/en.svg" alt="EN" width="20px" />
+            <span>Add EN file</span>
+          </button>
+        </div>
+      </div>
     </ng-container>
 
-    <div
-      class="no-options"
-      *ngIf="
-        !files ||
-        (!isVideos(files) && objectKeys(files).length === 0) ||
-        (isVideos(files) && files.length === 0)
-      "
-    >
+    <div class="no-options" *ngIf="hasNoFiles()">
       Fayllar yuklanmagan
     </div>
   </div>

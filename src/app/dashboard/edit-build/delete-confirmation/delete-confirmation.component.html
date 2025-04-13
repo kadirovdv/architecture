@@ -1,0 +1,14 @@
+<div class="modal-header">
+  <h4 class="modal-title">Faylni o'chirish</h4>
+  <button type="button" class="btn-close" aria-label="Close" (click)="dismiss()"></button>
+</div>
+<div class="modal-body">
+  <p>Bu fayl mavjud va uni o'chirish orqali doimiy o'zgarishlar bo'ladi. Davom etasizmi?</p>
+  <div class="file-info" *ngIf="fileName">
+    <span class="file-name">{{ fileName }}</span>
+  </div>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-secondary" (click)="dismiss()">Bekor qilish</button>
+  <button type="button" class="btn btn-danger" (click)="confirm()">O'chirish</button>
+</div> 
