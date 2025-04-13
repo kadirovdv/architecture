@@ -11,6 +11,51 @@
   padding-top: 190px;
 
   .news-card {
+    &-wrapper {
+      position: relative;
+      margin-bottom: 30px;
+    }
+    &-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background-color: white;
+      border-radius: 0 0 15px 15px;
+      box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.1);
+      z-index: 100;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-in-out;
+      width: 600px;
+      &.visible {
+        max-height: 300px;
+        overflow-y: auto;
+      }
+      
+      &-body {
+        padding: 15px;
+        
+        &-item {
+          padding: 10px 0;
+          border-bottom: 1px solid #eee;
+          
+          &:last-child {
+            border-bottom: none;
+          }
+          
+          &-title a {
+            color: #2c3e50;
+            cursor: pointer;
+            text-decoration: none;
+            
+            &:hover {
+              color: #3498db;
+            }
+          }
+        }
+      }
+    }
     background: rgba(255, 223, 174, 0.55);
     backdrop-filter: blur(2px);
     border-radius: 10px;

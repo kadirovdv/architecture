@@ -8,46 +8,110 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 1050;
 }
 
 .modal-container {
   background-color: white;
   border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   width: 90%;
-  max-width: 500px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-header {
+  padding: 15px;
+  border-bottom: 1px solid #e9ecef;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
-  border-bottom: 1px solid #eee;
+  
+  h4 {
+    margin: 0;
+    font-weight: 500;
+  }
+  
+  .close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #6c757d;
+    
+    &:hover {
+      color: #000;
+    }
+  }
 }
 
 .modal-body {
-  padding: 16px;
+  padding: 15px;
+  overflow-y: auto;
+  flex: 1;
+  
+  .nav-tabs {
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 1rem;
+    
+    .nav-item {
+      margin-bottom: -1px;
+      
+      .nav-link {
+        margin-right: 2px;
+        border: 1px solid transparent;
+        border-top-left-radius: 0.25rem;
+        border-top-right-radius: 0.25rem;
+        padding: 0.5rem 1rem;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        text-decoration: none;
+        color: #495057;
+        
+        &:hover, &:focus {
+          border-color: #e9ecef #e9ecef #dee2e6;
+          color: #007bff;
+        }
+        
+        &.active {
+          color: #495057;
+          background-color: #fff;
+          border-color: #dee2e6 #dee2e6 #fff;
+        }
+      }
+    }
+  }
+  
+  .tab-content {
+    .tab-pane {
+      display: none;
+      
+      &.active {
+        display: block;
+      }
+      
+      &.show {
+        opacity: 1;
+      }
+    }
+  }
 }
 
 .modal-footer {
+  padding: 15px;
+  border-top: 1px solid #e9ecef;
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  padding: 16px;
-  border-top: 1px solid #eee;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #666;
   
-  &:hover {
-    color: #000;
+  button {
+    margin-left: 10px;
   }
 }
 

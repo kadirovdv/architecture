@@ -5,28 +5,102 @@
       <button class="close-btn" (click)="onClose()">&times;</button>
     </div>
     <div class="modal-body">
-      <div class="form-group">
-        <label for="newsTitle">Yangilik sarlavhasi</label>
-        <input 
-          type="text" 
-          id="newsTitle" 
-          class="form-control" 
-          [(ngModel)]="newsTitle" 
-          placeholder="Sarlavhani kiriting">
-      </div>
-      <div class="form-group">
-        <label for="newsLink">Yangilik havolasi</label>
-        <input 
-          type="url" 
-          id="newsLink" 
-          class="form-control" 
-          [(ngModel)]="newsLink" 
-          placeholder="https://example.com">
+      <!-- Language tabs -->
+      <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+          <a class="nav-link" [class.active]="activeTab === 'uz'" (click)="setActiveTab('uz', $event)">
+            <img src="/assets/svg/uz.svg" alt="UZ" class="me-1" width="16"> O'zbek
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" [class.active]="activeTab === 'ru'" (click)="setActiveTab('ru', $event)">
+            <img src="/assets/svg/ru.svg" alt="RU" class="me-1" width="16"> Русский
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" [class.active]="activeTab === 'en'" (click)="setActiveTab('en', $event)">
+            <img src="/assets/svg/en.svg" alt="EN" class="me-1" width="16"> English
+          </a>
+        </li>
+      </ul>
+      
+      <!-- Tab content -->
+      <div class="tab-content">
+        <!-- Uzbek content -->
+        <div class="tab-pane" [class.show]="activeTab === 'uz'" [class.active]="activeTab === 'uz'">
+          <div class="form-group mb-3">
+            <label for="newsTitleUz">Yangilik sarlavhasi (O'zbek)</label>
+            <input 
+              type="text" 
+              id="newsTitleUz" 
+              class="form-control" 
+              [(ngModel)]="news.title.uz" 
+              placeholder="Sarlavhani kiriting">
+          </div>
+          <div class="form-group">
+            <label for="newsLinkUz">Yangilik havolasi (O'zbek)</label>
+            <input 
+              type="url" 
+              id="newsLinkUz" 
+              class="form-control" 
+              [(ngModel)]="news.link.uz" 
+              placeholder="https://example.com">
+          </div>
+        </div>
+        
+        <!-- Russian content -->
+        <div class="tab-pane" [class.show]="activeTab === 'ru'" [class.active]="activeTab === 'ru'">
+          <div class="form-group mb-3">
+            <label for="newsTitleRu">Заголовок новости (Русский)</label>
+            <input 
+              type="text" 
+              id="newsTitleRu" 
+              class="form-control" 
+              [(ngModel)]="news.title.ru" 
+              placeholder="Введите заголовок">
+          </div>
+          <div class="form-group">
+            <label for="newsLinkRu">Ссылка новости (Русский)</label>
+            <input 
+              type="url" 
+              id="newsLinkRu" 
+              class="form-control" 
+              [(ngModel)]="news.link.ru" 
+              placeholder="https://example.com">
+          </div>
+        </div>
+        
+        <!-- English content -->
+        <div class="tab-pane" [class.show]="activeTab === 'en'" [class.active]="activeTab === 'en'">
+          <div class="form-group mb-3">
+            <label for="newsTitleEn">News Title (English)</label>
+            <input 
+              type="text" 
+              id="newsTitleEn" 
+              class="form-control" 
+              [(ngModel)]="news.title.en" 
+              placeholder="Enter title">
+          </div>
+          <div class="form-group">
+            <label for="newsLinkEn">News Link (English)</label>
+            <input 
+              type="url" 
+              id="newsLinkEn" 
+              class="form-control" 
+              [(ngModel)]="news.link.en" 
+              placeholder="https://example.com">
+          </div>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" (click)="onClose()">Bekor qilish</button>
-      <button class="btn btn-primary" [disabled]="!newsTitle || !newsLink" (click)="onSave()">Saqlash</button>
+      <button 
+        class="btn btn-primary" 
+        [disabled]="!((news.title.uz && news.link.uz) || (news.title.ru && news.link.ru) || (news.title.en && news.link.en))" 
+        (click)="onSave()">
+        Saqlash
+      </button>
     </div>
   </div>
 </div>

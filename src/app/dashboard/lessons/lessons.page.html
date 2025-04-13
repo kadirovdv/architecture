@@ -242,8 +242,8 @@
       <div class="news-list" *ngIf="newsList.length > 0">
         <div class="news-item" *ngFor="let news of newsList">
           <div class="d-flex justify-content-center position-relative">
-            <a [href]="news.link" target="_blank" class="news-link">
-              {{ news.link }}
+            <a [href]="getNewsLink(news)" target="_blank" class="news-link">
+              {{ getNewsTitle(news) }}
             </a>
             <img 
               src="/assets/img/delete-icon.png" 

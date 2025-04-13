@@ -7,6 +7,7 @@ import { DropboxService } from 'src/app/shared/services/dropbox.service';
 import { LoadingService } from 'src/app/shared/services/loading.service';
 import { Router } from '@angular/router';
 import { AddNewsModalComponent } from '../add-news-modal/add-news-modal.component';
+import { i18nService } from 'src/app/shared/services/i18n.service';
 
 @Component({
   selector: 'app-dashboard-lessons',
@@ -44,13 +45,27 @@ export class LessonsPage implements OnInit {
   // News Management -------------------------------------------
   
   showNewsModal = false;
-  newsList: {id: string, title: string, link: string, createdAt: string}[] = [];
+  newsList: {
+    id: string,
+    title: {
+      uz: string,
+      ru: string,
+      en: string
+    },
+    link: {
+      uz: string,
+      ru: string,
+      en: string
+    },
+    createdAt: string
+  }[] = [];
 
   constructor(
     private crudService: CrudService,
     private toastr: ToastrService,
     private loadingService: LoadingService,
-    private router: Router
+    private router: Router,
+    public i18n: i18nService
   ) {}
 
   ngOnInit() {
@@ -485,9 +500,18 @@ export class LessonsPage implements OnInit {
     this.showNewsModal = false;
   }
   
-  saveNews(newsData: {title: string, link: string}) {
-    if (!newsData.title || !newsData.link) {
-      this.toastr.warning('Sarlavha va havola kiritilmadi');
+  saveNews(newsData: {
+    title: { uz: string, ru: string, en: string },
+    link: { uz: string, ru: string, en: string }
+  }) {
+    // Check if at least one language has both title and link
+    const hasContent = 
+      (newsData.title.uz && newsData.link.uz) || 
+      (newsData.title.ru && newsData.link.ru) ||
+      (newsData.title.en && newsData.link.en);
+    
+    if (!hasContent) {
+      this.toastr.warning('At least one language must have both title and link');
       return;
     }
     
@@ -521,7 +545,12 @@ export class LessonsPage implements OnInit {
   loadNews() {
     this.crudService.getDocuments('news').subscribe({
       next: (data) => {
-        this.newsList = data as {id: string, title: string, link: string, createdAt: string}[];
+        this.newsList = data as {
+          id: string,
+          title: { uz: string, ru: string, en: string },
+          link: { uz: string, ru: string, en: string },
+          createdAt: string
+        }[];
         this.sortNewsList();
       },
       error: (error) => {
@@ -555,5 +584,22 @@ export class LessonsPage implements OnInit {
         }
       });
     }
+  }
+
+  // Helper methods for multilingual content
+  getNewsTitle(news: any): string {
+    const lang = this.i18n.getLang();
+    if (news.title && typeof news.title === 'object') {
+      return news.title[lang] || news.title.uz || news.title.ru || news.title.en || '';
+    }
+    return news.title || '';
+  }
+
+  getNewsLink(news: any): string {
+    const lang = this.i18n.getLang();
+    if (news.link && typeof news.link === 'object') {
+      return news.link[lang] || news.link.uz || news.link.ru || news.link.en || '';
+    }
+    return news.link || '';
   }
 }

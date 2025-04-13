@@ -10,6 +10,22 @@ import { BehaviorSubject, forkJoin, of } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { LoadingService } from 'src/app/shared/services/loading.service';
 import { ToggleNavVisibilityService } from 'src/app/shared/services/toggle.nav.visibility.service';
+
+interface News {
+  id: string;
+  title: {
+    uz: string;
+    ru: string;
+    en: string;
+  };
+  link: {
+    uz: string;
+    ru: string;
+    en: string;
+  };
+  createdAt: string;
+}
+
 @Component({
   selector: 'app-main',
   templateUrl: './main.page.html',
@@ -23,6 +39,7 @@ export class MainPage {
   websiteLessons: any[] = [];
   lang = '';
   private thumbnailsLoaded = new BehaviorSubject<number>(0);
+  newsList: News[] = [];
 
   currentSlide = 0;
   loading = false;
@@ -48,6 +65,8 @@ export class MainPage {
     this.navService.updateNavState(false);
     this.loaderService.show();
     this.getData();
+    this.loadNews();
+
     this.i18n.currentData.subscribe((lang) => {
       this.lang = lang;
     });
@@ -85,7 +104,7 @@ export class MainPage {
         switchMap((res: unknown) => {
           const allLessons = res as Lesson[];
           // Filter for active lessons only
-          const lessons = allLessons.filter(lesson => lesson.active);
+          const lessons = allLessons.filter((lesson) => lesson.active);
 
           if (lessons.length === 0) {
             this.websiteLessons = lessons;
@@ -183,6 +202,25 @@ export class MainPage {
     this.handleSwipe();
   }
 
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (
+      (event.target as HTMLElement).classList.contains('news-card-dropdown') ||
+      (event.target as HTMLElement).classList.contains('news-card') ||
+      (event.target as HTMLElement).classList.contains('news-card-body') ||
+      (event.target as HTMLElement).classList.contains(
+        'news-card-dropdown-body-item'
+      ) ||
+      (event.target as HTMLElement).classList.contains(
+        'news-card-dropdown-body-item-title'
+      )
+    ) {
+      this.isNewsDropdownVisible = true;
+    } else {
+      this.isNewsDropdownVisible = false;
+    }
+  }
+
   private handleSwipe(): void {
     const threshold = 50;
     const diffX = this.startX - this.endX;
@@ -194,5 +232,54 @@ export class MainPage {
         this.prevSlide();
       }
     }
+  }
+
+  // Load news for the main page
+  loadNews() {
+    this.crudService.getDocuments('news').subscribe({
+      next: (data) => {
+        this.newsList = data as News[];
+        // Sort by date (newest first)
+        this.newsList.sort((a, b) => {
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        });
+        // Limit to 5 most recent news items
+        this.newsList = this.newsList.slice(0, 5);
+      },
+      error: (error) => {
+        console.error('Error loading news:', error);
+      },
+    });
+  }
+
+  // Helper methods for multilingual content
+  getNewsTitle(news: News): string {
+    if (!news?.title) return '';
+    return (
+      news.title[this.lang as keyof typeof news.title] ||
+      news.title.uz ||
+      news.title.ru ||
+      news.title.en ||
+      ''
+    );
+  }
+
+  getNewsLink(news: News): string {
+    if (!news?.link) return '';
+    return (
+      news.link[this.lang as keyof typeof news.link] ||
+      news.link.uz ||
+      news.link.ru ||
+      news.link.en ||
+      ''
+    );
+  }
+
+  isNewsDropdownVisible = false;
+
+  toggleNewsCardDropdown() {
+    this.isNewsDropdownVisible = !this.isNewsDropdownVisible;
   }
 }
