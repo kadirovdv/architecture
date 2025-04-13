@@ -972,7 +972,7 @@ export class EditBuildPage implements OnInit {
               };
               
               console.log('Updating existing regular lesson:', updatedLesson);
-              return this.crudService.updateDocument<Lesson>('lessons', regularLesson.id, updatedLesson);
+              return this.crudService.updateDocument<Lesson>('website-lessons', regularLesson.id, updatedLesson);
             } else {
               // Create a new lesson in the lessons collection
               console.log('Creating new lesson in lessons collection');
@@ -988,7 +988,7 @@ export class EditBuildPage implements OnInit {
               };
               
               console.log('Creating new lesson:', newLesson);
-              return this.crudService.addDocument('lessons', newLesson);
+              return this.crudService.addDocument('website-lessons', newLesson);
             }
           })
         )
