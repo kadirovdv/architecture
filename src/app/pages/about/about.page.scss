@@ -1,69 +1,282 @@
+:host {
+  position: relative;
+  height: 100%;
+  overflow-x: hidden;
+  &::before {
+    content: "";
+    display: block;
+    background-image: url(/assets/img/content-bg.png);
+    background-repeat: repeat-y;
+    background-size: 100%;
+    height: 100%;
+    width: 100%;
+    max-width: 200px;
+    position: absolute;
+    top: -140px;
+    left: 0px;
+    z-index: -1;
+  }
+}
 .content {
-    margin-top: 50px;
-    position: relative;
-
-    &::before {
-      content: "";
-      display: block;
-      background-image: url(/assets/img/content-bg.png);
-      background-repeat: repeat-y;
-      background-size: 100%;
-      height: 1900px;
-      width: 200px;
-      position: absolute;
-      top: -500px;
-      left: 0px;
-      z-index: -1;
-    }
-
+  margin-top: 150px;
+  position: relative;
 }
 .content-card {
   position: relative;
   background: #ffffff;
   box-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
   border-radius: 35px;
-
+  max-width: 1000px;
+  margin: 0 auto;
   padding: 150px 80px 80px 80px;
-
   p {
     font-family: "Adamina";
     font-style: normal;
     font-weight: 400;
-    font-size: 30px;
-    line-height: 49px;
+    font-size: 18px;
+    line-height: 30px;
     text-align: justify;
-
-    color: #393939;
+    color: #642e20;
   }
 
   .content-card-header {
     position: absolute;
     top: -85px;
-    z-index: 9999;
-    left: 45%;
     z-index: 1;
+    left: 50%;
+    transform: translateX(-50%);
     img {
       width: 170px;
     }
   }
 }
 
-@media screen and (max-width: 500px) {
+/* Extra large screens (1600px and up) */
+@media screen and (min-width: 1600px) {
+  :host {
+    &::before {
+      width: 16%;
+      max-width: 250px;
+    }
+  }
+  
+  .content {
+    margin-top: 180px;
+  }
+  
   .content-card {
-    padding: 120px 40px 30px 30px;
+    max-width: 1400px;
+    padding: 220px 140px 140px 140px;
+    border-radius: 45px;
+    
+    p {
+      font-size: 22px;
+      line-height: 38px;
+    }
+    
+    .content-card-header {
+      top: -100px;
+      
+      img {
+        width: 230px;
+      }
+    }
+  }
+}
+
+/* Large desktop (1200px-1599px) */
+@media screen and (min-width: 1200px) and (max-width: 1599px) {
+  :host {
+    &::before {
+      width: 15%;
+      max-width: 220px;
+    }
+  }
+  
+  .content {
+    margin-top: 160px;
+  }
+  
+  .content-card {
+    max-width: 1200px;
+    padding: 200px 120px 120px 120px;
+    border-radius: 40px;
+    
     p {
       font-size: 20px;
-      line-height: normal !important;
+      line-height: 36px;
+    }
+    
+    .content-card-header {
+      top: -95px;
+      
+      img {
+        width: 210px;
+      }
+    }
+  }
+}
+
+/* Desktop to laptop (992px-1199px) */
+@media screen and (max-width: 1199px) and (min-width: 992px) {
+  :host {
+    &::before {
+      width: 14%;
+      max-width: 190px;
+    }
+  }
+  
+  .content-card {
+    max-width: 900px;
+    padding: 170px 90px 90px 90px;
+    border-radius: 35px;
+    
+    p {
+      font-size: 19px;
+      line-height: 32px;
+    }
+    
+    .content-card-header {
+      img {
+        width: 180px;
+      }
+    }
+  }
+}
+
+/* Tablet to small desktop (768px-991px) */
+@media screen and (max-width: 991px) and (min-width: 768px) {
+  :host {
+    &::before {
+      width: 13%;
+      max-width: 160px;
+      top: -100px;
+    }
+  }
+  
+  .content {
+    margin-top: 120px;
+  }
+  
+  .content-card {
+    max-width: 700px;
+    padding: 140px 70px 70px 70px;
+    border-radius: 30px;
+    
+    p {
+      font-size: 18px;
+      line-height: 30px;
+    }
+    
+    .content-card-header {
+      top: -80px;
+      
+      img {
+        width: 165px;
+      }
+    }
+  }
+}
+
+/* Small tablets (501px-767px) */
+@media screen and (max-width: 767px) and (min-width: 501px) {
+  :host {
+    &::before {
+      width: 12%;
+      max-width: 120px;
+      top: -80px;
+    }
+  }
+  
+  .content {
+    margin-top: 100px;
+  }
+  
+  .content-card {
+    max-width: 500px;
+    padding: 120px 50px 50px 50px;
+    border-radius: 25px;
+    
+    p {
+      font-size: 17px;
+      line-height: 28px;
+    }
+    
+    .content-card-header {
+      top: -70px;
+      img {
+        width: 150px;
+      }
+    }
+  }
+}
+
+/* Mobile devices (500px and below) */
+@media screen and (max-width: 500px) {
+  :host {
+    &::before {
+      width: 10%;
+      max-width: 80px;
+      top: -60px;
+    }
+  }
+  
+  .content {
+    margin-top: 80px;
+  }
+  
+  .content-card {
+    padding: 110px 30px 30px 30px;
+    border-radius: 20px;
+    
+    p {
+      font-size: 16px;
+      line-height: 26px !important;
       text-align: start;
     }
   }
 
   .content-card-header {
     width: 100% !important;
-    left: 0px !important;
+    top: -60px;
+    
     img {
       margin: 0 auto;
       display: block;
+      width: 130px;
+    }
+  }
+}
+
+/* Very small devices (375px and below) */
+@media screen and (max-width: 375px) {
+  :host {
+    &::before {
+      width: 8%;
+      max-width: 60px;
+      top: -50px;
+    }
+  }
+  
+  .content {
+    margin-top: 70px;
+  }
+  
+  .content-card {
+    padding: 100px 20px 20px 20px;
+    border-radius: 15px;
+    
+    p {
+      font-size: 15px;
+      line-height: 24px !important;
+    }
+  }
+
+  .content-card-header {
+    top: -55px;
+    
+    img {
+      width: 110px;
     }
   }
 }

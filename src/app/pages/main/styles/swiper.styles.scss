@@ -1,17 +1,17 @@
 .carousel {
   position: relative;
   width: 100%;
-  min-height: 100vh;
-  height: 100%;
+  height: 900px;
   margin: auto;
   padding-top: 60px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .carousel-wrapper {
   display: grid;
   position: relative;
   gap: 20px 20px;
+  height: 700px;
 }
 
 .carousel-slide {
@@ -20,9 +20,11 @@
   opacity: 0;
   transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
   position: absolute;
-  min-height: 100%;
+  height: 700px;
   &-wrapper {
     padding: 0px 100px 30px 100px;
+    height: auto;
+    overflow-y: auto;
     p, li {
       font-family: "Inter";
       font-weight: 400;
@@ -49,7 +51,7 @@
   font-weight: 800;
   font-size: 24px;
   text-align: center;
-  padding: 100px 0px;
+  padding: 50px 0px;
   color: #7d4233;
   text-transform: uppercase;
 }
@@ -154,4 +156,196 @@
 
 .carousel-indicators span.active {
   background: black;
+}
+
+/* Fix for about-platform-people */
+.about-platform-people {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+  
+  &-item {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 0 30px;
+    width: 100%;
+    align-items: center;
+    margin-bottom: 30px;
+    
+    img {
+      max-width: 100%;
+      height: auto;
+      width: 300px;
+    }
+    
+    h3 {
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    
+    .w-70 {
+      width: 70% !important;
+    }
+  }
+}
+
+@media screen and (max-width: 991px) {
+  .carousel {
+    height: 800px;
+  }
+  
+  .carousel-wrapper {
+    height: 600px;
+  }
+  
+  .carousel-slide {
+    height: 600px;
+    
+    &-wrapper {
+      padding: 0px 50px 30px 50px;
+      
+      p, li {
+        font-size: 18px;
+      }
+    }
+    
+    h2 {
+      padding: 40px 0px;
+      font-size: 22px;
+    }
+  }
+  
+  .carousel-indicators {
+    width: 400px;
+  }
+  
+  .about-platform-people-item {
+    img {
+      width: 250px;
+    }
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .carousel {
+    height: 700px;
+  }
+  
+  .carousel-wrapper {
+    height: 550px;
+  }
+  
+  .carousel-slide {
+    height: 550px;
+    
+    &-wrapper {
+      padding: 0px 30px 30px 30px;
+      
+      p, li {
+        font-size: 16px;
+      }
+    }
+    
+    h2 {
+      padding: 30px 0px;
+      font-size: 20px;
+    }
+  }
+  
+  .carousel-indicators {
+    width: 300px;
+    
+    .carousel-indicator-item {
+      width: 60px;
+      height: 60px;
+      
+      &-body img {
+        width: 40px;
+      }
+    }
+  }
+  
+  .about-platform-people-item {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    grid-gap: 20px;
+    
+    &::before {
+      display: none;
+    }
+    
+    &-img::after {
+      display: none;
+    }
+    
+    img {
+      width: 200px;
+      margin: 0 auto;
+    }
+    
+    .w-70 {
+      width: 100% !important;
+    }
+    
+    h3, p {
+      text-align: center !important;
+    }
+  }
+  
+  .about-platform-people-item:nth-child(2) {
+    flex-direction: column-reverse;
+  }
+}
+
+@media screen and (max-width: 575px) {
+  .carousel {
+    height: 650px;
+  }
+  
+  .carousel-wrapper {
+    height: 500px;
+  }
+  
+  .carousel-slide {
+    height: 500px;
+    
+    &-wrapper {
+      padding: 0px 20px 20px 20px;
+      
+      p, li {
+        font-size: 15px;
+      }
+    }
+    
+    h2 {
+      padding: 20px 0px;
+      font-size: 18px;
+    }
+  }
+  
+  .carousel-indicators {
+    width: 250px;
+    
+    .carousel-indicator-item {
+      width: 50px;
+      height: 50px;
+      padding: 8px;
+      
+      &-body img {
+        width: 30px;
+      }
+    }
+  }
+  
+  .about-platform-people-item {
+    img {
+      width: 180px;
+    }
+    
+    p {
+      font-size: 14px;
+    }
+  }
 }

@@ -158,6 +158,7 @@
     height: 100%;
     background: url("/assets/img/carousel-bg.png") no-repeat;
     background-size: 500px;
+    background-position: top right;
   }
   &-people {
     display: flex;
@@ -169,8 +170,17 @@
       grid-gap: 0px 30px;
       width: 100%;
       align-items: center;
+      padding: 20px 0;
       p {
         font-size: 16px !important;
+        margin-bottom: 0;
+      }
+      h3 {
+        font-family: "Inter";
+        font-weight: 700;
+        font-size: 20px;
+        color: #7d4233;
+        margin-bottom: 15px;
       }
       &:first-child p {
         text-align: start;
@@ -224,6 +234,17 @@
           top: 50%;
         }
       }
+      &-img img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 5px;
+        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+        
+        &:hover {
+          transform: scale(1.03);
+        }
+      }
     }
   }
 }
@@ -240,4 +261,281 @@
 
 .about-platform-title {
   padding-bottom: 100px;
+}
+
+/* MUALLIMLAR Section Styles */
+.muallimlar-section {
+  margin: 60px 0;
+  position: relative;
+  overflow: hidden;
+  
+  h2 {
+    font-family: "Inter";
+    font-weight: 800;
+    font-size: 28px;
+    text-align: center;
+    color: #7d4233;
+    margin-bottom: 50px;
+  }
+  
+  .profile-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 40px;
+  }
+  
+  .profile-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 400px;
+    background: #ffffff;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.1);
+    
+    .profile-image {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      overflow: hidden;
+      margin-bottom: 20px;
+      box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.15);
+      
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+    
+    .profile-title {
+      font-family: "Inter";
+      font-weight: 700;
+      font-size: 20px;
+      color: #7d4233;
+      margin-bottom: 10px;
+    }
+    
+    .profile-info {
+      font-family: "Adamina";
+      font-size: 16px;
+      text-align: center;
+      color: #642e20;
+      margin-bottom: 15px;
+    }
+    
+    .profile-name {
+      font-family: "Inter";
+      font-weight: 700;
+      font-size: 18px;
+      color: #7d4233;
+    }
+  }
+}
+
+/* Responsive styles for MUALLIMLAR section */
+@media screen and (max-width: 991px) {
+  .muallimlar-section {
+    margin: 40px 0;
+    
+    h2 {
+      font-size: 24px;
+      margin-bottom: 40px;
+    }
+    
+    .profile-card {
+      max-width: 320px;
+      
+      .profile-image {
+        width: 180px;
+        height: 180px;
+      }
+      
+      .profile-title {
+        font-size: 18px;
+      }
+      
+      .profile-info {
+        font-size: 15px;
+      }
+      
+      .profile-name {
+        font-size: 16px;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .muallimlar-section {
+    margin: 30px 0;
+    
+    h2 {
+      font-size: 22px;
+      margin-bottom: 30px;
+    }
+    
+    .profile-row {
+      gap: 30px;
+    }
+    
+    .profile-card {
+      max-width: 280px;
+      
+      .profile-image {
+        width: 150px;
+        height: 150px;
+      }
+      
+      .profile-title {
+        font-size: 17px;
+      }
+      
+      .profile-info {
+        font-size: 14px;
+      }
+      
+      .profile-name {
+        font-size: 15px;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 575px) {
+  .muallimlar-section {
+    margin: 20px 0;
+    
+    h2 {
+      font-size: 20px;
+      margin-bottom: 25px;
+    }
+    
+    .profile-row {
+      gap: 20px;
+    }
+    
+    .profile-card {
+      width: 100%;
+      max-width: none;
+      margin: 0 15px;
+      
+      .profile-image {
+        width: 130px;
+        height: 130px;
+      }
+    }
+  }
+}
+
+/* Fix for vertical line and connecting dots */
+.about-platform-people {
+  &-item {
+    position: relative;
+    margin-bottom: 40px;
+  }
+}
+
+/* Add a container for the timeline */
+.about-platform-people {
+  position: relative;
+  
+  /* Create a single continuous vertical line that spans all items */
+  &::before {
+    content: "";
+    display: block;
+    width: 2px;
+    height: 90%;
+    background: #7d4233;
+    position: absolute;
+    transform: translateX(-50%);
+    left: 50%;
+    top: 5%;
+    z-index: 0;
+  }
+  
+  &-item {
+    position: relative;
+    z-index: 1;
+    
+    /* Remove individual vertical lines */
+    &::before {
+      display: none;
+    }
+    
+    /* Adjust connector dots */
+    &-img:first-child, &-img:last-child {
+      position: relative;
+      
+      &::after {
+        content: "";
+        display: block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #7d4233;
+        position: absolute;
+        z-index: 2;
+      }
+    }
+    
+    &-img:first-child::after {
+      right: -21px;
+      top: 50%;
+    }
+    
+    &-img:last-child::after {
+      left: -21px;
+      top: 50%;
+    }
+  }
+}
+
+@media screen and (max-width: 767px) {
+  .about-platform-people {
+    /* Hide the vertical line on mobile */
+    &::before {
+      display: none;
+    }
+    
+    &-item {
+      margin-bottom: 30px;
+      display: flex !important;
+      flex-direction: column !important;
+      
+      &:last-child {
+        flex-direction: column-reverse !important;
+      }
+      
+      &-img {
+        margin: 0 auto;
+        display: flex;
+        justify-content: center;
+        
+        &::after {
+          display: none !important;
+        }
+        
+        img {
+          max-width: 200px;
+          height: auto;
+        }
+      }
+      
+      .w-70 {
+        width: 100% !important;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 20px;
+      }
+      
+      h3, p {
+        text-align: center !important;
+      }
+    }
+  }
 }

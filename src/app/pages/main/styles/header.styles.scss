@@ -10,17 +10,17 @@
 
   .bg {
     background: url(/assets/img/header-bg.png);
-    background-size: 100% 900px;
+    background-size: 100% 780px;
     background-repeat: no-repeat;
     position: relative;
     display: flex;
-    min-height: 900px;
-    max-height: 900px;
-    height: 900px;
+    min-height: 780px;
+    max-height: 780px;
+    height: 780px;
     .container {
-      min-height: 900px;
-      max-height: 900px;
-      height: 900px;
+      min-height: 780px;
+      max-height: 780px;
+      height: 780px;
     }
   }
 
@@ -35,7 +35,7 @@
     min-height: var(--header-min-height);
     width: var(--header-width) !important;
     padding-left: 40px;
-    top: 35%;
+    top: calc(30% + 10px);
 
     h1 {
       font-family: "Merriweather Sans";
@@ -75,7 +75,32 @@
   }
 }
 
+
 @media screen and (min-width: 1440px) {
+  .bg {
+    background-size: 100% 900px !important;
+    min-height: 900px !important;
+    max-height: 900px !important;
+    height: 900px !important;
+    .container {
+      height: 900px !important;
+      min-height: 900px !important;
+      max-height: 900px !important;
+    }
+  }
+
+  .landing-header {
+    top: calc(35% + 15px) !important;
+  }
+}
+
+@media screen and (max-width: 1344px) {
+  .bg {
+    background-size: cover !important;
+  }
+}
+
+@media screen and (min-width: 1735px) {
   .bg {
     background-size: 100% 1000px !important;
     min-height: 1000px !important;
@@ -89,30 +114,6 @@
   }
 
   .landing-header {
-    top: 41% !important;
+    top: calc(40% + 15px) !important;
   }
-}
-
-@media screen and (max-width: 1344px) {
-  .bg {
-    background-size: cover !important;
-  }
-}
-
-@media screen and (min-width: 1735px) {
-  // .bg {
-  //   background-size: 100% 1300px !important;
-  //   min-height: 1300px !important;
-  //   max-height: 1300px !important;
-  //   height: 1300px !important;
-  //   .container {
-  //     height: 1300px !important;
-  //     min-height: 1300px !important;
-  //     max-height: 1300px !important;
-  //   }
-  // }
-
-  // .landing-header {
-  //   top: calc(1300px - 650px) !important;
-  // }
 }
