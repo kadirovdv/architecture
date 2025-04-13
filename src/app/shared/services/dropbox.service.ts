@@ -58,7 +58,59 @@ export class DropboxService {
     );
   }
   
-  
+  /**
+   * Check if a file with the same name exists in Dropbox
+   * @param fileName The name of the file to check
+   * @returns Observable with the file metadata if exists, null if it doesn't
+   */
+  checkFileExists(fileName: string): Observable<any> {
+    const token = this.getAuthToken();
+    if (!token) {
+      return throwError(() => new Error('Dropbox token not configured'));
+    }
+    
+    // First, search for the file by name
+    const searchUrl = 'https://api.dropboxapi.com/2/files/search_v2';
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+    
+    const searchBody = {
+      query: fileName,
+      options: {
+        filename_only: true,
+        max_results: 10
+      }
+    };
+    
+    return this.http.post(searchUrl, searchBody, { headers }).pipe(
+      map((response: any) => {
+        console.log('Search response:', response);
+        
+        if (response && response.matches && response.matches.length > 0) {
+          // File with this name exists
+          const matchingFiles = response.matches.filter((match: any) => 
+            match.metadata.metadata.name.toLowerCase() === fileName.toLowerCase()
+          );
+          
+          if (matchingFiles.length > 0) {
+            console.log(`File "${fileName}" already exists in Dropbox`);
+            return matchingFiles[0].metadata.metadata;
+          }
+        }
+        
+        // No matching file found
+        console.log(`File "${fileName}" does not exist in Dropbox`);
+        return null;
+      }),
+      catchError(error => {
+        console.error('Error checking if file exists:', error);
+        // Return null instead of throwing an error to allow upload to proceed
+        return of(null);
+      })
+    );
+  }
 
   /**
    * Handle errors consistently 

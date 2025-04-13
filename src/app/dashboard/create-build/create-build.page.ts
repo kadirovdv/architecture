@@ -934,44 +934,79 @@ export class CreateBuildPage implements OnInit {
             if (regularLesson) {
               console.log('Found existing lesson in lessons collection:', regularLesson);
               
-              const existingTasks = regularLesson.tasks || [];
-              
-              const existingTaskIndex = existingTasks.findIndex(
-                (t: any) => (taskToSave.id && t.id === taskToSave.id) || 
-                            (taskToSave.title && t.title === taskToSave.title)
-              );
-              
-              if (existingTaskIndex !== -1) {
-                console.log('Found existing task, updating it');
-                existingTasks[existingTaskIndex] = taskToSave;
-              } else {
-                console.log('Task doesn\'t exist in this lesson, adding it');
-                existingTasks.push(taskToSave);
-              }
-              
-              const updatedLesson = {
-                ...regularLesson,
-                tasks: existingTasks
-              };
-              
-              console.log('Updating existing regular lesson:', updatedLesson);
-              return this.crudService.updateDocument<Lesson>('lessons', regularLesson.id, updatedLesson);
+              // First check if this lesson exists in website-lessons
+              return this.crudService.getDocuments('website-lessons')
+                .pipe(
+                  take(1),
+                  switchMap((websiteLessons: any[]) => {
+                    // Look for matching lesson in website-lessons
+                    const existingWebsiteLesson = websiteLessons.find(
+                      (l: any) => 
+                        (regularLesson.id && l.id === regularLesson.id) || 
+                        (regularLesson.lessonTitle?.uz && l.lessonTitle?.uz === regularLesson.lessonTitle.uz)
+                    );
+                    
+                    if (existingWebsiteLesson) {
+                      // If found in website-lessons, update it
+                      console.log('Found matching lesson in website-lessons, updating it');
+                      
+                      const existingTasks = existingWebsiteLesson.tasks || [];
+                      
+                      const existingTaskIndex = existingTasks.findIndex(
+                        (t: any) => (taskToSave.id && t.id === taskToSave.id) || 
+                                    (taskToSave.title && t.title === taskToSave.title)
+                      );
+                      
+                      if (existingTaskIndex !== -1) {
+                        console.log('Found existing task, updating it');
+                        existingTasks[existingTaskIndex] = taskToSave;
+                      } else {
+                        console.log('Task doesn\'t exist in this lesson, adding it');
+                        existingTasks.push(taskToSave);
+                      }
+                      
+                      const updatedLesson = {
+                        ...existingWebsiteLesson,
+                        tasks: existingTasks
+                      };
+                      
+                      console.log('Updating existing website-lessons document');
+                      return this.crudService.updateDocument<Lesson>(
+                        'website-lessons', existingWebsiteLesson.id, updatedLesson
+                      );
+                    } else {
+                      // Create a new lesson in website-lessons based on the regular lesson
+                      console.log('Creating new lesson in website-lessons based on regular lesson');
+                      
+                      const newLesson = {
+                        id: this.crudService.generateId(), // Generate new ID for website-lessons
+                        lessonTitle: regularLesson.lessonTitle || { uz: '', ru: '', en: '' },
+                        thumbnail: regularLesson.thumbnail || '',
+                        index: regularLesson.index || 0,
+                        createdAt: new Date().toISOString(),
+                        tasks: [taskToSave],
+                        active: true
+                      };
+                      
+                      return this.crudService.addDocument<Lesson>('website-lessons', newLesson);
+                    }
+                  })
+                );
             } else {
-              // Create a new lesson in the lessons collection
-              console.log('Creating new lesson in lessons collection');
+              // Create a new lesson in the website-lessons collection
+              console.log('Creating new lesson in website-lessons collection');
               
               const newLesson = {
-                id: this.lesson?.id || this.crudService.generateId(),
+                id: this.crudService.generateId(),
                 lessonTitle: this.lesson?.lessonTitle || { uz: '', ru: '', en: '' },
                 thumbnail: this.lesson?.thumbnail || '',
                 index: this.lesson?.index || 0,
-                createdAt: this.lesson?.createdAt || new Date().toISOString(),
+                createdAt: new Date().toISOString(),
                 tasks: [taskToSave],
                 active: true
               };
               
-              console.log('Creating new lesson:', newLesson);
-              return this.crudService.addDocument('lessons', newLesson);
+              return this.crudService.addDocument<Lesson>('website-lessons', newLesson);
             }
           })
         )
@@ -980,12 +1015,12 @@ export class CreateBuildPage implements OnInit {
             this.loaderService.hide();
             this.uploading = false;
             this.toastr.success('Ma\'lumotlar saqlandi!');
-            console.log('Data saved successfully to lessons collection');
+            console.log('Data saved successfully to website-lessons collection');
             
-            this.getLessons();
+            this.getWebsiteLessons();
           },
           error: (error: any) => {
-            console.error('Error saving data to lessons collection:', error);
+            console.error('Error saving data to website-lessons collection:', error);
             this.loaderService.hide();
             this.uploading = false;
             this.toastr.error('Ma\'lumotlarni saqlashda xatolik!');

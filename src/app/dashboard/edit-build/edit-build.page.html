@@ -34,7 +34,7 @@
           (ngModelChange)="onLessonSelect($event)"
           class="create-build-ng-select mb-4"
           [placeholder]="'Fanni tanlang...'"
-          [clearable]="false"
+          [clearable]="true"
           [items]="lessons"
           [compareWith]="compareLessonById"
         >
@@ -51,7 +51,7 @@
           class="create-build-ng-select bg-yellow mb-4"
           [placeholder]="'Grafik topshiriqni tanlang'"
           [clearable]="true"
-          [items]="lesson?.tasks || []"
+          [items]="lesson?.tasks"
           [compareWith]="compareTaskById"
         >
           <ng-template ng-option-tmp let-item="item">
@@ -286,7 +286,7 @@
                 ></app-file-list>
               </div>
             </div>
-            <div class="col-md-3 mb-3"></div>
+            <div class="col-md-3"></div>
             <div class="col-md-6 mb-3">
               <div class="position-relative">
                 <input

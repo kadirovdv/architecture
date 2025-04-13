@@ -245,10 +245,13 @@ export class FileListComponent {
     event.stopPropagation();
     this.selectedLang = lang as 'uz' | 'ru' | 'en';
     
-    // Emit the event to add a file with the current category and language
-    this.addFile.emit({ 
-      category: this.category, 
-      lang: this.selectedLang 
-    });
+    // Store the language for when the file is selected
+    this.currentReplaceInfo = null; // Reset replace info
+    
+    // Emit the event to notify parent component
+    this.addFile.emit({ category: this.category, lang });
+    
+    // Trigger file selection
+    this.fileInput.nativeElement.click();
   }
 }

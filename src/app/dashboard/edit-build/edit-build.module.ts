@@ -7,15 +7,16 @@ import { NgbDropdownModule, NgbModalModule } from '@ng-bootstrap/ng-bootstrap';
 import { FileListComponent } from './file-list/file-list.component';
 import { EditBuildRoutingModule } from './edit-build-routing.module';
 import { SharedModule } from '../../shared/shared.module';
-import { DeleteConfirmationComponent } from './delete-confirmation/delete-confirmation.component';
 import { VideoUploadComponent } from './video-upload/video-upload.component';
+import { LoaderComponent } from "../../shared/components/loader/loader.component";
+import { DeleteConfirmationComponent } from './delete-confirmation/delete-confirmation.component';
 
 @NgModule({
   declarations: [
-    EditBuildPage,
-    FileListComponent,
-    DeleteConfirmationComponent,
-    VideoUploadComponent
+    EditBuildPage, 
+    FileListComponent, 
+    VideoUploadComponent,
+    DeleteConfirmationComponent
   ],
   imports: [
     CommonModule,
@@ -24,7 +25,8 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
     NgbDropdownModule,
     NgbModalModule,
     EditBuildRoutingModule,
-    SharedModule
+    SharedModule,
+    LoaderComponent
   ]
 })
-export class EditBuildModule { } 
+export class EditBuildModule { }
