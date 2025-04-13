@@ -44,6 +44,7 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   private thumbnailsLoaded = new BehaviorSubject<number>(0);
   Math = Math;
   iframeErrors: { [key: string]: boolean } = {};
+  loadingFiles: { [key: string]: boolean } = {}; // Track loading state for each file
 
   currentSlideIndex = 0;
   slideWidth = 200;
@@ -492,6 +493,7 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     this.filesLoaded = false;
     this.loadingInProgress = false;
 
+    // Create empty files structure with all empty collections
     const newFiles = {
       firstBasedFiles: {
         taskExampleFiles: { uz: [], ru: [], en: [] },
@@ -513,23 +515,31 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       : this.selectedLesson.tasks[0]; // Default to first task if none selected
 
     if (selectedTask) {
-      const files = selectedTask[category]?.[fileType];
-      if (files) {
-        if (category === 'firstBasedFiles') {
-          newFiles.firstBasedFiles[fileType as keyof FirstClassFileGroups] =
-            files;
-        } else {
-          newFiles.secondBasedFiles[fileType as keyof SecondClassFileGroups] =
-            files;
+      // Only set the files for the specific category and file type requested
+      if (category === 'firstBasedFiles') {
+        if (fileType === 'taskExampleFiles' && selectedTask.firstBasedFiles?.taskExampleFiles) {
+          newFiles.firstBasedFiles.taskExampleFiles = selectedTask.firstBasedFiles.taskExampleFiles;
+        } else if (fileType === 'taskSolutionFiles' && selectedTask.firstBasedFiles?.taskSolutionFiles) {
+          newFiles.firstBasedFiles.taskSolutionFiles = selectedTask.firstBasedFiles.taskSolutionFiles;
+        }
+      } else if (category === 'secondBasedFiles') {
+        if (fileType === 'taskTitleFiles' && selectedTask.secondBasedFiles?.taskTitleFiles) {
+          newFiles.secondBasedFiles.taskTitleFiles = selectedTask.secondBasedFiles.taskTitleFiles;
+        } else if (fileType === 'taskPresentationFiles' && selectedTask.secondBasedFiles?.taskPresentationFiles) {
+          newFiles.secondBasedFiles.taskPresentationFiles = selectedTask.secondBasedFiles.taskPresentationFiles;
+        } else if (fileType === 'taskLiteratureFiles' && selectedTask.secondBasedFiles?.taskLiteratureFiles) {
+          newFiles.secondBasedFiles.taskLiteratureFiles = selectedTask.secondBasedFiles.taskLiteratureFiles;
+        } else if (fileType === 'taskVideoUrls' && selectedTask.secondBasedFiles?.taskVideoUrls) {
+          newFiles.secondBasedFiles.taskVideoUrls = selectedTask.secondBasedFiles.taskVideoUrls;
         }
       }
 
-      console.log('newFiles', newFiles);
+      console.log(`Setting files for ${category}.${fileType} from task ${selectedTask.id}`);
     }
 
     this.selectedFilesSubject.next(newFiles);
 
-    // Build the files queue
+    // Build the files queue for the specific category and file type
     this.buildFilesQueue(category, fileType, newFiles);
 
     // Start loading files after a short delay
@@ -545,55 +555,64 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     fileType: string,
     newFiles: any
   ): void {
-    if (
-      category === 'firstBasedFiles' &&
-      fileType in newFiles.firstBasedFiles
-    ) {
-      const filesObj = newFiles.firstBasedFiles[
-        fileType as keyof FirstClassFileGroups
-      ] as any;
-      if (
-        filesObj &&
-        typeof filesObj === 'object' &&
-        this.lang in filesObj &&
-        Array.isArray(filesObj[this.lang])
-      ) {
-        filesObj[this.lang].forEach((file: any, index: number) => {
-          this.filesQueue.push({
-            type: 'pdf',
-            url: file.url || '',
-            index,
-          });
-        });
-      }
-    } else if (category === 'secondBasedFiles') {
-      if (fileType === 'taskVideoUrls') {
-        const videos = newFiles.secondBasedFiles.taskVideoUrls;
-        if (Array.isArray(videos)) {
-          videos.forEach((video: any, index: number) => {
-            this.filesQueue.push({
-              type: 'video',
-              url: this.getVideoUrl(video),
-              index,
-            });
+    // Clear existing queue first
+    this.filesQueue = [];
+    
+    console.log(`Building files queue for ${category}.${fileType}`);
+    
+    if (category === 'firstBasedFiles') {
+      if (fileType === 'taskExampleFiles' && newFiles.firstBasedFiles.taskExampleFiles) {
+        const filesObj = newFiles.firstBasedFiles.taskExampleFiles;
+        if (this.lang in filesObj && Array.isArray(filesObj[this.lang])) {
+          filesObj[this.lang].forEach((file: any, index: number) => {
+            if (file && file.url) {
+              this.filesQueue.push({
+                type: 'pdf',
+                url: file.url,
+                index,
+              });
+            }
           });
         }
-      } else if (fileType in newFiles.secondBasedFiles) {
-        const filesObj = newFiles.secondBasedFiles[
-          fileType as keyof SecondClassFileGroups
-        ] as any;
-        if (
-          filesObj &&
-          typeof filesObj === 'object' &&
-          this.lang in filesObj &&
-          Array.isArray(filesObj[this.lang])
-        ) {
+      } else if (fileType === 'taskSolutionFiles' && newFiles.firstBasedFiles.taskSolutionFiles) {
+        const filesObj = newFiles.firstBasedFiles.taskSolutionFiles;
+        if (this.lang in filesObj && Array.isArray(filesObj[this.lang])) {
           filesObj[this.lang].forEach((file: any, index: number) => {
+            if (file && file.url) {
+              this.filesQueue.push({
+                type: 'pdf',
+                url: file.url,
+                index,
+              });
+            }
+          });
+        }
+      }
+    } else if (category === 'secondBasedFiles') {
+      if (fileType === 'taskVideoUrls' && Array.isArray(newFiles.secondBasedFiles.taskVideoUrls)) {
+        const videos = newFiles.secondBasedFiles.taskVideoUrls;
+        videos.forEach((video: any, index: number) => {
+          const url = this.getVideoUrl(video);
+          if (url) {
             this.filesQueue.push({
-              type: 'pdf',
-              url: file.url || '',
+              type: 'video',
+              url: url,
               index,
             });
+          }
+        });
+      } else {
+        // Handle all other secondBasedFiles types (taskTitleFiles, taskPresentationFiles, taskLiteratureFiles)
+        const filesObj = newFiles.secondBasedFiles[fileType as keyof SecondClassFileGroups] as any;
+        if (filesObj && this.lang in filesObj && Array.isArray(filesObj[this.lang])) {
+          filesObj[this.lang].forEach((file: any, index: number) => {
+            if (file && file.url) {
+              this.filesQueue.push({
+                type: 'pdf',
+                url: file.url,
+                index,
+              });
+            }
           });
         }
       }
@@ -629,6 +648,11 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
         this.filesQueue.length
       }: ${fileInfo.url}`
     );
+    
+    // Set the loading state for this file to true
+    if (fileInfo.url) {
+      this.loadingFiles[fileInfo.url] = true;
+    }
 
     // Increment the index to show the next file
     this.currentLoadingIndex++;
@@ -648,16 +672,10 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   shouldShowFile(index: number): boolean {
     return index < this.currentLoadingIndex;
   }
-
-  // Update other methods
-  private updateFilesOnLanguageChange(): void {
-    if (this.selectedLesson) {
-      this.filesQueue = []; // Clear files queue
-      this.currentLoadingIndex = 0;
-      this.filesLoaded = false;
-      this.loadingInProgress = false;
-      this.setLessonFiles('firstBasedFiles', this.currentFileType);
-    }
+  
+  // Check if a file is currently loading
+  isFileLoading(url: string | undefined): boolean {
+    return url ? this.loadingFiles[url] === true : false;
   }
 
   onIframeLoad(fileId: string | undefined) {
@@ -672,6 +690,7 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
     console.log(`✅ PDF loaded successfully: ${fileId}`);
     this.iframeErrors[fileId] = false;
+    this.loadingFiles[fileId] = false; // Set loading state to false
 
     // Mark the current file as loaded and load the next one
     this.loadingInProgress = false;
@@ -694,6 +713,7 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
     console.log(`❌ Error loading PDF: ${fileId}`);
     this.iframeErrors[fileId] = true;
+    this.loadingFiles[fileId] = false; // Set loading state to false
 
     // Even if there's an error, we should move on to the next file
     this.loadingInProgress = false;
@@ -702,14 +722,11 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     }, 1000);
   }
 
-  hasIframeError(url: string | undefined): boolean {
-    return url ? this.iframeErrors[url] === true : false;
-  }
-
   onDocViewerLoad(fileId: string | undefined) {
     if (fileId) {
       // Mark the file as loaded
       this.iframeErrors[fileId] = false;
+      this.loadingFiles[fileId] = false; // Set loading state to false
     }
   }
 
@@ -718,7 +735,12 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     if (fileId) {
       // Mark the file as having an error
       this.iframeErrors[fileId] = true;
+      this.loadingFiles[fileId] = false; // Set loading state to false
     }
+  }
+
+  hasIframeError(url: string | undefined): boolean {
+    return url ? this.iframeErrors[url] === true : false;
   }
 
   toggleTaskModal(event: Event): void {
@@ -735,51 +757,43 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
     this.selectedTaskId = task.id;
     this.isTaskModalVisible = false;
-    this.filesQueue = []; // Clear files queue
+    
+    // Reset loading states and clear queues
+    this.filesQueue = [];
     this.currentLoadingIndex = 0;
     this.filesLoaded = false;
     this.loadingInProgress = false;
+    
+    // Set the file type to taskExampleFiles by default
+    this.currentFileTypeSubject.next('taskExampleFiles');
+    
+    // Only load the taskExampleFiles for this task
+    const exampleFiles = task.firstBasedFiles?.taskExampleFiles || { uz: [], ru: [], en: [] };
+    
+    // Create new files object with only the selected task's default file type
+    const newFiles = {
+      firstBasedFiles: {
+        taskExampleFiles: exampleFiles,
+        taskSolutionFiles: { uz: [], ru: [], en: [] },
+      },
+      secondBasedFiles: {
+        taskTitleFiles: { uz: [], ru: [], en: [] },
+        taskPresentationFiles: { uz: [], ru: [], en: [] },
+        taskLiteratureFiles: { uz: [], ru: [], en: [] },
+        taskVideoUrls: [],
+      },
+    };
+    
+    // Update the selected files
+    this.selectedFilesSubject.next(newFiles);
+    
+    // Build the files queue for just the taskExampleFiles
+    this.buildFilesQueue('firstBasedFiles', 'taskExampleFiles', newFiles);
 
-    if (this.selectedLesson?.tasks) {
-      const newFiles = {
-        firstBasedFiles: {
-          taskExampleFiles: task.firstBasedFiles?.taskExampleFiles || {
-            uz: [],
-            ru: [],
-            en: [],
-          },
-          taskSolutionFiles: task.firstBasedFiles?.taskSolutionFiles || {
-            uz: [],
-            ru: [],
-            en: [],
-          },
-        },
-        secondBasedFiles: {
-          taskTitleFiles: task.secondBasedFiles?.taskTitleFiles || {
-            uz: [],
-            ru: [],
-            en: [],
-          },
-          taskPresentationFiles: task.secondBasedFiles
-            ?.taskPresentationFiles || { uz: [], ru: [], en: [] },
-          taskLiteratureFiles: task.secondBasedFiles?.taskLiteratureFiles || {
-            uz: [],
-            ru: [],
-            en: [],
-          },
-          taskVideoUrls: task.secondBasedFiles?.taskVideoUrls || [],
-        },
-      };
-      this.selectedFilesSubject.next(newFiles);
-
-      // Build the files queue for the selected task
-      this.buildFilesQueue('firstBasedFiles', this.currentFileType, newFiles);
-
-      // Start loading files after a short delay
-      setTimeout(() => {
-        this.loadNextFile();
-      }, 100);
-    }
+    // Start loading files after a short delay
+    setTimeout(() => {
+      this.loadNextFile();
+    }, 100);
   }
 
   isTaskSelected(task: Task): boolean {
@@ -927,6 +941,7 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       if (fileInfo.url) {
         console.log(`Clearing error for file: ${fileInfo.url}`);
         this.iframeErrors[fileInfo.url] = false;
+        this.loadingFiles[fileInfo.url] = true; // Set loading state to true for reload
       }
 
       // Force re-render of the iframe
@@ -946,5 +961,29 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     } else {
       console.error(`Invalid file index for reload: ${index}`);
     }
+  }
+
+  // Update other methods
+  private updateFilesOnLanguageChange(): void {
+    if (this.selectedLesson) {
+      this.filesQueue = []; // Clear files queue
+      this.currentLoadingIndex = 0;
+      this.filesLoaded = false;
+      this.loadingInProgress = false;
+      this.setLessonFiles('firstBasedFiles', this.currentFileType);
+    }
+  }
+
+  getSelectedTaskTitle(): string {
+    if (!this.selectedLesson?.tasks) return '';
+    
+    const selectedTask = this.selectedTaskId
+      ? this.selectedLesson.tasks.find(task => task.id === this.selectedTaskId)
+      : this.selectedLesson.tasks[0];
+      
+    if (!selectedTask) return '';
+    
+    const index = this.selectedLesson.tasks.indexOf(selectedTask);
+    return selectedTask.title || `Task ${index + 1}`;
   }
 }

@@ -37,16 +37,6 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
 
   lessonList: Array<LessonLangs> = [
     {
-      uz: 'CHIZMA GEOMETRIYA VA MUHANDISLIK GRAFIKASI',
-      ru: 'НАЧЕРТАТЕЛЬНАЯ ГЕОМЕТРИЯ И ИНЖЕНЕРНАЯ ГРАФИКА',
-      en: 'DESCRIPTIVE GEOMETRY AND ENGINEERING GRAPHICS',
-    },
-    {
-      uz: 'PERSPEKTIVA',
-      ru: 'ПЕРСПЕКТИВА',
-      en: 'PERSPECTIVE',
-    },
-    {
       uz: 'GEOMETRIK CHIZMACHILIK',
       ru: 'ГЕОМЕТРИЧЕСКОЕ ЧЕРЧЕНИЕ',
       en: 'GEOMETRICAL DRAWING',
@@ -55,6 +45,16 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
       uz: 'PROYEKSION CHIZMACHILIK',
       ru: 'ПРОЕКЦИОННОЕ ЧЕРЧЕНИЕ',
       en: 'PROJECTION DRAWING',
+    },
+    {
+      uz: 'CHIZMA GEOMETRIYA',
+      ru: 'ГЕОМЕТРИЧЕСКОЕ ЧЕРЧЕНИЕ',
+      en: 'GEOMETRICAL DRAWING',
+    },
+    {
+      uz: 'PERSPЕKTIVA',
+      ru: 'ПЕРСПЕКТИВА',
+      en: 'PERSPECTIVE',
     },
     {
       uz: 'MASHINASOZLIK CHIZMACHILIGI',
@@ -67,14 +67,14 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
       en: 'TECHNICAL DRAWING',
     },
     {
+      uz: 'ARXITEKTURA VA QURILISH CHIZMACHILIGI',
+      ru: 'АРХИТЕКТУРНО - СТРОИТЕЛЬНОЕ ЧЕРЧЕНИЕ',
+      en: 'ARCHITECTURE AND CONSTRUCTION DRAWING',
+    },
+    {
       uz: 'TOPOGRAFIK CHIZMACHILIK',
       ru: 'ТОПОГРАФИЧЕСКОЕ ЧЕРЧЕНИЕ',
       en: 'TOPOGRAPHICAL DRAWING',
-    },
-    {
-      uz: 'ARXITEKTURA VA QURILISH CHIZMACHILIGI',
-      ru: 'АРХИТЕКТУРНО- СТРОИТЕЛЬНОЕ ЧЕРЧЕНИЕ',
-      en: 'ARCHITECTURE AND CONSTRUCTION DRAWING',
     },
     {
       uz: 'KOMPYUTER GRAFIKASI',

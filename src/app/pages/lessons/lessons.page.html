@@ -74,6 +74,16 @@
                   class="file-preview"
                   *ngFor="let file of selectedFiles?.firstBasedFiles?.taskExampleFiles?.[lang]; let i = index"
                 >
+                  <!-- Loading indicator for files that are in the loading state -->
+                  <div *ngIf="shouldShowFile(i) && isFileLoading(file?.url)" class="file-loading-indicator">
+                    <div class="text-center py-5">
+                      <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                      <p class="mt-2">Loading document...</p>
+                    </div>
+                  </div>
+                  
                   <ngx-doc-viewer
                     *ngIf="shouldShowFile(i)"
                     [url]="getRawUrl(file?.url || '')"
@@ -108,6 +118,16 @@
                   class="file-preview"
                   *ngFor="let file of selectedFiles?.firstBasedFiles?.taskSolutionFiles?.[lang]; let i = index"
                 >
+                  <!-- Loading indicator for files that are in the loading state -->
+                  <div *ngIf="shouldShowFile(i) && isFileLoading(file?.url)" class="file-loading-indicator">
+                    <div class="text-center py-5">
+                      <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                      <p class="mt-2">Loading document...</p>
+                    </div>
+                  </div>
+                  
                   <ngx-doc-viewer
                     *ngIf="shouldShowFile(i)"
                     [url]="getRawUrl(file?.url || '')"
@@ -143,6 +163,16 @@
                   class="file-preview"
                   *ngFor="let file of selectedFiles?.secondBasedFiles?.taskPresentationFiles?.[lang]; let i = index"
                 >
+                  <!-- Loading indicator for files that are in the loading state -->
+                  <div *ngIf="shouldShowFile(i) && isFileLoading(file?.url)" class="file-loading-indicator">
+                    <div class="text-center py-5">
+                      <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                      <p class="mt-2">Loading document...</p>
+                    </div>
+                  </div>
+                  
                   <ngx-doc-viewer
                     *ngIf="shouldShowFile(i)"
                     [url]="getRawUrl(file?.url || '')"
@@ -177,6 +207,16 @@
                   class="file-preview"
                   *ngFor="let file of selectedFiles?.secondBasedFiles?.taskTitleFiles?.[lang]; let i = index"
                 >
+                  <!-- Loading indicator for files that are in the loading state -->
+                  <div *ngIf="shouldShowFile(i) && isFileLoading(file?.url)" class="file-loading-indicator">
+                    <div class="text-center py-5">
+                      <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                      <p class="mt-2">Loading document...</p>
+                    </div>
+                  </div>
+                  
                   <ngx-doc-viewer
                     *ngIf="shouldShowFile(i)"
                     [url]="getRawUrl(file?.url || '')"
@@ -213,6 +253,17 @@
                   *ngFor="let video of selectedFiles?.secondBasedFiles?.taskVideoUrls; let i = index"
                 >
                   <h4 class="video-title">{{ getVideoName(video) }}</h4>
+                  
+                  <!-- Loading indicator for videos that are in the loading state -->
+                  <div *ngIf="shouldShowFile(i) && isFileLoading(getVideoUrl(video))" class="file-loading-indicator">
+                    <div class="text-center py-5">
+                      <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                      </div>
+                      <p class="mt-2">Loading video...</p>
+                    </div>
+                  </div>
+                  
                   <!-- For YouTube videos, we'll still use an iframe as ngx-doc-viewer doesn't handle these well -->
                   <iframe
                     *ngIf="shouldShowFile(i) && isYoutubeUrl(getVideoUrl(video))"
@@ -275,7 +326,7 @@
                 />
               </div>
               <div class="file-selection-card-title">
-                <h5>Grafik topshiriqni tanlang....</h5>
+                <h5>{{ selectedTaskId ? getSelectedTaskTitle() : 'Grafik topshiriqni tanlang....' }}</h5>
               </div>
 
               <!-- Tasks Modal -->
@@ -428,8 +479,19 @@
               </div>
             </div>
           </div>
+          <div class="file-selection-card file-selection-card">
+            <div
+              class="file-selection-card-item d-flex justify-content-center align-items-center"
+              routerLink="/"
+            >
+              <div class="file-selection-card-title">
+                <h5>Bosh sahifaga qaytish</h5>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
+<app-footer></app-footer>

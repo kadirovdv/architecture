@@ -652,7 +652,17 @@ export class CreateBuildPage implements OnInit {
             console.log(`Replacing file at index ${index} with new upload`);
             fileArray[index] = fileInfo;
           } else {
-            // Otherwise add to the array
+            // First, remove the original entry with the File object to prevent duplication
+            const fileObjectIndex = fileArray.findIndex((f: any) => 
+              f.name === file.name && f.file instanceof File && f.size === file.size
+            );
+            
+            if (fileObjectIndex >= 0) {
+              console.log(`Removing original File object entry at index ${fileObjectIndex}`);
+              fileArray.splice(fileObjectIndex, 1);
+            }
+            
+            // Now add the uploaded file with URL
             console.log(`Adding new file to ${categoryPath}.${category}.${lang} array`);
             fileArray.push(fileInfo);
           }
