@@ -11,7 +11,7 @@ declare var Dropbox: any;
   providedIn: 'root',
 })
 export class DropboxService {
-  private readonly token: string = sessionStorage.getItem('accessToken') || '';
+  private readonly token: string = sessionStorage.getItem('accessToken') || environment.dropboxToken;
 
   constructor(
     private http: HttpClient,
@@ -19,19 +19,23 @@ export class DropboxService {
   ) {
     console.log('Dropbox token:', this.token);
     if (!this.token) {
-      console.error('No Dropbox token found in environment. Please add the token to your environment file.');
+      console.error('No Dropbox token found in environment or session storage. Please add the token to your environment file or login.');
     }
   }
 
   /**
-   * Get the authentication token from environment
+   * Get the authentication token from session storage or environment
    */
   private getAuthToken(): string {
-    if (!this.token) {
-      console.error('No Dropbox token available in environment');
+    // Always get the latest token from session storage first, then fall back to environment
+    const sessionToken = sessionStorage.getItem('accessToken');
+    const token = sessionToken || environment.dropboxToken;
+    
+    if (!token) {
+      console.error('No Dropbox token available in session storage or environment');
       this.toastr.error('Dropbox token not configured', 'Configuration Error');
     }
-    return this.token;
+    return token;
   }
 
   /**
@@ -39,7 +43,7 @@ export class DropboxService {
    * @returns Observable with the user account info if valid, error if invalid
    */
   validateToken(): Observable<any> {
-    const token = sessionStorage.getItem('accessToken');
+    const token = this.getAuthToken();
     if (!token) {
       return throwError(() => new Error('No token available'));
     }

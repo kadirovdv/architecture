@@ -13,8 +13,6 @@ import { ToastrService } from 'ngx-toastr';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-  private readonly token: string = environment.dropboxToken;
-
   constructor(private toastr: ToastrService) {}
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
@@ -23,14 +21,15 @@ export class AuthInterceptor implements HttpInterceptor {
       return next.handle(request);
     }
 
-    // Get the token from environment
-    const token = this.token;
+    // Get token from session storage first, then fall back to environment
+    const sessionToken = sessionStorage.getItem('accessToken');
+    const token = sessionToken || environment.dropboxToken;
     
     // Add the authorization header if we have a token
     if (token) {
       request = request.clone({
         setHeaders: {
-          Authorization: `Bearer ${sessionStorage.getItem('accessToken')}`
+          Authorization: `Bearer ${token}`
         }
       });
       console.log('Added Dropbox Bearer token to request:', request.url);

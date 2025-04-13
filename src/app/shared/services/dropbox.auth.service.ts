@@ -13,11 +13,11 @@ export class DropboxAuthService {
   constructor(private http: HttpClient, private router: Router) {}
 
   getAccessToken(): string | null {
-    return this.token;
+    return sessionStorage.getItem(this.storageKey) || environment.dropboxToken;
   }
 
   validateToken(): Observable<any> {
-    const token = sessionStorage.getItem('accessToken');
+    const token = this.getAccessToken();
     if (!token) {
       return throwError(() => new Error('No token available'));
     }
