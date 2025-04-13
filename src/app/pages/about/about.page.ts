@@ -5,7 +5,7 @@ import { ToggleNavVisibilityService } from 'src/app/shared/services/toggle.nav.v
 @Component({
   selector: 'app-about',
   templateUrl: './about.page.html',
-  styleUrls: ['./about.page.scss'],
+  styleUrls: ['./styles/about.page.scss', './styles/header.styles.scss'],
 })
 export class AboutPage {
   lang = '';

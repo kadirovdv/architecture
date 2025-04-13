@@ -539,3 +539,48 @@
     }
   }
 }
+
+/* Skeleton loader styles */
+.skeleton-card {
+  cursor: default !important;
+  
+  .skeleton-img {
+    height: 250px;
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  
+  .skeleton-text {
+    height: 24px;
+    background-color: transparent;
+    position: relative;
+    overflow: hidden;
+    margin-top: 10px;
+    
+    .skeleton-pulse {
+      height: 100%;
+      width: 70%;
+      margin: 0 auto;
+      border-radius: 4px;
+    }
+  }
+  
+  .skeleton-pulse {
+    display: block;
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}

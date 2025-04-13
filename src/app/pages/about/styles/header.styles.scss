@@ -1,0 +1,119 @@
+.main-section {
+  // Define variables at the root level
+  --header-padding-top: 60px;
+  --header-width: 563px;
+  --header-min-height: 470px;
+  --header-bg-size: 400px;
+  --header-title-size: 20px;
+  --header-list-margin: 80px;
+  --header-margin-top: calc(100vh - 580px);
+
+  .bg {
+    background: url(/assets/img/header-bg.png);
+    background-size: 100% 780px;
+    background-repeat: no-repeat;
+    position: relative;
+    display: flex;
+    min-height: 780px;
+    max-height: 780px;
+    height: 780px;
+    .container {
+      min-height: 780px;
+      max-height: 780px;
+      height: 780px;
+    }
+  }
+
+  .landing-header {
+    position: absolute;
+    padding-top: var(--header-padding-top);
+    display: flex;
+    flex-direction: column;
+    background: url(/assets/img/header-bg-2.png);
+    background-repeat: no-repeat;
+    background-size: var(--header-bg-size);
+    min-height: var(--header-min-height);
+    width: var(--header-width) !important;
+    padding-left: 40px;
+    top: calc(30% + 10px);
+
+    h1 {
+      font-family: "Merriweather Sans";
+      font-style: normal;
+      font-weight: 700;
+      font-size: var(--header-title-size);
+      color: #ffffff;
+      margin-bottom: 40px;
+      &.ru {
+        font-weight: 500;
+      }
+    }
+
+    ul {
+      margin-bottom: var(--header-list-margin);
+      padding-left: 15px;
+      li {
+        list-style: disc !important;
+        text-transform: uppercase;
+        font-family: "Marvel";
+        font-style: normal;
+        font-weight: 400;
+        font-size: 15px;
+        line-height: 27px;
+        color: #ffffff;
+      }
+    }
+
+    a {
+      font-family: "Inter";
+      font-style: normal;
+      font-weight: 500;
+      font-size: 14px;
+      color: #ffffff;
+      text-decoration: none;
+    }
+  }
+}
+
+
+@media screen and (min-width: 1440px) {
+  .bg {
+    background-size: 100% 900px !important;
+    min-height: 900px !important;
+    max-height: 900px !important;
+    height: 900px !important;
+    .container {
+      height: 900px !important;
+      min-height: 900px !important;
+      max-height: 900px !important;
+    }
+  }
+
+  .landing-header {
+    top: calc(35% + 15px) !important;
+  }
+}
+
+@media screen and (max-width: 1344px) {
+  .bg {
+    background-size: cover !important;
+  }
+}
+
+@media screen and (min-width: 1735px) {
+  .bg {
+    background-size: 100% 1000px !important;
+    min-height: 1000px !important;
+    max-height: 1000px !important;
+    height: 1000px !important;
+    .container {
+      height: 1000px !important;
+      min-height: 1000px !important;
+      max-height: 1000px !important;
+    }
+  }
+
+  .landing-header {
+    top: calc(40% + 15px) !important;
+  }
+}

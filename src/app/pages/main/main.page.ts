@@ -37,6 +37,8 @@ interface News {
 })
 export class MainPage {
   websiteLessons: any[] = [];
+  skeletonLessons: any[] = [];
+  isLoadingThumbnails = true;
   lang = '';
   private thumbnailsLoaded = new BehaviorSubject<number>(0);
   newsList: News[] = [];
@@ -63,7 +65,7 @@ export class MainPage {
 
   ngOnInit() {
     this.navService.updateNavState(false);
-    this.loaderService.show();
+    // this.loaderService.show();
     this.getData();
     this.loadNews();
 
@@ -82,7 +84,7 @@ export class MainPage {
           const dateB = new Date(b.createdAt).getTime();
           return dateA - dateB;
         });
-        this.loaderService.hide();
+        this.isLoadingThumbnails = false;
       }
     });
   }
@@ -106,16 +108,30 @@ export class MainPage {
           // Filter for active lessons only
           const lessons = allLessons.filter((lesson) => lesson.active);
 
+          // Hide loader regardless of whether we have lessons or not
+          this.loaderService.hide();
+
           if (lessons.length === 0) {
-            this.websiteLessons = lessons;
-            this.loaderService.hide();
+            this.websiteLessons = [];
+            this.skeletonLessons = [];
+            this.isLoadingThumbnails = false;
             return of(null);
           }
-
+          
+          // Create skeleton loaders immediately based on lesson count
+          this.skeletonLessons = Array(lessons.length).fill(null).map((_, i) => ({
+            id: `skeleton-${i}`,
+            lessonTitle: { uz: 'Loading...', ru: 'Loading...', en: 'Loading...' },
+            thumbnail: null
+          }));
+          
+          // Store the lessons without thumbnails
+          this.websiteLessons = [...lessons];
+          
           const thumbnailRequests = lessons.map((lesson, index) =>
             this.dropboxService.getThumbnail(lesson.thumbnail as string).pipe(
               tap((thumbnailRes) => {
-                lessons[index].thumbnail =
+                this.websiteLessons[index].thumbnail =
                   this.sanitizer.bypassSecurityTrustUrl(
                     URL.createObjectURL(thumbnailRes)
                   );
@@ -126,13 +142,14 @@ export class MainPage {
 
           return forkJoin(thumbnailRequests).pipe(
             tap(() => {
-              this.websiteLessons = [...lessons].sort(
+              this.websiteLessons = [...this.websiteLessons].sort(
                 (a: Lesson, b: Lesson) => {
                   const dateA = new Date(a.createdAt || '').getTime();
                   const dateB = new Date(b.createdAt || '').getTime();
                   return dateA - dateB;
                 }
               );
+              this.isLoadingThumbnails = false;
               this.loaderService.hide();
             })
           );
@@ -141,6 +158,7 @@ export class MainPage {
       .subscribe({
         error: (err) => {
           console.error('Error fetching lessons:', err);
+          this.isLoadingThumbnails = false;
           this.loaderService.hide();
         },
       });

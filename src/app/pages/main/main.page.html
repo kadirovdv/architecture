@@ -57,25 +57,47 @@
 
       <div
         class="row section-card-row"
-        *ngIf="websiteLessons?.length; else noData"
+        *ngIf="websiteLessons && websiteLessons.length > 0 && !isLoadingThumbnails; else skeletonLoader"
       >
         <div class="col-md-4" *ngFor="let item of websiteLessons">
           <div class="section-card" [routerLink]="['/pages/lessons', item.id]">
             <div class="section-content">
               <div class="section-img">
                 <img
-                  [src]="item?.thumbnail && item.thumbnail"
+                  [src]="item?.thumbnail"
                   class="w-100"
                   alt="img-1"
                 />
               </div>
             </div>
-            <div class="section-text">{{ item.lessonTitle[lang] }}</div>
+            <div class="section-text">{{ item.lessonTitle && item.lessonTitle[lang] || 'Lesson' }}</div>
           </div>
         </div>
       </div>
+      
+      <ng-template #skeletonLoader>
+        <div *ngIf="skeletonLessons && skeletonLessons.length > 0; else noData" class="row section-card-row">
+          <div class="col-md-4" *ngFor="let item of skeletonLessons">
+            <div class="section-card skeleton-card">
+              <div class="section-content">
+                <div class="section-img skeleton-img">
+                  <!-- Skeleton loader placeholder -->
+                  <div class="skeleton-pulse"></div>
+                </div>
+              </div>
+              <div class="section-text skeleton-text">
+                <div class="skeleton-pulse"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-template>
+      
       <ng-template #noData>
-        <!-- <h2 class="mt-2 mb-4">{{ "no-data" | translate }}</h2> -->
+        <div class="no-data-container text-center my-5">
+          <h2>{{ "no-data" | translate }}</h2>
+          <p>{{ "no-active-lessons" | translate }}</p>
+        </div>
       </ng-template>
     </div>
   </section>
