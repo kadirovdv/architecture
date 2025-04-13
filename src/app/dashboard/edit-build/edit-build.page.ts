@@ -37,6 +37,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { VideoUploadComponent } from './video-upload/video-upload.component';
 import { LoaderService } from 'src/app/shared/services/loader.service';
 import { LoadingService } from 'src/app/shared/services/loading.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-edit-build',
@@ -74,12 +75,21 @@ export class EditBuildPage implements OnInit {
     private dropboxService: DropboxService,
     private modalService: NgbModal,
     private location: Location,
-    private loaderService: LoadingService
+    private loaderService: LoadingService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
     this.getLessons();
     this.getWebsiteLessons();
+    
+    // Get the lesson ID from the query parameters
+    this.route.queryParams.subscribe(params => {
+      const lessonId = params['id'];
+      if (lessonId) {
+        this.setLessonFromId(lessonId);
+      }
+    });
   }
 
   getLessons() {
@@ -1602,7 +1612,24 @@ export class EditBuildPage implements OnInit {
       this.existingLesson = null;
       this.toastr.info("Yangi fan yaratilmoqda. Topshiriq tanlang.");
     }
-    this.task = null;
+    
+    // Automatically select the first task if available
+    if (combinedTasks.length > 0) {
+      // Get the first task from combined tasks
+      const firstTask = combinedTasks[0];
+      console.log('Automatically selecting first task:', firstTask);
+      
+      // Set the task and call onTaskSelect
+      this.task = firstTask;
+      this.onTaskSelect(firstTask);
+      
+      // Only show a message if this wasn't triggered by setLessonFromId
+      if (!this.route.snapshot.queryParams['id']) {
+        this.toastr.success('Birinchi topshiriq avtomatik tarzda tanlandi');
+      }
+    } else {
+      this.task = null;
+    }
   }
 
   onTaskSelect(selectedTask: Task): void {
@@ -1873,5 +1900,63 @@ export class EditBuildPage implements OnInit {
   
   isTaskDuplicate(task: Task): boolean {
     return !!(task && (task as any).isDuplicate);
+  }
+
+  /**
+   * Find lesson by ID from website-lessons collection and set it as selected
+   */
+  private setLessonFromId(id: string): void {
+    this.loaderService.show();
+    
+    this.crudService.getDocuments('website-lessons')
+      .pipe(
+        take(1),
+        map(lessons => {
+          const foundLesson = (lessons as Lesson[]).find(lesson => lesson.id === id);
+          if (foundLesson) {
+            console.log('Found lesson by ID:', foundLesson);
+            return foundLesson;
+          }
+          throw new Error('Lesson not found');
+        })
+      )
+      .subscribe({
+        next: (lesson) => {
+          // Once website lessons are loaded, we can select this lesson
+          this.existingLesson = lesson;
+          
+          // Wait for the regular lessons to load as well
+          const checkLessonsInterval = setInterval(() => {
+            if (this.lessons.length > 0) {
+              clearInterval(checkLessonsInterval);
+              
+              // Find the corresponding lesson in the regular lessons
+              const regularLesson = this.lessons.find(l => 
+                l.id === lesson.id || 
+                (l.lessonTitle?.uz && lesson.lessonTitle?.uz && l.lessonTitle.uz === lesson.lessonTitle.uz)
+              );
+              
+              if (regularLesson) {
+                // Select the lesson from regular lessons which will trigger onLessonSelect
+                this.lesson = regularLesson;
+                this.onLessonSelect(regularLesson);
+                this.toastr.success('Fan va birinchi topshiriq avtomatik tarzda tanlandi');
+              } else {
+                // If not found in regular lessons, use the website lesson directly
+                this.lesson = lesson;
+                this.onLessonSelect(lesson);
+                this.toastr.success('Fan va birinchi topshiriq avtomatik tarzda tanlandi');
+              }
+            }
+          }, 500);
+          
+          this.loaderService.hide();
+        },
+        error: (err) => {
+          console.error('Error finding lesson by ID:', err);
+          this.loaderService.hide();
+          this.toastr.error('Darsni ID bo\'yicha topib bo\'lmadi');
+        }
+      });
   }
 }
