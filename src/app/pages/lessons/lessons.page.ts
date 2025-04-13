@@ -89,6 +89,8 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   selectedTaskId: string | null = null;
   isLiteratureDropdownVisible = false;
 
+  visibleFiles: Array<{url: string, visible: boolean}> = [];
+
   constructor(
     private navService: ToggleNavVisibilityService,
     private crudService: CrudService,
@@ -475,6 +477,7 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     this.isLoadingFile = true;
     this.currentFileTypeSubject.next(fileType);
     this.sanitizedUrls.clear(); // Clear cache when changing files
+    this.visibleFiles = []; // Reset visible files
 
     const newFiles = {
       firstBasedFiles: {
@@ -513,46 +516,50 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
     this.selectedFilesSubject.next(newFiles);
     
-    // Calculate the delay based on the number of files in each language
-    let maxFilesCount = 0;
+    // Prepare files to be shown sequentially
+    let filesToShow: Array<{url: string}> = [];
     
     if (category === 'firstBasedFiles' && fileType in newFiles.firstBasedFiles) {
       const filesObj = newFiles.firstBasedFiles[fileType as keyof FirstClassFileGroups] as any;
-      if (filesObj && typeof filesObj === 'object' && 'uz' in filesObj && 'ru' in filesObj && 'en' in filesObj) {
-        maxFilesCount = Math.max(
-          Array.isArray(filesObj.uz) ? filesObj.uz.length : 0,
-          Array.isArray(filesObj.ru) ? filesObj.ru.length : 0,
-          Array.isArray(filesObj.en) ? filesObj.en.length : 0
-        );
+      if (filesObj && typeof filesObj === 'object' && this.lang in filesObj && Array.isArray(filesObj[this.lang])) {
+        filesToShow = [...filesObj[this.lang]];
       }
-    } else if (category === 'secondBasedFiles' && fileType in newFiles.secondBasedFiles) {
+    } else if (category === 'secondBasedFiles') {
       if (fileType === 'taskVideoUrls') {
         const videos = newFiles.secondBasedFiles.taskVideoUrls;
-        maxFilesCount = Array.isArray(videos) ? videos.length : 0;
-      } else {
+        if (Array.isArray(videos)) {
+          filesToShow = videos.map(video => ({ url: this.getVideoUrl(video) }));
+        }
+      } else if (fileType in newFiles.secondBasedFiles) {
         const filesObj = newFiles.secondBasedFiles[fileType as keyof SecondClassFileGroups] as any;
-        if (filesObj && typeof filesObj === 'object' && 'uz' in filesObj && 'ru' in filesObj && 'en' in filesObj) {
-          maxFilesCount = Math.max(
-            Array.isArray(filesObj.uz) ? filesObj.uz.length : 0,
-            Array.isArray(filesObj.ru) ? filesObj.ru.length : 0,
-            Array.isArray(filesObj.en) ? filesObj.en.length : 0
-          );
+        if (filesObj && typeof filesObj === 'object' && this.lang in filesObj && Array.isArray(filesObj[this.lang])) {
+          filesToShow = [...filesObj[this.lang]];
         }
       }
     }
     
-    // Apply a 100ms delay for each file
-    const delayTime = maxFilesCount > 1 ? maxFilesCount * 100 : 0;
+    // Initialize visibility state for all files (initially all hidden)
+    this.visibleFiles = filesToShow.map(file => ({
+      url: file.url || '',
+      visible: false
+    }));
     
-    console.log(`Setting delay of ${delayTime}ms for ${maxFilesCount} files`);
-    
+    // Show loading state briefly
     setTimeout(() => {
       this.isLoadingFile = false;
-    }, delayTime);
+      
+      // Show files sequentially with delay
+      this.visibleFiles.forEach((file, index) => {
+        setTimeout(() => {
+          this.visibleFiles[index].visible = true;
+        }, index * 300); // 300ms delay between each file
+      });
+    }, 100); // Short initial delay
   }
 
   private updateFilesOnLanguageChange(): void {
     if (this.selectedLesson) {
+      this.visibleFiles = []; // Clear visible files
       this.setLessonFiles('firstBasedFiles', this.currentFileType);
     }
   }
@@ -588,6 +595,7 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
     this.selectedTaskId = task.id;
     this.isTaskModalVisible = false;
+    this.visibleFiles = []; // Reset visible files
 
     if (this.selectedLesson?.tasks) {
       const newFiles = {
@@ -620,6 +628,43 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
         },
       };
       this.selectedFilesSubject.next(newFiles);
+      
+      // Prepare visible files initially
+      const fileType = this.currentFileType;
+      let filesToShow: Array<{url: string}> = [];
+      
+      // Get files for the current selected file type
+      if (fileType in newFiles.firstBasedFiles) {
+        const filesObj = newFiles.firstBasedFiles[fileType as keyof FirstClassFileGroups] as any;
+        if (filesObj && typeof filesObj === 'object' && this.lang in filesObj && Array.isArray(filesObj[this.lang])) {
+          filesToShow = [...filesObj[this.lang]];
+        }
+      } else if (fileType === 'taskVideoUrls') {
+        const videos = newFiles.secondBasedFiles.taskVideoUrls;
+        if (Array.isArray(videos)) {
+          filesToShow = videos.map(video => ({ url: this.getVideoUrl(video) }));
+        }
+      } else if (fileType in newFiles.secondBasedFiles) {
+        const filesObj = newFiles.secondBasedFiles[fileType as keyof SecondClassFileGroups] as any;
+        if (filesObj && typeof filesObj === 'object' && this.lang in filesObj && Array.isArray(filesObj[this.lang])) {
+          filesToShow = [...filesObj[this.lang]];
+        }
+      }
+      
+      // Initialize visibility state for all files (initially all hidden)
+      this.visibleFiles = filesToShow.map(file => ({
+        url: file.url || '',
+        visible: false
+      }));
+      
+      // Show files sequentially with delay
+      setTimeout(() => {
+        this.visibleFiles.forEach((file, index) => {
+          setTimeout(() => {
+            this.visibleFiles[index].visible = true;
+          }, index * 300); // 300ms delay between each file
+        });
+      }, 100);
     }
   }
 
