@@ -4,18 +4,18 @@
       <div class="landing-header">
         <div class="landing-header-title">
           <h1 class="text-white" *ngIf="lang === 'uz'">
-            GRAFIK <br />
-            TOPSHIRIQLAR <br />
-            ELEKTRON PLATFORMASI
+            <span class="d-inline d-md-block">GRAFIK</span>
+            <span class="d-inline d-md-block">TOPSHIRIQLAR</span>
+            <span class="d-inline d-md-block">ELEKTRON PLATFORMASI</span>
           </h1>
           <h1 class="text-white ru" *ngIf="lang === 'ru'">
-            Электронная <br />
-            платформа <br />
-            графических заданий
+            <span class="d-inline d-md-block">Электронная</span>
+            <span class="d-inline d-md-block">платформа</span>
+            <span class="d-inline d-md-block">графических заданий</span>
           </h1>
           <h1 class="text-white" *ngIf="lang === 'en'">
-            Electronic platform for <br />
-            graphic tasks
+            <span class="d-inline d-md-block">Electronic platform for</span>
+            <span class="d-inline d-md-block">graphic tasks</span>
           </h1>
         </div>
         <ul>
@@ -36,18 +36,24 @@
   <section class="main-body">
     <div class="container">
       <div class="news-card-wrapper">
-        <div class="news-card" (click)="toggleNewsCardDropdown()">
+        <div class="news-card" (click)="toggleNewsCardDropdown()" tabindex="0" role="button" [attr.aria-expanded]="isNewsDropdownVisible" aria-controls="news-dropdown">
           <div class="news-card-body">
-            MUHANDISLIK GRAFIKASI OLAMIDA YANGILIKLAR
+            <span>MUHANDISLIK GRAFIKASI OLAMIDA YANGILIKLAR</span>
+            <span class="dropdown-icon" [ngClass]="{'rotate': isNewsDropdownVisible}">&#9660;</span>
           </div>
         </div>
-        <div class="news-card-dropdown" [class.visible]="isNewsDropdownVisible">
+        <div id="news-dropdown" class="news-card-dropdown" [class.visible]="isNewsDropdownVisible">
           <div class="news-card-dropdown-body">
             <div class="news-card-dropdown-body-item" *ngFor="let news of newsList">
               <div class="news-card-dropdown-body-item-title">
-                <a [href]="getNewsLink(news)" target="_blank">
+                <a [href]="getNewsLink(news)" target="_blank" [attr.aria-label]="getNewsTitle(news)">
                   {{ getNewsTitle(news) }}
                 </a>
+              </div>
+            </div>
+            <div *ngIf="newsList.length === 0" class="news-card-dropdown-body-item">
+              <div class="news-card-dropdown-body-item-title text-center">
+                {{ "no-news" | translate }}
               </div>
             </div>
           </div>
@@ -55,8 +61,9 @@
       </div>
       <h1 class="lessons-title">{{ "list-of-lessons" | translate }}</h1>
 
+      <!-- Desktop view using standard rows and columns -->
       <div
-        class="row section-card-row"
+        class="row section-card-row d-none d-lg-flex"
         *ngIf="websiteLessons && websiteLessons.length > 0 && !isLoadingThumbnails; else skeletonLoader"
       >
         <div class="col-md-4" *ngFor="let item of websiteLessons">
@@ -75,18 +82,101 @@
         </div>
       </div>
       
+      <!-- Mobile & Tablet view using Lessons carousel -->
+      <div class="d-lg-none" *ngIf="websiteLessons && websiteLessons.length > 0 && !isLoadingThumbnails; else skeletonLoader">
+        <div class="carousel" #lessonsCarousel>
+          <button
+            class="carousel-btn prev"
+            (click)="prevLessonSlide()"
+            [attr.aria-label]="'Previous slide'"
+          >
+            <img src="./assets/svg/slide-left.svg" alt="Previous slide" />
+          </button>
+
+          <div class="carousel-wrapper">
+            <div class="carousel-slide" [class.active]="true">
+              <div class="container">
+                <div class="slides-container">
+                  <div
+                    class="slides-wrapper d-flex"
+                    [style.transform]="'translateX(' + lessonTranslate + 'px)'"
+                    role="list"
+                    aria-label="Lesson slides"
+                  >
+                    <div
+                      *ngFor="let item of websiteLessons; let i = index"
+                      class="media-item"
+                      [class.active]="isLessonActive(i)"
+                      (click)="selectLessonSlide(i)"
+                      role="listitem"
+                      [attr.aria-label]="item.lessonTitle && item.lessonTitle[lang] || 'Lesson'"
+                      [attr.aria-current]="isLessonActive(i) ? 'true' : 'false'"
+                      [routerLink]="['/pages/lessons', item.id]"
+                    >
+                      <div class="lesson-image">
+                        <img
+                          [src]="item?.thumbnail"
+                          [alt]="item.lessonTitle && item.lessonTitle[lang] || 'Lesson'"
+                          class="lesson-thumbnail"
+                          loading="lazy"
+                        />
+                      </div>
+                      <div class="lesson-title">{{ item.lessonTitle && item.lessonTitle[lang] || 'Lesson' }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button
+            class="carousel-btn next"
+            (click)="nextLessonSlide()"
+            [attr.aria-label]="'Next slide'"
+          >
+            <img src="./assets/svg/slide-right.svg" alt="Next slide" />
+          </button>
+        </div>
+      </div>
+      
       <ng-template #skeletonLoader>
-        <div *ngIf="skeletonLessons && skeletonLessons.length > 0; else noData" class="row section-card-row">
-          <div class="col-md-4" *ngFor="let item of skeletonLessons">
-            <div class="section-card skeleton-card">
-              <div class="section-content">
-                <div class="section-img skeleton-img">
-                  <!-- Skeleton loader placeholder -->
+        <div *ngIf="skeletonLessons && skeletonLessons.length > 0; else noData">
+          <!-- Desktop skeleton -->
+          <div class="row section-card-row d-none d-lg-flex">
+            <div class="col-md-4" *ngFor="let item of skeletonLessons">
+              <div class="section-card skeleton-card">
+                <div class="section-content">
+                  <div class="section-img skeleton-img">
+                    <!-- Skeleton loader placeholder -->
+                    <div class="skeleton-pulse"></div>
+                  </div>
+                </div>
+                <div class="section-text skeleton-text">
                   <div class="skeleton-pulse"></div>
                 </div>
               </div>
-              <div class="section-text skeleton-text">
-                <div class="skeleton-pulse"></div>
+            </div>
+          </div>
+          
+          <!-- Mobile & Tablet skeleton -->
+          <div class="d-lg-none">
+            <div class="carousel">
+              <div class="carousel-wrapper">
+                <div class="carousel-slide active">
+                  <div class="container">
+                    <div class="slides-container">
+                      <div class="slides-wrapper d-flex">
+                        <div class="media-item" *ngFor="let item of skeletonLessons.slice(0,5)">
+                          <div class="lesson-image skeleton-img">
+                            <div class="skeleton-pulse"></div>
+                          </div>
+                          <div class="lesson-title skeleton-text">
+                            <div class="skeleton-pulse"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

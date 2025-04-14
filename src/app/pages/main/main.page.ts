@@ -43,12 +43,21 @@ export class MainPage {
   private thumbnailsLoaded = new BehaviorSubject<number>(0);
   newsList: News[] = [];
 
+  // Main carousel
   currentSlide = 0;
   loading = false;
   private startX = 0;
   private endX = 0;
 
+  // Lessons carousel
+  currentLessonIndex = 0;
+  lessonTranslate = 0;
+  slideWidth = 200;
+  activeSlideWidth = 220;
+  slideGap = 30;
+
   @ViewChild('carousel') carousel!: ElementRef;
+  @ViewChild('lessonsCarousel') lessonsCarousel!: ElementRef;
   @ViewChild('semesterRef') semesterRef!: ElementRef;
 
   constructor(
@@ -90,6 +99,7 @@ export class MainPage {
   }
 
   ngAfterViewInit(): void {
+    // Carousel swiper config
     const swiperConfig = {
       pagination: {
         el: '.swiper-pagination',
@@ -97,6 +107,21 @@ export class MainPage {
       },
     };
     this.swiperService.initializeSwiper('.mySwiper', swiperConfig);
+    
+    // Initialize lessons carousel position
+    setTimeout(() => {
+      this.updateLessonSlidePosition();
+    }, 100);
+    
+    // Add resize observer to update slide position on window resize
+    const resizeObserver = new ResizeObserver(() => {
+      this.updateLessonSlidePosition();
+    });
+    
+    const container = this.lessonsCarousel?.nativeElement?.querySelector('.slides-container');
+    if (container) {
+      resizeObserver.observe(container);
+    }
   }
 
   getData() {
@@ -299,5 +324,59 @@ export class MainPage {
 
   toggleNewsCardDropdown() {
     this.isNewsDropdownVisible = !this.isNewsDropdownVisible;
+  }
+
+  // Lessons carousel methods
+  nextLessonSlide(): void {
+    const maxIndex = this.websiteLessons.length - 1;
+    if (this.currentLessonIndex >= maxIndex) return;
+    this.selectLessonSlide(this.currentLessonIndex + 1);
+  }
+
+  prevLessonSlide(): void {
+    if (this.currentLessonIndex <= 0) return;
+    this.selectLessonSlide(this.currentLessonIndex - 1);
+  }
+
+  selectLessonSlide(index: number): void {
+    this.currentLessonIndex = index;
+    this.updateLessonSlidePosition();
+  }
+
+  isLessonActive(index: number): boolean {
+    return index === this.currentLessonIndex;
+  }
+
+  private updateLessonSlidePosition(): void {
+    const container = this.lessonsCarousel?.nativeElement?.querySelector('.slides-container');
+    if (!container) return;
+
+    const containerWidth = container.clientWidth;
+    const slideWidth = this.slideWidth;
+    const activeSlideWidth = this.activeSlideWidth;
+    const gap = this.slideGap;
+    
+    // Calculate the total width before the current slide
+    let translateX = 0;
+    for (let i = 0; i < this.currentLessonIndex; i++) {
+      translateX += slideWidth + gap;
+    }
+    
+    // Center the active slide
+    const activeSlideOffset = (activeSlideWidth - slideWidth) / 2;
+    translateX += activeSlideOffset;
+    
+    // Center in container
+    const centeringOffset = (containerWidth - activeSlideWidth) / 2;
+    translateX = -translateX + centeringOffset;
+    
+    // Ensure we don't go too far to the left or right
+    const totalWidth = (this.websiteLessons.length - 1) * (slideWidth + gap) + activeSlideWidth;
+    const minTranslate = containerWidth - totalWidth;
+    const maxTranslate = 0;
+    
+    translateX = Math.max(minTranslate, Math.min(maxTranslate, translateX));
+    
+    this.lessonTranslate = translateX;
   }
 }

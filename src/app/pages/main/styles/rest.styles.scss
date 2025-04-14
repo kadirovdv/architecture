@@ -14,23 +14,29 @@
     &-wrapper {
       position: relative;
       margin-bottom: 30px;
+      width: 100%;
+      display: flex;
+      justify-content: flex-start;
     }
     &-dropdown {
       position: absolute;
       top: 100%;
       left: 0;
-      right: 0;
       background-color: white;
       border-radius: 0 0 15px 15px;
       box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.1);
       z-index: 100;
       max-height: 0;
       overflow: hidden;
-      transition: max-height 0.3s ease-in-out;
+      transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
       width: 600px;
+      margin: 0;
+      opacity: 0;
+      
       &.visible {
         max-height: 300px;
         overflow-y: auto;
+        opacity: 1;
       }
       
       &-body {
@@ -48,6 +54,8 @@
             color: #2c3e50;
             cursor: pointer;
             text-decoration: none;
+            display: block;
+            font-size: 16px;
             
             &:hover {
               color: #3498db;
@@ -61,19 +69,43 @@
     border-radius: 10px;
     padding: 15px;
     margin-bottom: 40px;
+    margin-left: 15px;
     width: 600px;
+    max-width: 100%;
     cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &:hover, &:focus {
+      transform: translateY(-2px);
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
     .news-card-body {
       background: #ffffff;
       box-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
       border-radius: 10px;
-      padding: 7px 0px;
+      padding: 12px 15px;
       font-family: "Ramaraja";
       font-style: normal;
       font-weight: 400;
       font-size: 15px;
       text-align: center;
       color: #642e20;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      
+      .dropdown-icon {
+        position: absolute;
+        right: 15px;
+        font-size: 12px;
+        transition: transform 0.3s ease;
+        
+        &.rotate {
+          transform: rotate(180deg);
+        }
+      }
     }
   }
 
@@ -144,6 +176,91 @@
     h1 {
       text-align: center;
       margin-top: 3.5rem !important;
+    }
+  }
+}
+
+/* Responsive styles for news card */
+@media screen and (max-width: 991.98px) {
+  .main-body {
+    .news-card {
+      width: 90%;
+      margin-left: 0;
+      
+      &-wrapper {
+        justify-content: center;
+      }
+      
+      &-dropdown {
+        width: 90%;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+      }
+      
+      &-body {
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 767.98px) {
+  .main-body {
+    margin-top: -240px;
+    padding-top: 140px;
+    
+    .news-card {
+      width: 95%;
+      padding: 12px;
+      
+      &-dropdown {
+        width: 95%;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        
+        &-body-item-title a {
+          font-size: 15px;
+        }
+      }
+      
+      &-body {
+        padding: 10px 12px;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 575.98px) {
+  .main-body {
+    margin-top: -200px;
+    padding-top: 100px;
+    
+    .news-card {
+      width: 100%;
+      padding: 10px;
+      
+      &-dropdown {
+        width: 100%;
+        
+        &-body {
+          padding: 12px;
+          
+          &-item {
+            padding: 8px 0;
+            
+            &-title a {
+              font-size: 14px;
+            }
+          }
+        }
+      }
+      
+      &-body {
+        padding: 8px 10px;
+        font-size: 13px;
+      }
     }
   }
 }

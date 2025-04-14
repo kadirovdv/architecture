@@ -4,7 +4,7 @@
   --header-width: 563px;
   --header-min-height: 470px;
   --header-bg-size: 400px;
-  --header-title-size: 20px;
+  --header-title-size: 22px;
   --header-list-margin: 80px;
   --header-margin-top: calc(100vh - 580px);
 
@@ -21,6 +21,7 @@
       min-height: 780px;
       max-height: 780px;
       height: 780px;
+      position: relative;
     }
   }
 
@@ -37,13 +38,23 @@
     padding-left: 40px;
     top: calc(30% + 10px);
 
+    &-title {
+      margin-bottom: 20px;
+      
+      span {
+        display: inline-block;
+        padding-right: 5px;
+      }
+    }
+
     h1 {
       font-family: "Merriweather Sans";
       font-style: normal;
       font-weight: 700;
       font-size: var(--header-title-size);
       color: #ffffff;
-      margin-bottom: 40px;
+      margin-bottom: 30px;
+      line-height: 1.4;
       &.ru {
         font-weight: 500;
       }
@@ -115,5 +126,159 @@
 
   .landing-header {
     top: calc(40% + 15px) !important;
+  }
+}
+
+/* Responsive styles for medium screens */
+@media screen and (max-width: 991px) {
+  .main-section {
+    --header-width: 500px;
+    --header-bg-size: 350px;
+    --header-min-height: 420px;
+    --header-list-margin: 60px;
+    
+    .bg {
+      min-height: 650px;
+      max-height: 650px;
+      height: 650px;
+      
+      .container {
+        min-height: 650px;
+        max-height: 650px;
+        height: 650px;
+      }
+    }
+    
+    .landing-header {
+      top: calc(25% + 10px);
+      padding-left: 30px;
+      padding-top: 50px;
+      
+      h1 {
+        font-size: 18px;
+        margin-bottom: 30px;
+      }
+      
+      ul li {
+        font-size: 14px;
+        line-height: 24px;
+      }
+    }
+  }
+}
+
+/* Responsive styles for small screens */
+@media screen and (max-width: 767px) {
+  .main-section {
+    --header-width: 90%;
+    --header-bg-size: 300px;
+    --header-min-height: 400px;
+    --header-list-margin: 40px;
+    
+    .bg {
+      min-height: 580px;
+      max-height: 580px;
+      height: 580px;
+      
+      .container {
+        min-height: 580px;
+        max-height: 580px;
+        height: 580px;
+      }
+    }
+    
+    .landing-header {
+      top: calc(20% + 10px);
+      padding-left: 25px;
+      padding-top: 40px;
+      margin: 0 auto;
+      left: 0;
+      right: 0;
+      
+      h1 {
+        font-size: 18px;
+        margin-bottom: 25px;
+      }
+      
+      ul {
+        margin-bottom: 40px;
+        
+        li {
+          font-size: 13px;
+          line-height: 22px;
+        }
+      }
+    }
+  }
+}
+
+/* Responsive styles for extra small screens */
+@media screen and (max-width: 575px) {
+  .main-section {
+    --header-width: 95%;
+    --header-bg-size: 100% 100%;
+    --header-min-height: 380px;
+    --header-list-margin: 30px;
+    
+    .bg {
+      min-height: 520px;
+      max-height: 520px;
+      height: 520px;
+      
+      .container {
+        min-height: 520px;
+        max-height: 520px;
+        height: 520px;
+      }
+    }
+    
+    .landing-header {
+      top: calc(15% + 10px);
+      padding-left: 20px;
+      padding-top: 35px;
+      background-position: center;
+      
+      &-title {
+        h1 {
+          font-size: 17px;
+          margin-bottom: 20px;
+          line-height: 1.5;
+          
+          span {
+            margin-bottom: 4px;
+          }
+        }
+      }
+      
+      ul {
+        margin-bottom: 30px;
+        
+        li {
+          font-size: 12px;
+          line-height: 20px;
+        }
+      }
+    }
+  }
+}
+
+/* Responsive styles for very small screens */
+@media screen and (max-width: 375px) {
+  .main-section {
+    .landing-header {
+      padding-left: 15px;
+      padding-right: 10px;
+      
+      &-title {
+        h1 {
+          font-size: 15px;
+          margin-bottom: 15px;
+        }
+      }
+      
+      ul li {
+        line-height: 18px;
+      }
+    }
   }
 }

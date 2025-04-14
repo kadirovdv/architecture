@@ -190,6 +190,157 @@
   }
 }
 
+/* Styles for the lessons carousel (from lessons page) */
+.d-lg-none {
+  .carousel {
+    position: relative;
+    width: 100%;
+    height: auto;
+    margin: auto;
+    padding: 20px;
+    min-height: 300px;
+    
+    &::after {
+      content: "";
+      display: block;
+      width: 100%;
+      min-height: 40%;
+      background-color: #ffdfae;
+      position: absolute;
+      bottom: 70px;
+      left: 0px;
+      border-radius: 5px;
+    }
+    
+    .carousel-wrapper {
+      width: 100%;
+      height: auto;
+      min-height: 300px;
+      display: block;
+    }
+    
+    .carousel-slide {
+      min-width: 100%;
+      padding: 40px 0;
+      width: 100%;
+      opacity: 1;
+      transform: translateX(0);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-evenly;
+      height: auto;
+    }
+    
+    .carousel-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 30px;
+      height: 30px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      z-index: 3;
+      background-color: #fff;
+      border-radius: 50%;
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      
+      &.prev {
+        left: 10px;
+      }
+      
+      &.next {
+        right: 10px;
+      }
+      
+      img {
+        width: 15px;
+        height: 15px;
+        object-fit: contain;
+      }
+    }
+    
+    .slides-container {
+      position: relative;
+      padding: 0 30px;
+      display: flex;
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-x: hidden;
+      align-items: flex-end;
+      height: auto;
+      min-height: 100%;
+      position: relative;
+    }
+    
+    .slides-wrapper {
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      will-change: transform;
+      align-items: end;
+      height: auto;
+    }
+    
+    .media-item {
+      width: 200px;
+      flex-shrink: 0;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      margin-right: 30px;
+      padding-bottom: 20px;
+      height: auto;
+      opacity: 0.7;
+      
+      .lesson-image {
+        width: 200px;
+        height: 120px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0px 16px 32px -8px rgba(12, 12, 13, 0.4);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      
+      .lesson-thumbnail {
+        width: 200px;
+        height: 120px;
+        object-fit: cover;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      
+      &.active {
+        width: 220px;
+        z-index: 2;
+        opacity: 1;
+        
+        .lesson-image {
+          width: 220px;
+          height: 140px;
+          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .lesson-thumbnail {
+          width: 220px;
+          height: 140px;
+          object-fit: cover;
+        }
+      }
+      
+      .lesson-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: #333;
+        margin-top: 6px;
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        text-align: center;
+        color: #642e20;
+        text-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
+        font-family: "Judson";
+      }
+    }
+  }
+}
+
 @media screen and (max-width: 991px) {
   .carousel {
     height: 800px;
@@ -223,6 +374,37 @@
   .about-platform-people-item {
     img {
       width: 250px;
+    }
+  }
+  
+  /* Responsive adjustments for lessons carousel */
+  .d-lg-none .carousel {
+    .media-item {
+      width: 180px;
+      
+      .lesson-image {
+        width: 180px;
+        height: 110px;
+      }
+      
+      .lesson-thumbnail {
+        width: 180px;
+        height: 110px;
+      }
+      
+      &.active {
+        width: 200px;
+        
+        .lesson-image {
+          width: 200px;
+          height: 130px;
+        }
+        
+        .lesson-thumbnail {
+          width: 200px;
+          height: 130px;
+        }
+      }
     }
   }
 }
@@ -297,6 +479,42 @@
   .about-platform-people-item:nth-child(2) {
     flex-direction: column-reverse;
   }
+  
+  /* Responsive adjustments for lessons carousel */
+  .d-lg-none .carousel {
+    .media-item {
+      width: 160px;
+      margin-right: 20px;
+      
+      .lesson-image {
+        width: 160px;
+        height: 100px;
+      }
+      
+      .lesson-thumbnail {
+        width: 160px;
+        height: 100px;
+      }
+      
+      &.active {
+        width: 180px;
+        
+        .lesson-image {
+          width: 180px;
+          height: 120px;
+        }
+        
+        .lesson-thumbnail {
+          width: 180px;
+          height: 120px;
+        }
+      }
+      
+      .lesson-title {
+        font-size: 13px;
+      }
+    }
+  }
 }
 
 @media screen and (max-width: 575px) {
@@ -346,6 +564,42 @@
     
     p {
       font-size: 14px;
+    }
+  }
+  
+  /* Responsive adjustments for lessons carousel */
+  .d-lg-none .carousel {
+    .media-item {
+      width: 140px;
+      margin-right: 15px;
+      
+      .lesson-image {
+        width: 140px;
+        height: 90px;
+      }
+      
+      .lesson-thumbnail {
+        width: 140px;
+        height: 90px;
+      }
+      
+      &.active {
+        width: 160px;
+        
+        .lesson-image {
+          width: 160px;
+          height: 110px;
+        }
+        
+        .lesson-thumbnail {
+          width: 160px;
+          height: 110px;
+        }
+      }
+      
+      .lesson-title {
+        font-size: 12px;
+      }
     }
   }
 }
