@@ -5,10 +5,16 @@
   background: url(/assets/img/main-body.png);
   background-repeat: no-repeat;
   background-size: 100%;
+  min-height: 800px;
 }
 .main-body {
   margin-top: -290px;
   padding-top: 190px;
+  min-height: 600px;
+
+  .container {
+    min-height: 200px;
+  }
 
   .news-card {
     &-wrapper {
@@ -17,6 +23,7 @@
       width: 100%;
       display: flex;
       justify-content: flex-start;
+      min-height: 110px;
     }
     &-dropdown {
       position: absolute;
@@ -74,6 +81,8 @@
     max-width: 100%;
     cursor: pointer;
     transition: all 0.3s ease;
+    position: relative;
+    z-index: 10;
     
     &:hover, &:focus {
       transform: translateY(-2px);
@@ -206,13 +215,23 @@
 }
 
 @media screen and (max-width: 767.98px) {
+  .img-wrapper {
+    background-size: 150%;
+    min-height: 700px;
+  }
+  
   .main-body {
     margin-top: -240px;
     padding-top: 140px;
+    min-height: 500px;
     
     .news-card {
       width: 95%;
       padding: 12px;
+      
+      &-wrapper {
+        min-height: 90px;
+      }
       
       &-dropdown {
         width: 95%;
@@ -233,16 +252,36 @@
 }
 
 @media screen and (max-width: 575.98px) {
+  .img-wrapper {
+    background-size: 200%;
+    min-height: 600px;
+  }
+  
   .main-body {
     margin-top: -200px;
     padding-top: 100px;
+    min-height: 450px;
+    
+    .container {
+      padding-left: 5px;
+      padding-right: 5px;
+    }
     
     .news-card {
       width: 100%;
       padding: 10px;
+      margin-left: 0;
+      max-width: calc(100% - 10px);
+      
+      &-wrapper {
+        width: 100%;
+        margin: 0 10px 30px 10px;
+        justify-content: center;
+      }
       
       &-dropdown {
         width: 100%;
+        max-width: calc(100% - 20px);
         
         &-body {
           padding: 12px;
@@ -260,6 +299,53 @@
       &-body {
         padding: 8px 10px;
         font-size: 13px;
+      }
+    }
+  }
+}
+
+/* Very small screens */
+@media screen and (max-width: 400px) {
+  .img-wrapper {
+    min-height: 550px;
+  }
+  
+  .main-body {
+    margin-top: -180px;
+    padding-top: 90px;
+    min-height: 400px;
+    
+    .news-card {
+      padding: 8px;
+      
+      &-wrapper {
+        min-height: 80px;
+      }
+      
+      &-body {
+        padding: 8px;
+        font-size: 12px;
+        word-wrap: break-word;
+        
+        /* Ensure dropdown icon is visible */
+        .dropdown-icon {
+          right: 8px;
+          font-size: 10px;
+        }
+      }
+      
+      &-dropdown {
+        &-body {
+          padding: 10px;
+          
+          &-item {
+            padding: 6px 0;
+            
+            &-title a {
+              font-size: 13px;
+            }
+          }
+        }
       }
     }
   }
@@ -699,5 +785,18 @@
   }
   100% {
     background-position: -200% 0;
+  }
+}
+
+/* Responsive background for mobile */
+@media screen and (max-width: 767.98px) {
+  .img-wrapper {
+    background-size: 150%;
+  }
+}
+
+@media screen and (max-width: 575.98px) {
+  .img-wrapper {
+    background-size: 200%;
   }
 }
