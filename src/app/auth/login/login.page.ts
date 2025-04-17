@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
+import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from 'src/app/shared/services/firebase.auth.service';
 
 @Component({
@@ -14,12 +15,14 @@ export class LoginPage implements OnInit {
   user: any = {};
   email: string = '';
   password: string = '';
+  public lang: string = 'en';
   constructor(
     public authService: AuthService,
     private afAuth: AngularFireAuth,
     private router: Router,
     private toastr: ToastrService,
-    private location: Location
+    private location: Location,
+    private translate: TranslateService
   ) {
     document.addEventListener('keyup', (event) => {
       if (event.key === 'Enter' && this.email.includes('@') && this.password) {
@@ -34,6 +37,9 @@ export class LoginPage implements OnInit {
       if (user) {
         this.location.historyGo(-1);
       }
+    });
+    this.translate.onLangChange.subscribe((lang) => {
+      this.lang = lang.lang;
     });
   }
 

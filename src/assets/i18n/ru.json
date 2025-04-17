@@ -62,5 +62,10 @@
   },
   "about-platform-enterence": "Вход",
   "about-platform-authors": "Авторы",
-  "about-platform-literature-list": "Список литературы"
+  "about-platform-literature-list": "Список литературы",
+  "back": "ВЕРНУТЬСЯ",
+  "email": "Эл. почта",
+  "password": "Пароль",
+  "login": "Вход",
+  "register": "Регистрация"
 }

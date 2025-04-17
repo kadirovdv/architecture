@@ -4,7 +4,9 @@
   <div class="card" style="max-width: 380px; width: 300px">
     <div class="card-body">
       <div class="mb-3">
-        <label for="exampleInputEmail1" class="form-label">Email manzil</label>
+        <label for="exampleInputEmail1" class="form-label" [class.ru]="lang === 'ru'">{{
+          "email" | translate
+        }}</label>
         <input
           type="email"
           class="form-control"
@@ -14,7 +16,9 @@
         />
       </div>
       <div class="mb-3">
-        <label for="exampleInputPassword1" class="form-label">Parol</label>
+        <label for="exampleInputPassword1" class="form-label" [class.ru]="lang === 'ru'">{{
+          "password" | translate
+        }}</label>
         <input
           type="password"
           class="form-control"
@@ -22,11 +26,11 @@
           [(ngModel)]="password"
         />
       </div>
-      <button type="submit" class="btn btn-primary w-100 mb-3" (click)="login()">
-        Kirish
+      <button type="submit" class="btn btn-primary w-100 mb-3" [class.ru]="lang === 'ru'" (click)="login()">
+        {{ "login" | translate }}
       </button>
-      <button class="btn btn-secondary w-100">
-        Ro'yxatdan o'tish
+      <button class="btn btn-secondary w-100" [class.ru]="lang === 'ru'">
+        {{ "register" | translate }}
       </button>
     </div>
   </div>

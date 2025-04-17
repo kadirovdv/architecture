@@ -62,5 +62,10 @@
   },
   "about-platform-enterence": "Entrance",
   "about-platform-authors": "Authors",
-  "about-platform-literature-list": "Literature list"
+  "about-platform-literature-list": "Literature list",
+  "back": "GO BACK",
+  "email": "Email",
+  "password": "Password",
+  "login": "Login",
+  "register": "Register"
 }

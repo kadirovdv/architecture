@@ -36,7 +36,7 @@
     width: var(--header-width) !important;
     padding-left: 40px;
     top: calc(30% + 10px);
-
+    overflow: hidden;
     h1 {
       font-family: "Merriweather Sans";
       font-style: normal;
@@ -74,7 +74,6 @@
     }
   }
 }
-
 
 @media screen and (min-width: 1440px) {
   .bg {

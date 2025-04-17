@@ -62,5 +62,10 @@
   },
   "about-platform-enterence": "Kirish",
   "about-platform-authors": "Mualliflar",
-  "about-platform-literature-list": "Adabiyotlar ro'yxati"
+  "about-platform-literature-list": "Adabiyotlar ro'yxati",
+  "back": "ORQAGA QAYTISH",
+  "email": "Email",
+  "password": "Parol",
+  "login": "Kirish",
+  "register": "Ro'yhatdan o'tish"
 }

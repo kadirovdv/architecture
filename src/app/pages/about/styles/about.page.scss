@@ -18,17 +18,34 @@
   }
 }
 .content {
-  margin-top: 150px;
   position: relative;
+  &-title {
+    font-family: "Inter";
+    font-style: normal;
+    font-weight: 700;
+    font-size: 33px;
+    line-height: 40px;
+    color: #642e20;
+    text-transform: uppercase;
+    margin-top: -80px;
+    margin-left: 20%;
+  }
+  &-wrapper {
+    padding: 30px;
+    background: rgba(255, 223, 174, 0.69);
+    box-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
+    border-radius: 35px;
+    position: relative;
+  }
 }
+
 .content-card {
   position: relative;
   background: #ffffff;
   box-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
   border-radius: 35px;
-  max-width: calc(1000px - 200px);
-  margin: 0 auto;
   padding: 120px 30px 30px 30px;
+  margin: 0 auto;
   p {
     font-family: "Adamina";
     font-style: normal;
@@ -51,6 +68,26 @@
   }
 }
 
+.back-btn {
+  background: #ffffff !important;
+  box-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
+  border-radius: 23px;
+  outline: none;
+  border: none;
+  font-family: "Ramaraja";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 30px;
+  text-align: center;
+  color: #642e20;
+  padding: 10px 100px;
+  margin-top: 30px;
+  margin: 0 auto;
+  display: block;
+  margin-top: 50px;
+}
+
 /* Extra large screens (1600px and up) */
 @media screen and (min-width: 1600px) {
   :host {
@@ -59,24 +96,23 @@
       max-width: 250px;
     }
   }
-  
+
   .content {
-    margin-top: 180px;
+    margin-top: 130px;
   }
-  
+
   .content-card {
-    max-width: calc(1400px - 200px);
     padding: 180px 100px 100px 100px;
     border-radius: 45px;
-    
+
     p {
       font-size: 22px;
       line-height: 38px;
     }
-    
+
     .content-card-header {
       top: -100px;
-      
+
       img {
         width: 230px;
       }
@@ -92,24 +128,23 @@
       max-width: 220px;
     }
   }
-  
+
   .content {
-    margin-top: 160px;
+    margin-top: 130px;
   }
-  
+
   .content-card {
-    max-width: calc(1200px - 200px);
     padding: 160px 80px 80px 80px;
     border-radius: 40px;
-    
+
     p {
       font-size: 20px;
       line-height: 36px;
     }
-    
+
     .content-card-header {
       top: -95px;
-      
+
       img {
         width: 210px;
       }
@@ -125,17 +160,16 @@
       max-width: 190px;
     }
   }
-  
+
   .content-card {
-    max-width: 900px;
     padding: 140px 60px 60px 60px;
     border-radius: 35px;
-    
+
     p {
       font-size: 19px;
       line-height: 32px;
     }
-    
+
     .content-card-header {
       img {
         width: 180px;
@@ -153,24 +187,23 @@
       top: -100px;
     }
   }
-  
+
   .content {
-    margin-top: 120px;
+    margin-top: 100px;
   }
-  
+
   .content-card {
-    max-width: 700px;
     padding: 120px 50px 50px 50px;
     border-radius: 30px;
-    
+
     p {
       font-size: 18px;
       line-height: 30px;
     }
-    
+
     .content-card-header {
       top: -80px;
-      
+
       img {
         width: 165px;
       }
@@ -187,21 +220,20 @@
       top: -80px;
     }
   }
-  
+
   .content {
-    margin-top: 100px;
+    margin-top: 70px;
   }
-  
+
   .content-card {
-    max-width: 500px;
     padding: 100px 35px 35px 35px;
     border-radius: 25px;
-    
+
     p {
       font-size: 17px;
       line-height: 28px;
     }
-    
+
     .content-card-header {
       top: -70px;
       img {
@@ -220,15 +252,15 @@
       top: -60px;
     }
   }
-  
+
   .content {
-    margin-top: 80px;
+    margin-top: 70px;
   }
-  
+
   .content-card {
     padding: 90px 20px 20px 20px;
     border-radius: 20px;
-    
+
     p {
       font-size: 16px;
       line-height: 26px !important;
@@ -239,7 +271,7 @@
   .content-card-header {
     width: 100% !important;
     top: -60px;
-    
+
     img {
       margin: 0 auto;
       display: block;
@@ -257,15 +289,15 @@
       top: -50px;
     }
   }
-  
+
   .content {
-    margin-top: 70px;
+    margin-top: 30px;
   }
-  
+
   .content-card {
     padding: 80px 15px 15px 15px;
     border-radius: 15px;
-    
+
     p {
       font-size: 15px;
       line-height: 24px !important;
@@ -274,7 +306,7 @@
 
   .content-card-header {
     top: -55px;
-    
+
     img {
       width: 110px;
     }
