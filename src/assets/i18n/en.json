@@ -19,10 +19,10 @@
   "authors": "AUTHORS OF THE PLATFORM",
   "doktorant": "DOCTORAL STUDENT",
   "doktorant-desc": "Doctoral student of the basic doctoral program at Sharof Rashidov Samarkand State University.",
-  "doktorant-name": "KHasanova Markhabo Nosirovna",
+  "doktorant-name": "Khasanova Markhabo Nosirovna",
   "director": "SCIENTIFIC SUPERVISOR",
   "director-desc": "Professor of the \"Digital Technologies\" Department at Tashkent Architectural and Construction University, academic supervisor.",
-  "director-name": "aidaliev Saidkarim Saidnabievich,",
+  "director-name": "Saidaliyev  Saidkarim  Saidnabiyevich",
   "footer-header": "Electronic platform for graphic tasks",
   "about-lesson": "About lesson",
   "about-lesson-offer-text-1": "THEORETICAL MATERIALS",
@@ -37,7 +37,7 @@
   "no-active-lessons": "No active lessons found",
   "choose-theme": "CHOOSE THEME",
   "choose-semester": "CHOOSE SEMESTER",
-  
+  "news-title": "NEWS IN SPHERE OF ENGINEERING GRAPHICS",
   "dropbox": {
     "connect": "Connect to Dropbox",
     "subtitle": "Link your Dropbox account to access your files",
@@ -59,5 +59,8 @@
     "auth-success": "Successfully authenticated with Dropbox",
     "auth-failed": "Authentication failed",
     "use-oauth": "Please use the \"Continue with Dropbox\" option to authenticate"
-  }
+  },
+  "about-platform-enterence": "Entrance",
+  "about-platform-authors": "Authors",
+  "about-platform-literature-list": "Literature list"
 }

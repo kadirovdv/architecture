@@ -39,7 +39,7 @@ export class MainPage {
   websiteLessons: any[] = [];
   skeletonLessons: any[] = [];
   isLoadingThumbnails = true;
-  lang = '';
+  public lang = '';
   private thumbnailsLoaded = new BehaviorSubject<number>(0);
   newsList: News[] = [];
 
@@ -255,7 +255,10 @@ export class MainPage {
         'news-card-dropdown-body-item'
       ) ||
       (event.target as HTMLElement).classList.contains(
-        'news-card-dropdown-body-item-title'
+        'news-card-title'
+      ) ||
+      (event.target as HTMLElement).classList.contains(
+        'dropdown-icon'
       )
     ) {
       this.isNewsDropdownVisible = true;

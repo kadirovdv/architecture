@@ -17,6 +17,12 @@
   }
 
   .news-card {
+    &-title {
+      letter-spacing: 0.05em;
+      font-weight: 700;
+      font-family: "Ramaraja";
+      font-size: 17px;
+    }
     &-wrapper {
       position: relative;
       margin-bottom: 30px;
@@ -441,7 +447,6 @@
         max-width: 100%;
         height: auto;
         border-radius: 5px;
-        box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
         transition: transform 0.3s ease;
         
         &:hover {
