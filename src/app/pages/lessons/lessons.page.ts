@@ -85,6 +85,10 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   currentFileType$ = this.currentFileTypeSubject.asObservable();
   currentFileType = this.currentFileTypeSubject.value;
 
+  // Add property to track selected file index
+  currentSelectedFileIndex: number = 0;
+  showFileDropdown: boolean = false;
+
   private sanitizedUrls = new Map<string, SafeResourceUrl>();
 
   isTaskModalVisible = false;
@@ -487,6 +491,8 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
     this.isLoadingFile = true;
     this.currentFileTypeSubject.next(fileType);
+    this.currentSelectedFileIndex = 0; // Reset the selected file index
+    this.showFileDropdown = false; // Hide dropdown when changing file type
     this.sanitizedUrls.clear(); // Clear cache when changing files
     this.filesQueue = []; // Reset files queue
     this.currentLoadingIndex = 0;
@@ -899,6 +905,7 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     const insideLiteratureDropdown = clickedElement.closest(
       '.literature-dropdown'
     );
+    const fileDropdown = clickedElement.closest('.file-selector-dropdown');
     const isButton =
       clickedElement.closest('button') ||
       clickedElement.tagName === 'BUTTON' ||
@@ -909,6 +916,17 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       this.isTaskModalVisible = false;
       this.isLiteratureDropdownVisible = false;
     }
+
+    if (!fileDropdown && this.showFileDropdown) {
+      this.showFileDropdown = false;
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  handleEscapeKey(): void {
+    this.showFileDropdown = false;
+    this.isTaskModalVisible = false;
+    this.isLiteratureDropdownVisible = false;
   }
 
   formatFileSize(sizeInBytes: number): string {
@@ -1038,6 +1056,11 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   getCurrentFileUrl(): string | undefined {
     try {
       if (this.currentFileType === 'taskVideoUrls') {
+        const videos = this.selectedFiles.secondBasedFiles.taskVideoUrls;
+        if (videos && videos.length > this.currentSelectedFileIndex) {
+          const video = videos[this.currentSelectedFileIndex];
+          return this.getVideoUrl(video);
+        }
         return undefined;
       }
 
@@ -1047,8 +1070,8 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       ) {
         const files =
           this.selectedFiles.firstBasedFiles[this.currentFileType]?.[this.lang];
-        if (files && files.length > 0) {
-          return files[0].path || files[0].url;
+        if (files && files.length > this.currentSelectedFileIndex) {
+          return files[this.currentSelectedFileIndex].path || files[this.currentSelectedFileIndex].url;
         }
       }
       else if (
@@ -1060,8 +1083,8 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
           this.selectedFiles.secondBasedFiles[this.currentFileType]?.[
             this.lang
           ];
-        if (files && files.length > 0) {
-          return files[0].path || files[0].url;
+        if (files && files.length > this.currentSelectedFileIndex) {
+          return files[this.currentSelectedFileIndex].path || files[this.currentSelectedFileIndex].url;
         }
       }
 
@@ -1070,5 +1093,104 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       console.error('Error getting current file URL:', error);
       return undefined;
     }
+  }
+
+  // Add this method to toggle the file dropdown
+  toggleFileDropdown(event: Event): void {
+    event.stopPropagation();
+    this.showFileDropdown = !this.showFileDropdown;
+  }
+
+  // Add this method to select a specific file from the dropdown
+  selectFile(event: Event, index: number): void {
+    event.stopPropagation();
+    this.currentSelectedFileIndex = index;
+    this.showFileDropdown = false;
+  }
+
+  // Add this method to check if there are multiple files for the current type
+  hasMultipleFiles(): boolean {
+    if (this.currentFileType === 'taskExampleFiles' || this.currentFileType === 'taskSolutionFiles') {
+      const files = this.selectedFiles.firstBasedFiles[this.currentFileType]?.[this.lang];
+      return !!files && files.length > 1;
+    } else if (
+      this.currentFileType === 'taskTitleFiles' || 
+      this.currentFileType === 'taskPresentationFiles' || 
+      this.currentFileType === 'taskLiteratureFiles'
+    ) {
+      const files = this.selectedFiles.secondBasedFiles[this.currentFileType]?.[this.lang];
+      return !!files && files.length > 1;
+    } else if (this.currentFileType === 'taskVideoUrls') {
+      const videos = this.selectedFiles.secondBasedFiles.taskVideoUrls;
+      return !!videos && videos.length > 1;
+    }
+    return false;
+  }
+
+  // Add this method to get the current file name
+  getCurrentFileName(): string {
+    try {
+      if (this.currentFileType === 'taskVideoUrls') {
+        const videos = this.selectedFiles.secondBasedFiles.taskVideoUrls;
+        if (videos && videos.length > this.currentSelectedFileIndex) {
+          return this.getVideoName(videos[this.currentSelectedFileIndex]);
+        }
+        return '';
+      }
+
+      if (this.currentFileType === 'taskExampleFiles' || this.currentFileType === 'taskSolutionFiles') {
+        const files = this.selectedFiles.firstBasedFiles[this.currentFileType]?.[this.lang];
+        if (files && files.length > this.currentSelectedFileIndex) {
+          return files[this.currentSelectedFileIndex].name || `File ${this.currentSelectedFileIndex + 1}`;
+        }
+      } else if (
+        this.currentFileType === 'taskTitleFiles' ||
+        this.currentFileType === 'taskPresentationFiles' ||
+        this.currentFileType === 'taskLiteratureFiles'
+      ) {
+        const files = this.selectedFiles.secondBasedFiles[this.currentFileType]?.[this.lang];
+        if (files && files.length > this.currentSelectedFileIndex) {
+          return files[this.currentSelectedFileIndex].name || `File ${this.currentSelectedFileIndex + 1}`;
+        }
+      }
+      return '';
+    } catch (error) {
+      console.error('Error getting current file name:', error);
+      return '';
+    }
+  }
+
+  // Add this method to get the number of files
+  getFileCount(): number {
+    if (this.currentFileType === 'taskExampleFiles' || this.currentFileType === 'taskSolutionFiles') {
+      const files = this.selectedFiles.firstBasedFiles[this.currentFileType]?.[this.lang];
+      return files ? files.length : 0;
+    } else if (
+      this.currentFileType === 'taskTitleFiles' ||
+      this.currentFileType === 'taskPresentationFiles' ||
+      this.currentFileType === 'taskLiteratureFiles'
+    ) {
+      const files = this.selectedFiles.secondBasedFiles[this.currentFileType]?.[this.lang];
+      return files ? files.length : 0;
+    } else if (this.currentFileType === 'taskVideoUrls') {
+      return this.selectedFiles.secondBasedFiles.taskVideoUrls?.length || 0;
+    }
+    return 0;
+  }
+
+  // Add this method to get all files for the current type
+  getAllFilesForCurrentType(): any[] {
+    if (this.currentFileType === 'taskExampleFiles' || this.currentFileType === 'taskSolutionFiles') {
+      return this.selectedFiles.firstBasedFiles[this.currentFileType]?.[this.lang] || [];
+    } else if (
+      this.currentFileType === 'taskTitleFiles' ||
+      this.currentFileType === 'taskPresentationFiles' ||
+      this.currentFileType === 'taskLiteratureFiles'
+    ) {
+      return this.selectedFiles.secondBasedFiles[this.currentFileType]?.[this.lang] || [];
+    } else if (this.currentFileType === 'taskVideoUrls') {
+      return this.selectedFiles.secondBasedFiles.taskVideoUrls || [];
+    }
+    return [];
   }
 }

@@ -63,6 +63,31 @@
       <div class="col-md-8">
         <div class="file-content">
           <h3>{{ getSelectedFilesTitle() }}</h3>
+          
+          <!-- File selection dropdown for multiple files -->
+          <div *ngIf="hasMultipleFiles()" class="file-selector-dropdown mb-3 position-relative">
+            <div class="current-file d-flex align-items-center justify-content-between p-2 border rounded" 
+                 (click)="toggleFileDropdown($event)">
+              <span>{{ getCurrentFileName() || 'Select file' }}</span>
+              <span class="badge bg-primary rounded-pill ms-2">{{ currentSelectedFileIndex + 1 }}/{{ getFileCount() }}</span>
+              <i class="fas" [class.fa-chevron-down]="!showFileDropdown" [class.fa-chevron-up]="showFileDropdown"></i>
+            </div>
+            
+            <div *ngIf="showFileDropdown" class="file-dropdown-menu position-absolute w-100 border rounded mt-1 bg-white shadow-sm">
+              <div *ngFor="let file of getAllFilesForCurrentType(); let i = index" 
+                   class="dropdown-item p-2" 
+                   [class.active]="i === currentSelectedFileIndex"
+                   (click)="selectFile($event, i)">
+                <ng-container *ngIf="currentFileType === 'taskVideoUrls'; else regularFile">
+                  {{ getVideoName(file) }}
+                </ng-container>
+                <ng-template #regularFile>
+                  {{ file.name || 'File ' + (i + 1) }}
+                </ng-template>
+              </div>
+            </div>
+          </div>
+          
           <div class="file-content-body">
             <div *ngIf="isLoadingFile" class="skeleton-loader"></div>
             <!-- First Based Files -->
@@ -73,6 +98,7 @@
                 <div
                   class="file-preview"
                   *ngFor="let file of selectedFiles?.firstBasedFiles?.taskExampleFiles?.[lang]; let i = index"
+                  [hidden]="hasMultipleFiles() && i !== currentSelectedFileIndex"
                 >
                   <!-- Loading indicator for files that are in the loading state -->
                   <div
@@ -126,6 +152,7 @@
                 <div
                   class="file-preview"
                   *ngFor="let file of selectedFiles?.firstBasedFiles?.taskSolutionFiles?.[lang]; let i = index"
+                  [hidden]="hasMultipleFiles() && i !== currentSelectedFileIndex"
                 >
                   <!-- Loading indicator for files that are in the loading state -->
                   <div
@@ -180,6 +207,7 @@
                 <div
                   class="file-preview"
                   *ngFor="let file of selectedFiles?.secondBasedFiles?.taskPresentationFiles?.[lang]; let i = index"
+                  [hidden]="hasMultipleFiles() && i !== currentSelectedFileIndex"
                 >
                   <!-- Loading indicator for files that are in the loading state -->
                   <div
@@ -233,6 +261,7 @@
                 <div
                   class="file-preview"
                   *ngFor="let file of selectedFiles?.secondBasedFiles?.taskTitleFiles?.[lang]; let i = index"
+                  [hidden]="hasMultipleFiles() && i !== currentSelectedFileIndex"
                 >
                   <!-- Loading indicator for files that are in the loading state -->
                   <div
@@ -287,6 +316,7 @@
                 <div
                   class="video-preview"
                   *ngFor="let video of selectedFiles?.secondBasedFiles?.taskVideoUrls; let i = index"
+                  [hidden]="hasMultipleFiles() && i !== currentSelectedFileIndex"
                 >
                   <h4 class="video-title">{{ getVideoName(video) }}</h4>
 
