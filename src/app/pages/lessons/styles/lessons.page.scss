@@ -215,7 +215,7 @@
   align-items: center;
   justify-content: center;
   min-height: 200px;
-  
+
   .spinner {
     width: 40px;
     height: 40px;
@@ -224,7 +224,7 @@
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
-  
+
   p {
     margin-top: 1rem;
     color: #666;
@@ -240,7 +240,7 @@
   border-radius: 8px;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: -100%;
@@ -256,7 +256,7 @@
   }
 
   &::after {
-    content: 'Loading...';
+    content: "Loading...";
     position: absolute;
     top: 50%;
     left: 50%;
@@ -277,8 +277,12 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .empty-state {
@@ -303,13 +307,13 @@
   justify-content: center;
   align-items: center;
   margin-bottom: 20px;
-  
+
   .spinner-border {
     width: 3rem;
     height: 3rem;
     color: #007bff;
   }
-  
+
   p {
     font-size: 1.1rem;
     color: #555;
@@ -323,7 +327,7 @@
   color: #d9534f;
   margin-bottom: 20px;
   border-radius: 4px;
-  
+
   a {
     color: #0056b3;
     text-decoration: underline;
@@ -441,6 +445,32 @@
   }
 }
 
+.download-button-wrapper {
+  background: rgba(255, 223, 174, 0.69);
+  border-radius: 10px;
+  padding: 15px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  border: none;
+  outline: none;
+  cursor: pointer !important;
+  .download-button {
+    background: #ffffff;
+    box-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-family: "Ramaraja";
+    font-style: normal;
+    font-weight: 400;
+    font-size: 18px;
+    text-align: center;
+    color: #642e20;
+  }
+}
+
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -483,12 +513,12 @@
   margin-left: 8px;
   cursor: pointer;
   transition: all 0.2s;
-  
+
   i {
     margin-right: 3px;
     color: #0275d8;
   }
-  
+
   &:hover {
     background-color: #e6f2ff;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -506,12 +536,12 @@
   margin-left: 8px;
   cursor: pointer;
   transition: all 0.2s;
-  
+
   i {
     margin-right: 3px;
     color: #5cb85c;
   }
-  
+
   &:hover {
     background-color: #efefef;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);

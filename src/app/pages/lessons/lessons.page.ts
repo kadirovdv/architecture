@@ -517,24 +517,50 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     if (selectedTask) {
       // Only set the files for the specific category and file type requested
       if (category === 'firstBasedFiles') {
-        if (fileType === 'taskExampleFiles' && selectedTask.firstBasedFiles?.taskExampleFiles) {
-          newFiles.firstBasedFiles.taskExampleFiles = selectedTask.firstBasedFiles.taskExampleFiles;
-        } else if (fileType === 'taskSolutionFiles' && selectedTask.firstBasedFiles?.taskSolutionFiles) {
-          newFiles.firstBasedFiles.taskSolutionFiles = selectedTask.firstBasedFiles.taskSolutionFiles;
+        if (
+          fileType === 'taskExampleFiles' &&
+          selectedTask.firstBasedFiles?.taskExampleFiles
+        ) {
+          newFiles.firstBasedFiles.taskExampleFiles =
+            selectedTask.firstBasedFiles.taskExampleFiles;
+        } else if (
+          fileType === 'taskSolutionFiles' &&
+          selectedTask.firstBasedFiles?.taskSolutionFiles
+        ) {
+          newFiles.firstBasedFiles.taskSolutionFiles =
+            selectedTask.firstBasedFiles.taskSolutionFiles;
         }
       } else if (category === 'secondBasedFiles') {
-        if (fileType === 'taskTitleFiles' && selectedTask.secondBasedFiles?.taskTitleFiles) {
-          newFiles.secondBasedFiles.taskTitleFiles = selectedTask.secondBasedFiles.taskTitleFiles;
-        } else if (fileType === 'taskPresentationFiles' && selectedTask.secondBasedFiles?.taskPresentationFiles) {
-          newFiles.secondBasedFiles.taskPresentationFiles = selectedTask.secondBasedFiles.taskPresentationFiles;
-        } else if (fileType === 'taskLiteratureFiles' && selectedTask.secondBasedFiles?.taskLiteratureFiles) {
-          newFiles.secondBasedFiles.taskLiteratureFiles = selectedTask.secondBasedFiles.taskLiteratureFiles;
-        } else if (fileType === 'taskVideoUrls' && selectedTask.secondBasedFiles?.taskVideoUrls) {
-          newFiles.secondBasedFiles.taskVideoUrls = selectedTask.secondBasedFiles.taskVideoUrls;
+        if (
+          fileType === 'taskTitleFiles' &&
+          selectedTask.secondBasedFiles?.taskTitleFiles
+        ) {
+          newFiles.secondBasedFiles.taskTitleFiles =
+            selectedTask.secondBasedFiles.taskTitleFiles;
+        } else if (
+          fileType === 'taskPresentationFiles' &&
+          selectedTask.secondBasedFiles?.taskPresentationFiles
+        ) {
+          newFiles.secondBasedFiles.taskPresentationFiles =
+            selectedTask.secondBasedFiles.taskPresentationFiles;
+        } else if (
+          fileType === 'taskLiteratureFiles' &&
+          selectedTask.secondBasedFiles?.taskLiteratureFiles
+        ) {
+          newFiles.secondBasedFiles.taskLiteratureFiles =
+            selectedTask.secondBasedFiles.taskLiteratureFiles;
+        } else if (
+          fileType === 'taskVideoUrls' &&
+          selectedTask.secondBasedFiles?.taskVideoUrls
+        ) {
+          newFiles.secondBasedFiles.taskVideoUrls =
+            selectedTask.secondBasedFiles.taskVideoUrls;
         }
       }
 
-      console.log(`Setting files for ${category}.${fileType} from task ${selectedTask.id}`);
+      console.log(
+        `Setting files for ${category}.${fileType} from task ${selectedTask.id}`
+      );
     }
 
     this.selectedFilesSubject.next(newFiles);
@@ -557,11 +583,14 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   ): void {
     // Clear existing queue first
     this.filesQueue = [];
-    
+
     console.log(`Building files queue for ${category}.${fileType}`);
-    
+
     if (category === 'firstBasedFiles') {
-      if (fileType === 'taskExampleFiles' && newFiles.firstBasedFiles.taskExampleFiles) {
+      if (
+        fileType === 'taskExampleFiles' &&
+        newFiles.firstBasedFiles.taskExampleFiles
+      ) {
         const filesObj = newFiles.firstBasedFiles.taskExampleFiles;
         if (this.lang in filesObj && Array.isArray(filesObj[this.lang])) {
           filesObj[this.lang].forEach((file: any, index: number) => {
@@ -574,7 +603,10 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
             }
           });
         }
-      } else if (fileType === 'taskSolutionFiles' && newFiles.firstBasedFiles.taskSolutionFiles) {
+      } else if (
+        fileType === 'taskSolutionFiles' &&
+        newFiles.firstBasedFiles.taskSolutionFiles
+      ) {
         const filesObj = newFiles.firstBasedFiles.taskSolutionFiles;
         if (this.lang in filesObj && Array.isArray(filesObj[this.lang])) {
           filesObj[this.lang].forEach((file: any, index: number) => {
@@ -589,7 +621,10 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
         }
       }
     } else if (category === 'secondBasedFiles') {
-      if (fileType === 'taskVideoUrls' && Array.isArray(newFiles.secondBasedFiles.taskVideoUrls)) {
+      if (
+        fileType === 'taskVideoUrls' &&
+        Array.isArray(newFiles.secondBasedFiles.taskVideoUrls)
+      ) {
         const videos = newFiles.secondBasedFiles.taskVideoUrls;
         videos.forEach((video: any, index: number) => {
           const url = this.getVideoUrl(video);
@@ -603,8 +638,14 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
         });
       } else {
         // Handle all other secondBasedFiles types (taskTitleFiles, taskPresentationFiles, taskLiteratureFiles)
-        const filesObj = newFiles.secondBasedFiles[fileType as keyof SecondClassFileGroups] as any;
-        if (filesObj && this.lang in filesObj && Array.isArray(filesObj[this.lang])) {
+        const filesObj = newFiles.secondBasedFiles[
+          fileType as keyof SecondClassFileGroups
+        ] as any;
+        if (
+          filesObj &&
+          this.lang in filesObj &&
+          Array.isArray(filesObj[this.lang])
+        ) {
           filesObj[this.lang].forEach((file: any, index: number) => {
             if (file && file.url) {
               this.filesQueue.push({
@@ -648,7 +689,7 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
         this.filesQueue.length
       }: ${fileInfo.url}`
     );
-    
+
     // Set the loading state for this file to true
     if (fileInfo.url) {
       this.loadingFiles[fileInfo.url] = true;
@@ -672,7 +713,7 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   shouldShowFile(index: number): boolean {
     return index < this.currentLoadingIndex;
   }
-  
+
   // Check if a file is currently loading
   isFileLoading(url: string | undefined): boolean {
     return url ? this.loadingFiles[url] === true : false;
@@ -757,19 +798,23 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
     this.selectedTaskId = task.id;
     this.isTaskModalVisible = false;
-    
+
     // Reset loading states and clear queues
     this.filesQueue = [];
     this.currentLoadingIndex = 0;
     this.filesLoaded = false;
     this.loadingInProgress = false;
-    
+
     // Set the file type to taskExampleFiles by default
     this.currentFileTypeSubject.next('taskExampleFiles');
-    
+
     // Only load the taskExampleFiles for this task
-    const exampleFiles = task.firstBasedFiles?.taskExampleFiles || { uz: [], ru: [], en: [] };
-    
+    const exampleFiles = task.firstBasedFiles?.taskExampleFiles || {
+      uz: [],
+      ru: [],
+      en: [],
+    };
+
     // Create new files object with only the selected task's default file type
     const newFiles = {
       firstBasedFiles: {
@@ -783,10 +828,10 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
         taskVideoUrls: [],
       },
     };
-    
+
     // Update the selected files
     this.selectedFilesSubject.next(newFiles);
-    
+
     // Build the files queue for just the taskExampleFiles
     this.buildFilesQueue('firstBasedFiles', 'taskExampleFiles', newFiles);
 
@@ -976,14 +1021,54 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
   getSelectedTaskTitle(): string {
     if (!this.selectedLesson?.tasks) return '';
-    
+
     const selectedTask = this.selectedTaskId
-      ? this.selectedLesson.tasks.find(task => task.id === this.selectedTaskId)
+      ? this.selectedLesson.tasks.find(
+          (task) => task.id === this.selectedTaskId
+        )
       : this.selectedLesson.tasks[0];
-      
+
     if (!selectedTask) return '';
-    
+
     const index = this.selectedLesson.tasks.indexOf(selectedTask);
     return selectedTask.title || `Task ${index + 1}`;
+  }
+
+  // Get the current file URL for download
+  getCurrentFileUrl(): string | undefined {
+    try {
+      if (this.currentFileType === 'taskVideoUrls') {
+        return undefined;
+      }
+
+      if (
+        this.currentFileType === 'taskExampleFiles' ||
+        this.currentFileType === 'taskSolutionFiles'
+      ) {
+        const files =
+          this.selectedFiles.firstBasedFiles[this.currentFileType]?.[this.lang];
+        if (files && files.length > 0) {
+          return files[0].path || files[0].url;
+        }
+      }
+      else if (
+        this.currentFileType === 'taskTitleFiles' ||
+        this.currentFileType === 'taskPresentationFiles' ||
+        this.currentFileType === 'taskLiteratureFiles'
+      ) {
+        const files =
+          this.selectedFiles.secondBasedFiles[this.currentFileType]?.[
+            this.lang
+          ];
+        if (files && files.length > 0) {
+          return files[0].path || files[0].url;
+        }
+      }
+
+      return undefined;
+    } catch (error) {
+      console.error('Error getting current file URL:', error);
+      return undefined;
+    }
   }
 }

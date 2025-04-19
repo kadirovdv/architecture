@@ -67,5 +67,6 @@
   "email": "Email",
   "password": "Parol",
   "login": "Kirish",
-  "register": "Ro'yhatdan o'tish"
+  "register": "Ro'yhatdan o'tish",
+  "download-button": "Faylni yuklab olish"
 }
