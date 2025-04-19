@@ -18,6 +18,7 @@ import { switchMap, take, tap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { i18nService } from 'src/app/shared/services/i18n.service';
 import { LoaderService } from 'src/app/shared/services/loader.service';
+import { LoadingService } from 'src/app/shared/services/loading.service';
 import {
   Lesson,
   Task,
@@ -107,6 +108,7 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     private activatedRoute: ActivatedRoute,
     private i18n: i18nService,
     private loaderService: LoaderService,
+    private loadingService: LoadingService,
     private sanitizer: DomSanitizer,
     private renderer: Renderer2
   ) {
@@ -171,11 +173,15 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
         const dateB = new Date(b.createdAt || '').getTime();
         return dateA - dateB;
       });
-      this.loaderService.hideLoader();
+      this.loaderService.hideLoader(true);
+      this.loadingService.hide();
     }
   }
 
   loadWebsiteLessons(): void {
+    // Show both loaders
+    this.loadingService.show();
+    
     this.crudService
       .getDocuments('website-lessons')
       .pipe(
@@ -186,7 +192,8 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
           if (lessons.length === 0) {
             this.websiteLessons = lessons;
-            this.loaderService.hideLoader();
+            this.loaderService.hideLoader(true);
+            this.loadingService.hide();
             return of(null);
           }
 
@@ -223,7 +230,8 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
                 }
               });
 
-              this.loaderService.hideLoader();
+              this.loaderService.hideLoader(true);
+              this.loadingService.hide();
             })
           );
         }),
@@ -232,7 +240,8 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       .subscribe({
         error: (err) => {
           console.error('Error fetching lessons:', err);
-          this.loaderService.hideLoader();
+          this.loaderService.hideLoader(true);
+          this.loadingService.hide();
         },
       });
   }
@@ -388,11 +397,21 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   openFileInNewTab(filePath: string): void {
     if (!filePath) return;
     this.loaderService.showLoader();
+    this.loadingService.show();
+    
     this.dropboxService
       .openFileInNewTab(filePath)
       .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.loaderService.hideLoader(true);
+      .subscribe({
+        next: () => {
+          this.loaderService.hideLoader(true);
+          this.loadingService.hide();
+        },
+        error: (err) => {
+          console.error('Error opening file in new tab:', err);
+          this.loaderService.hideLoader(true);
+          this.loadingService.hide();
+        }
       });
   }
 
@@ -958,12 +977,22 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
     if (!url) return;
 
+    this.loaderService.showLoader();
+    this.loadingService.show();
+
     this.dropboxService
       .openFileInNewTab(url)
       .pipe(take(1))
       .subscribe({
-        next: () => this.loaderService.hideLoader(true),
-        error: () => this.loaderService.hideLoader(true),
+        next: () => {
+          this.loaderService.hideLoader(true);
+          this.loadingService.hide();
+        },
+        error: (err) => {
+          console.error('Error opening file in new tab:', err);
+          this.loaderService.hideLoader(true);
+          this.loadingService.hide();
+        }
       });
   }
 
@@ -974,13 +1003,21 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     if (!url) return;
 
     this.loaderService.showLoader();
+    this.loadingService.show();
 
     this.dropboxService
       .downloadFile(url)
       .pipe(take(1))
       .subscribe({
-        next: () => this.loaderService.hideLoader(true),
-        error: () => this.loaderService.hideLoader(true),
+        next: () => {
+          this.loaderService.hideLoader(true);
+          this.loadingService.hide();
+        },
+        error: (err) => {
+          console.error('Error downloading file:', err);
+          this.loaderService.hideLoader(true);
+          this.loadingService.hide();
+        }
       });
   }
   toggleLiteratureDropdown(event: Event): void {

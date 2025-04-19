@@ -68,5 +68,7 @@
   "password": "Parol",
   "login": "Kirish",
   "register": "Ro'yhatdan o'tish",
-  "download-button": "Faylni yuklab olish"
+  "download-button": "Faylni yuklab olish",
+  "loading-document": "Fayl yuklanyapti...",
+  "loading-video": "Video yuklanyapti..."
 }

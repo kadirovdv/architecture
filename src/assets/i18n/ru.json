@@ -68,5 +68,7 @@
   "password": "Пароль",
   "login": "Вход",
   "register": "Регистрация",
-  "download-button": "Скачать файл"
+  "download-button": "Скачать файл",
+  "loading-document": "Загрузка документа...",
+  "loading-video": "Загрузка видео..."
 }

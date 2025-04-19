@@ -68,5 +68,7 @@
   "password": "Password",
   "login": "Login",
   "register": "Register",
-  "download-button": "Download file"
+  "download-button": "Download file",
+  "loading-document": "Loading document...",
+  "loading-video": "Loading video..."
 }
