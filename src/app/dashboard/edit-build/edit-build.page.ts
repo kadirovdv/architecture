@@ -2145,68 +2145,205 @@ export class EditBuildPage implements OnInit {
     
     this.loaderService.show();
     
-    const lessonData = {
-      id: this.lesson.id,
-      lessonTitle: {
-        uz: this.lessonForm.value.uz || '',
-        ru: this.lessonForm.value.ru || '',
-        en: this.lessonForm.value.en || '',
-      },
-      thumbnail: this.lesson.thumbnail,
-      index: this.lessonForm.value.index || 0,
-      tasks: this.lesson.tasks,
-      createdAt: this.lesson.createdAt || new Date().toISOString()
-    };
+    // Get the new index from the form
+    const newIndex = this.lessonForm.value.index || 0;
+    // Get the old index from the current lesson
+    const oldIndex = this.lesson.index || 0;
     
-    // Update in both collections if needed
-    const updateObservables: Observable<any>[] = [];
-    
-    // Update in regular lessons collection
-    if (this.lesson.id) {
-      const regularLessonUpdate = this.crudService.updateDocument('lessons', this.lesson.id, lessonData);
-      updateObservables.push(regularLessonUpdate);
-    }
-    
-    // Update in website-lessons collection if this lesson exists there
-    if (this.existingLesson?.id) {
-      // Make a copy of the website lesson to preserve any additional properties
-      const websiteData = {
-        ...this.existingLesson,
-        lessonTitle: lessonData.lessonTitle,
-        index: lessonData.index
+    // Only handle index reordering if the index has actually changed
+    if (newIndex !== oldIndex) {
+      // First get all website lessons to reorder them
+      this.crudService.getDocuments('website-lessons')
+        .pipe(
+          take(1),
+          switchMap((allLessons: any[]) => {
+            // Filter out the current lesson to avoid duplicate adjustments
+            const otherLessons = allLessons.filter(lesson => lesson.id !== this.lesson?.id);
+            const updatedLessons: any[] = [];
+            
+            if (newIndex > oldIndex) {
+              // If index increased, decrease the index of lessons between old and new index
+              otherLessons.forEach(lesson => {
+                if (lesson.index > oldIndex && lesson.index <= newIndex) {
+                  lesson.index--;
+                  updatedLessons.push(lesson);
+                }
+              });
+            } else {
+              // If index decreased, increase the index of lessons between new and old index
+              otherLessons.forEach(lesson => {
+                if (lesson.index >= newIndex && lesson.index < oldIndex) {
+                  lesson.index++;
+                  updatedLessons.push(lesson);
+                }
+              });
+            }
+            
+            // Prepare update observable for each affected lesson
+            const updateObservables = updatedLessons.map(lesson => 
+              this.crudService.updateDocument('website-lessons', lesson.id, lesson)
+            );
+            
+            // If there are lessons to update, execute all updates in parallel
+            if (updateObservables.length > 0) {
+              return forkJoin(updateObservables).pipe(
+                map(() => allLessons) // Pass all lessons to the next operator
+              );
+            }
+            
+            // If no lessons to update, just pass all lessons
+            return of(allLessons);
+          }),
+          switchMap((allLessons) => {
+            // Now update the current lesson with its new details
+            const lessonData = {
+              id: this.lesson!.id,
+              lessonTitle: {
+                uz: this.lessonForm.value.uz || '',
+                ru: this.lessonForm.value.ru || '',
+                en: this.lessonForm.value.en || '',
+              },
+              thumbnail: this.lesson!.thumbnail,
+              index: newIndex,
+              tasks: this.lesson!.tasks,
+              createdAt: this.lesson!.createdAt || new Date().toISOString(),
+              active: this.lesson!.active !== undefined ? this.lesson!.active : true
+            };
+            
+            // Update in both collections if needed
+            const updateObservables: Observable<any>[] = [];
+            
+            // Update in regular lessons collection
+            if (this.lesson!.id) {
+              const regularLessonUpdate = this.crudService.updateDocument('lessons', this.lesson!.id, lessonData);
+              updateObservables.push(regularLessonUpdate);
+            }
+            
+            // Update in website-lessons collection if this lesson exists there
+            if (this.existingLesson?.id) {
+              // Make a copy of the website lesson to preserve any additional properties
+              const websiteData = {
+                ...this.existingLesson,
+                lessonTitle: lessonData.lessonTitle,
+                index: lessonData.index
+              };
+              
+              const websiteLessonUpdate = this.crudService.updateDocument('website-lessons', this.existingLesson.id, websiteData);
+              updateObservables.push(websiteLessonUpdate);
+            }
+            
+            // Execute all updates
+            return forkJoin(updateObservables);
+          })
+        )
+        .subscribe({
+          next: () => {
+            this.loaderService.hide();
+            this.toastr.success('Fan ma\'lumotlari muvaffaqiyatli yangilandi');
+            
+            // Update local lesson objects
+            if (this.lesson) {
+              this.lesson.lessonTitle = {
+                uz: this.lessonForm.value.uz || '',
+                ru: this.lessonForm.value.ru || '',
+                en: this.lessonForm.value.en || ''
+              };
+              this.lesson.index = newIndex;
+            }
+            
+            if (this.existingLesson) {
+              this.existingLesson.lessonTitle = {
+                uz: this.lessonForm.value.uz || '',
+                ru: this.lessonForm.value.ru || '',
+                en: this.lessonForm.value.en || ''
+              };
+              this.existingLesson.index = newIndex;
+            }
+            
+            // Refresh lesson lists
+            this.getLessons();
+            this.getWebsiteLessons();
+          },
+          error: (error) => {
+            console.error('Error updating lesson details:', error);
+            this.loaderService.hide();
+            this.toastr.error('Fan ma\'lumotlarini yangilashda xatolik yuz berdi');
+          }
+        });
+    } else {
+      // No index change, just update the current lesson data
+      const lessonData = {
+        id: this.lesson.id,
+        lessonTitle: {
+          uz: this.lessonForm.value.uz || '',
+          ru: this.lessonForm.value.ru || '',
+          en: this.lessonForm.value.en || '',
+        },
+        thumbnail: this.lesson.thumbnail,
+        index: newIndex,
+        tasks: this.lesson.tasks,
+        createdAt: this.lesson.createdAt || new Date().toISOString(),
+        active: this.lesson.active !== undefined ? this.lesson.active : true
       };
       
-      const websiteLessonUpdate = this.crudService.updateDocument('website-lessons', this.existingLesson.id, websiteData);
-      updateObservables.push(websiteLessonUpdate);
+      // Update in both collections if needed
+      const updateObservables: Observable<any>[] = [];
+      
+      // Update in regular lessons collection
+      if (this.lesson.id) {
+        const regularLessonUpdate = this.crudService.updateDocument('lessons', this.lesson.id, lessonData);
+        updateObservables.push(regularLessonUpdate);
+      }
+      
+      // Update in website-lessons collection if this lesson exists there
+      if (this.existingLesson?.id) {
+        // Make a copy of the website lesson to preserve any additional properties
+        const websiteData = {
+          ...this.existingLesson,
+          lessonTitle: lessonData.lessonTitle,
+          index: lessonData.index
+        };
+        
+        const websiteLessonUpdate = this.crudService.updateDocument('website-lessons', this.existingLesson.id, websiteData);
+        updateObservables.push(websiteLessonUpdate);
+      }
+      
+      // Execute all updates
+      forkJoin(updateObservables)
+        .subscribe({
+          next: () => {
+            this.loaderService.hide();
+            this.toastr.success('Fan ma\'lumotlari muvaffaqiyatli yangilandi');
+            
+            // Update local lesson objects
+            if (this.lesson) {
+              this.lesson.lessonTitle = {
+                uz: this.lessonForm.value.uz || '',
+                ru: this.lessonForm.value.ru || '',
+                en: this.lessonForm.value.en || ''
+              };
+              this.lesson.index = newIndex;
+            }
+            
+            if (this.existingLesson) {
+              this.existingLesson.lessonTitle = {
+                uz: this.lessonForm.value.uz || '',
+                ru: this.lessonForm.value.ru || '',
+                en: this.lessonForm.value.en || ''
+              };
+              this.existingLesson.index = newIndex;
+            }
+            
+            // Refresh lesson lists
+            this.getLessons();
+            this.getWebsiteLessons();
+          },
+          error: (error) => {
+            console.error('Error updating lesson details:', error);
+            this.loaderService.hide();
+            this.toastr.error('Fan ma\'lumotlarini yangilashda xatolik yuz berdi');
+          }
+        });
     }
-    
-    // Execute all updates
-    forkJoin(updateObservables)
-      .subscribe({
-        next: () => {
-          this.loaderService.hide();
-          this.toastr.success('Fan ma\'lumotlari muvaffaqiyatli yangilandi');
-          
-          // Update local lesson objects
-          if (this.lesson) {
-            this.lesson.lessonTitle = lessonData.lessonTitle;
-            this.lesson.index = lessonData.index;
-          }
-          
-          if (this.existingLesson) {
-            this.existingLesson.lessonTitle = lessonData.lessonTitle;
-            this.existingLesson.index = lessonData.index;
-          }
-          
-          // Refresh lesson lists
-          this.getLessons();
-          this.getWebsiteLessons();
-        },
-        error: (error) => {
-          console.error('Error updating lesson details:', error);
-          this.loaderService.hide();
-          this.toastr.error('Fan ma\'lumotlarini yangilashda xatolik yuz berdi');
-        }
-      });
   }
 }
