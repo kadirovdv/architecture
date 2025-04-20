@@ -38,7 +38,8 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
 import { LoaderService } from 'src/app/shared/services/loader.service';
 import { LoadingService } from 'src/app/shared/services/loading.service';
 import { ActivatedRoute } from '@angular/router';
-import { DomSanitizer } from '@angular/platform-browser';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 @Component({
   selector: 'app-edit-build',
   templateUrl: './edit-build.page.html',
@@ -69,6 +70,14 @@ export class EditBuildPage implements OnInit {
   username: string = '';
   title: string = '';
   imgDisplay: any = null;
+
+  // Form for editing lesson details
+  lessonForm = new FormGroup({
+    uz: new FormControl('', [Validators.required]),
+    ru: new FormControl('', [Validators.required]),
+    en: new FormControl('', [Validators.required]),
+    index: new FormControl(0, [Validators.required, Validators.min(0)])
+  });
 
   constructor(
     private crudService: CrudService,
@@ -1579,10 +1588,12 @@ export class EditBuildPage implements OnInit {
       this.lesson = null;
       this.existingLesson = null;
       this.task = null;
-      this.imgDisplay = null;
+      this.imgDisplay = null; // Reset the image display when no lesson is selected
+      this.lessonForm.reset(); // Reset the form
       return;
     }
 
+    // Get and set the thumbnail if available
     if (selectedLesson.thumbnail) {
       this.dropboxService.getThumbnail(selectedLesson.thumbnail as string).pipe(
         take(1)
@@ -1600,6 +1611,14 @@ export class EditBuildPage implements OnInit {
     } else {
       this.imgDisplay = null;
     }
+    
+    // Update the form with the lesson details
+    this.lessonForm.patchValue({
+      uz: selectedLesson.lessonTitle?.uz || '',
+      ru: selectedLesson.lessonTitle?.ru || '',
+      en: selectedLesson.lessonTitle?.en || '',
+      index: selectedLesson.index || 0
+    });
 
     // Find the corresponding lesson in the website-lessons collection
     const existingWebsiteLesson = this.websiteLessons.find(
@@ -2113,6 +2132,80 @@ export class EditBuildPage implements OnInit {
           console.error('Error finding lesson by ID:', err);
           this.loaderService.hide();
           this.toastr.error('Darsni ID bo\'yicha topib bo\'lmadi');
+        }
+      });
+  }
+
+  // Saves edits to the lesson title and index
+  saveLessonChanges() {
+    if (!this.lesson || this.lessonForm.invalid) {
+      this.toastr.error('Fan ma\'lumotlari to\'g\'ri kiritilmagan');
+      return;
+    }
+    
+    this.loaderService.show();
+    
+    const lessonData = {
+      id: this.lesson.id,
+      lessonTitle: {
+        uz: this.lessonForm.value.uz || '',
+        ru: this.lessonForm.value.ru || '',
+        en: this.lessonForm.value.en || '',
+      },
+      thumbnail: this.lesson.thumbnail,
+      index: this.lessonForm.value.index || 0,
+      tasks: this.lesson.tasks,
+      createdAt: this.lesson.createdAt || new Date().toISOString()
+    };
+    
+    // Update in both collections if needed
+    const updateObservables: Observable<any>[] = [];
+    
+    // Update in regular lessons collection
+    if (this.lesson.id) {
+      const regularLessonUpdate = this.crudService.updateDocument('lessons', this.lesson.id, lessonData);
+      updateObservables.push(regularLessonUpdate);
+    }
+    
+    // Update in website-lessons collection if this lesson exists there
+    if (this.existingLesson?.id) {
+      // Make a copy of the website lesson to preserve any additional properties
+      const websiteData = {
+        ...this.existingLesson,
+        lessonTitle: lessonData.lessonTitle,
+        index: lessonData.index
+      };
+      
+      const websiteLessonUpdate = this.crudService.updateDocument('website-lessons', this.existingLesson.id, websiteData);
+      updateObservables.push(websiteLessonUpdate);
+    }
+    
+    // Execute all updates
+    forkJoin(updateObservables)
+      .subscribe({
+        next: () => {
+          this.loaderService.hide();
+          this.toastr.success('Fan ma\'lumotlari muvaffaqiyatli yangilandi');
+          
+          // Update local lesson objects
+          if (this.lesson) {
+            this.lesson.lessonTitle = lessonData.lessonTitle;
+            this.lesson.index = lessonData.index;
+          }
+          
+          if (this.existingLesson) {
+            this.existingLesson.lessonTitle = lessonData.lessonTitle;
+            this.existingLesson.index = lessonData.index;
+          }
+          
+          // Refresh lesson lists
+          this.getLessons();
+          this.getWebsiteLessons();
+        },
+        error: (error) => {
+          console.error('Error updating lesson details:', error);
+          this.loaderService.hide();
+          this.toastr.error('Fan ma\'lumotlarini yangilashda xatolik yuz berdi');
         }
       });
   }

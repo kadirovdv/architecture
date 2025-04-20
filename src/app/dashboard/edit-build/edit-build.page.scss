@@ -39,6 +39,7 @@
   min-height: 100vh;
   background: #ffedd3;
   box-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
+  padding: 100px 0px !important;
 }
 
 .create-build-card {
@@ -198,28 +199,30 @@
 .create-lessons {
   &-content {
     background-color: #ffedd3;
-    min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
   }
   &-card {
+    width: 560px;
+    height: 560px;
+    max-height: 560px;
+    max-width: 560px;
+    overflow: hidden;
+    .body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      max-width: 100%;
+      max-height: 100%;
+      overflow: hidden;
+    }
     &-img {
       background-color: #ffedd3;
       box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
       border-radius: 10px;
       padding: 20px 0px;
-      height: 400px;
-      width: 400px;
-      margin-top: 30px;
-      .body {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        margin-top: 20px;
-        width: 100%;
-      }
       .header {
         font-family: "Merriweather Sans";
         font-style: normal;
@@ -231,9 +234,95 @@
         text-align: center;
       }
       img {
-        margin-top: 20px;
         cursor: pointer;
       }
+    }
+  }
+}
+
+// Styles for the lesson edit form
+.lesson-edit-form {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  
+  h4 {
+    color: #343a40;
+    font-weight: 600;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #dee2e6;
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+    
+    label {
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #495057;
+    }
+    
+    .form-control {
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      padding: 10px 15px;
+      
+      &:focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+      }
+    }
+    
+    .text-danger {
+      font-size: 12px;
+      margin-top: 5px;
+    }
+  }
+  
+  button {
+    padding: 10px 20px;
+    font-weight: 500;
+  }
+}
+
+// Styles for the thumbnail preview
+.create-lessons-card-img {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .header {
+    background-color: #343a40;
+    color: white;
+    padding: 12px 15px;
+    font-weight: 500;
+    text-align: center;
+    font-size: 14px;
+  }
+  
+  .body {
+    background-color: #f8f9fa;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+    
+    img {
+      max-width: 100%;
+      max-height: 300px;
+      object-fit: contain;
     }
   }
 }

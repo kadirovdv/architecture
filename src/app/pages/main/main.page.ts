@@ -89,9 +89,10 @@ export class MainPage {
         count === this.websiteLessons.length
       ) {
         this.websiteLessons = [...this.websiteLessons].sort((a, b) => {
-          const dateA = new Date(a.createdAt).getTime();
-          const dateB = new Date(b.createdAt).getTime();
-          return dateA - dateB;
+          // Use the index property for sorting (default to 0 if not present)
+          const indexA = typeof a.index === 'number' ? a.index : 0;
+          const indexB = typeof b.index === 'number' ? b.index : 0;
+          return indexA - indexB;
         });
         this.isLoadingThumbnails = false;
       }
@@ -167,11 +168,13 @@ export class MainPage {
 
           return forkJoin(thumbnailRequests).pipe(
             tap(() => {
+              // Sort by index instead of createdAt
               this.websiteLessons = [...this.websiteLessons].sort(
                 (a: Lesson, b: Lesson) => {
-                  const dateA = new Date(a.createdAt || '').getTime();
-                  const dateB = new Date(b.createdAt || '').getTime();
-                  return dateA - dateB;
+                  // Use the index property for sorting (default to 0 if not present)
+                  const indexA = typeof a.index === 'number' ? a.index : 0;
+                  const indexB = typeof b.index === 'number' ? b.index : 0;
+                  return indexA - indexB;
                 }
               );
               this.isLoadingThumbnails = false;
