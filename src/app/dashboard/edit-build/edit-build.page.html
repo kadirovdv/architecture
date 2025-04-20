@@ -28,6 +28,21 @@
       <div
         class="col-md-12 mb-3 d-flex justify-content-center align-items-center flex-column"
       >
+      <div class="create-lessons-card-img" (click)="fileInput.click()">
+        <div class="header">FAN MUQOVASI UCHUN RASM TANLANG</div>
+        <div class="body">
+          <img
+            [src]="!imgDisplay ? '/assets/svg/plus.svg' : imgDisplay"
+            [ngStyle]="{ 'width': !imgDisplay ? '50px' : '100%'}"
+            alt=""
+          />
+        </div>
+      </div>
+      <input type="file" (change)="onReplaceSelected()" hidden #fileInput />
+      </div>
+      <div
+        class="col-md-12 mb-3 d-flex justify-content-center align-items-center flex-column"
+      >
         <ng-select
           [(ngModel)]="lesson"
           (ngModelChange)="onLessonSelect($event)"

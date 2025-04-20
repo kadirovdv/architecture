@@ -193,3 +193,47 @@
   color: #d3d3d3;
   margin-top: 10px;
 }
+
+
+.create-lessons {
+  &-content {
+    background-color: #ffedd3;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  &-card {
+    &-img {
+      background-color: #ffedd3;
+      box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+      border-radius: 10px;
+      padding: 20px 0px;
+      height: 400px;
+      width: 400px;
+      margin-top: 30px;
+      .body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-top: 20px;
+        width: 100%;
+      }
+      .header {
+        font-family: "Merriweather Sans";
+        font-style: normal;
+        font-weight: 800;
+        font-size: 18px;
+        color: #b94c31;
+        border-bottom: 1px solid #121212;
+        padding: 0px 20px 10px 20px;
+        text-align: center;
+      }
+      img {
+        margin-top: 20px;
+        cursor: pointer;
+      }
+    }
+  }
+}

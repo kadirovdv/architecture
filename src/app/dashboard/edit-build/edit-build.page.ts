@@ -38,7 +38,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
 import { LoaderService } from 'src/app/shared/services/loader.service';
 import { LoadingService } from 'src/app/shared/services/loading.service';
 import { ActivatedRoute } from '@angular/router';
-
+import { DomSanitizer } from '@angular/platform-browser';
 @Component({
   selector: 'app-edit-build',
   templateUrl: './edit-build.page.html',
@@ -68,6 +68,7 @@ export class EditBuildPage implements OnInit {
   categoryStatus: Record<string, Record<string, { total: number; uploaded: number }>> = {};
   username: string = '';
   title: string = '';
+  imgDisplay: any = null;
 
   constructor(
     private crudService: CrudService,
@@ -76,7 +77,8 @@ export class EditBuildPage implements OnInit {
     private modalService: NgbModal,
     private location: Location,
     private loaderService: LoadingService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -215,6 +217,136 @@ export class EditBuildPage implements OnInit {
     this.toastr.success(
       `Fayllar ${language.toUpperCase()} tilida muvaffaqiyatli qo'shildi`
     );
+  }
+
+  onReplaceSelected() {
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+      return;
+    }
+
+    const file = fileInput.files[0];
+    
+    // Validate file is an image and size is acceptable
+    if (!file.type.startsWith('image/')) {
+      this.toastr.error('Faqat rasm fayllarini tanlash mumkin');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      this.toastr.error('Rasm hajmi 5MB dan oshmasligi kerak');
+      return;
+    }
+
+    if (!this.lesson) {
+      this.toastr.error('Iltimos, avval fanni tanlang');
+      return;
+    }
+
+    // Set the file preview
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.imgDisplay = this.sanitizer.bypassSecurityTrustUrl(e.target.result);
+    };
+    reader.readAsDataURL(file);
+    
+    // Store the file for later upload
+    this.title = file.name;
+    
+    // Upload when the save button is clicked
+    this.updateThumbnail(file);
+  }
+
+  private updateThumbnail(file: File) {
+    if (!this.lesson) {
+      this.toastr.error('Fan tanlanmagan');
+      return;
+    }
+    
+    this.loaderService.show();
+    
+    // Create a unique filename
+    const fileName = `lesson_thumbnail_${this.lesson.id || this.crudService.generateId()}_${Date.now()}.${file.name.split('.').pop()}`;
+    
+    // Upload to Dropbox and update Firebase
+    this.dropboxService.uploadFile(fileName, file)
+      .pipe(
+        switchMap((uploadResponse: any) => {
+          console.log('Thumbnail uploaded to Dropbox:', uploadResponse);
+          const thumbnailPath = uploadResponse.path_display;
+          return this.updateLessonThumbnail(thumbnailPath);
+        }),
+        take(1)
+      )
+      .subscribe({
+        next: () => {
+          this.loaderService.hide();
+          this.toastr.success('Fan muqovasi muvaffaqiyatli yangilandi');
+        },
+        error: (error) => {
+          console.error('Error updating thumbnail:', error);
+          this.loaderService.hide();
+          this.toastr.error('Rasmni yuklashda xatolik yuz berdi');
+        }
+      });
+  }
+
+  private updateLessonThumbnail(thumbnailPath: string): Observable<any> {
+    if (!this.lesson) {
+      return throwError(() => new Error('Lesson not selected'));
+    }
+
+    // Update in both collections if needed
+    const updateObservables: Observable<any>[] = [];
+
+    // Update in regular lessons collection
+    if (this.lesson.id) {
+      const regularLessonUpdate = this.crudService.getDocuments('lessons').pipe(
+        take(1),
+        switchMap((lessons: any[]) => {
+          const lessonToUpdate = lessons.find(l => l.id === this.lesson?.id);
+          if (lessonToUpdate) {
+            lessonToUpdate.thumbnail = thumbnailPath;
+            return this.crudService.updateDocument('lessons', lessonToUpdate.id, lessonToUpdate);
+          }
+          return of(null);
+        })
+      );
+      updateObservables.push(regularLessonUpdate);
+    }
+
+    // Update in website-lessons collection if this lesson exists there
+    if (this.existingLesson?.id) {
+      const websiteLessonUpdate = this.crudService.getDocuments('website-lessons').pipe(
+        take(1),
+        switchMap((lessons: any[]) => {
+          const lessonToUpdate = lessons.find(l => l.id === this.existingLesson?.id);
+          if (lessonToUpdate) {
+            lessonToUpdate.thumbnail = thumbnailPath;
+            return this.crudService.updateDocument('website-lessons', lessonToUpdate.id, lessonToUpdate);
+          }
+          return of(null);
+        })
+      );
+      updateObservables.push(websiteLessonUpdate);
+    }
+    
+    // Update local lesson objects
+    this.lesson.thumbnail = thumbnailPath;
+    if (this.existingLesson) {
+      this.existingLesson.thumbnail = thumbnailPath;
+    }
+
+    // Execute all updates
+    return updateObservables.length > 0 
+      ? forkJoin(updateObservables).pipe(
+          tap(() => {
+            // Refresh lesson lists
+            this.getLessons();
+            this.getWebsiteLessons();
+          })
+        )
+      : of(null);
   }
 
   private isFirstClassFileCategory(
@@ -1447,7 +1579,26 @@ export class EditBuildPage implements OnInit {
       this.lesson = null;
       this.existingLesson = null;
       this.task = null;
+      this.imgDisplay = null;
       return;
+    }
+
+    if (selectedLesson.thumbnail) {
+      this.dropboxService.getThumbnail(selectedLesson.thumbnail as string).pipe(
+        take(1)
+      ).subscribe({
+        next: (thumbnailBlob: Blob) => {
+          const imageUrl = URL.createObjectURL(thumbnailBlob);
+          this.imgDisplay = this.sanitizer.bypassSecurityTrustUrl(imageUrl);
+          console.log('Thumbnail loaded successfully');
+        },
+        error: (error) => {
+          console.error('Error loading thumbnail:', error);
+          this.imgDisplay = null;
+        }
+      });
+    } else {
+      this.imgDisplay = null;
     }
 
     // Find the corresponding lesson in the website-lessons collection
@@ -1921,7 +2072,6 @@ export class EditBuildPage implements OnInit {
         map(lessons => {
           const foundLesson = (lessons as Lesson[]).find(lesson => lesson.id === id);
           if (foundLesson) {
-            console.log('Found lesson by ID:', foundLesson);
             return foundLesson;
           }
           throw new Error('Lesson not found');
