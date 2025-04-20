@@ -61,7 +61,7 @@
   <div class="container">
     <div class="row">
       <div class="col-md-8">
-        <div class="file-content">
+        <div class="file-content" [ngStyle]="{'height': selectedFiles.secondBasedFiles.taskLiteratureFiles?.[lang]?.length ? 'calc(100% - 100px)' : 'calc(100% - 100px)'}">
           <h3>{{ getSelectedFilesTitle() }}</h3>
           
           <!-- File selection dropdown for multiple files -->
