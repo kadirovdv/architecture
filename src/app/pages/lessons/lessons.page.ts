@@ -129,9 +129,14 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.setupResizeObserver();
+    
+    // Also listen to window resize events to handle orientation changes
+    window.addEventListener('resize', this.handleResize.bind(this));
   }
 
   ngOnDestroy(): void {
+    // Clean up event listeners
+    window.removeEventListener('resize', this.handleResize.bind(this));
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -295,38 +300,56 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
     this.selectedFilesSubject.next(newFiles);
 
-    // Update carousel position
-    this.visibleItems = Math.min(4, this.websiteLessons.length);
-    const maxTranslateIndex = Math.max(
-      0,
-      this.websiteLessons.length - this.visibleItems
-    );
-    const centerOffset = Math.floor(this.visibleItems / 2);
-
-    if (this.websiteLessons.length <= this.visibleItems) {
-      this.currentTranslate = 0;
-    } else {
-      let idealTranslate =
-        -(index - centerOffset) * (this.slideWidth + this.slideGap);
-      const minTranslate = -(
-        maxTranslateIndex *
-        (this.slideWidth + this.slideGap)
-      );
-      const maxTranslate = 0;
-      this.currentTranslate = Math.max(
-        minTranslate,
-        Math.min(maxTranslate, idealTranslate)
-      );
-    }
-
+    // Call updateSlidePosition which will recalculate the position
     this.updateSlidePosition();
   }
 
   private updateSlidePosition(): void {
     requestAnimationFrame(() => {
-      const slideContainer = document.querySelector(
-        '.slides-wrapper'
-      ) as HTMLElement;
+      const container = document.querySelector('.slides-container') as HTMLElement;
+      if (!container) return;
+      
+      const containerWidth = container.clientWidth;
+      const isMobile = window.innerWidth <= 768;
+      
+      // For mobile, only show one slide at a time (centered)
+      if (isMobile) {
+        // Make the active slide take up most of the container width
+        this.slideWidth = Math.min(containerWidth * 0.7, 200);
+        this.activeSlideWidth = this.slideWidth;
+        
+        // Space slides far apart on mobile for the centered effect
+        this.slideGap = containerWidth;
+        
+        // Center the active slide exactly
+        const slidePosition = this.currentSlideIndex * (this.slideWidth + this.slideGap);
+        this.currentTranslate = (containerWidth / 2) - slidePosition - (this.slideWidth / 2);
+      } else {
+        // For desktop, revert to standard carousel with multiple visible slides
+        this.slideWidth = Math.min(160, containerWidth * 0.4);
+        this.activeSlideWidth = Math.min(200, containerWidth * 0.5);
+        this.slideGap = 20;
+        
+        // Calculate item width including gap
+        const itemWidth = this.slideWidth + this.slideGap;
+        
+        // Center the current slide by calculating position
+        const centerPosition = (containerWidth - this.activeSlideWidth) / 2;
+        const activeSlideOffset = this.currentSlideIndex * itemWidth;
+        
+        // Calculate translation
+        this.currentTranslate = centerPosition - activeSlideOffset;
+        
+        // Apply bounds to prevent excessive scrolling
+        const totalWidth = (this.websiteLessons.length * itemWidth);
+        const minTranslate = containerWidth - totalWidth;
+        
+        // Ensure we don't scroll beyond the content
+        this.currentTranslate = Math.min(0, Math.max(this.currentTranslate, minTranslate));
+      }
+      
+      // Apply the transform
+      const slideContainer = document.querySelector('.slides-wrapper') as HTMLElement;
       if (slideContainer) {
         slideContainer.style.transform = `translateX(${this.currentTranslate}px)`;
       }
@@ -385,6 +408,14 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
   isActiveSlide(index: number): boolean {
     return index === this.currentSlideIndex;
+  }
+
+  isMobileView(): boolean {
+    return window.innerWidth <= 768;
+  }
+
+  isHiddenSlide(index: number): boolean {
+    return !this.isActiveSlide(index) && this.isMobileView();
   }
 
   getTitle(lesson: Lesson): string {
@@ -1229,5 +1260,9 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       return this.selectedFiles.secondBasedFiles.taskVideoUrls || [];
     }
     return [];
+  }
+
+  private handleResize() {
+    this.updateSlidePosition();
   }
 }

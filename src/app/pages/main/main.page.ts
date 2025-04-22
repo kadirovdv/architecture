@@ -123,6 +123,18 @@ export class MainPage {
     if (container) {
       resizeObserver.observe(container);
     }
+    
+    // Also listen to window resize events to handle orientation changes
+    window.addEventListener('resize', this.handleResize.bind(this));
+  }
+
+  ngOnDestroy() {
+    // Clean up event listeners
+    window.removeEventListener('resize', this.handleResize.bind(this));
+  }
+
+  private handleResize() {
+    this.updateLessonSlidePosition();
   }
 
   getData() {
@@ -353,36 +365,55 @@ export class MainPage {
     return index === this.currentLessonIndex;
   }
 
+  isMobileView(): boolean {
+    return window.innerWidth <= 768;
+  }
+
+  isSliddenSlide(index: number): boolean {
+    return !this.isLessonActive(index) && this.isMobileView();
+  }
+
   private updateLessonSlidePosition(): void {
     const container = this.lessonsCarousel?.nativeElement?.querySelector('.slides-container');
     if (!container) return;
-
+    
     const containerWidth = container.clientWidth;
-    const slideWidth = this.slideWidth;
-    const activeSlideWidth = this.activeSlideWidth;
-    const gap = this.slideGap;
+    const isMobile = window.innerWidth <= 768;
     
-    // Calculate the total width before the current slide
-    let translateX = 0;
-    for (let i = 0; i < this.currentLessonIndex; i++) {
-      translateX += slideWidth + gap;
+    // For mobile, only show one slide at a time (centered)
+    if (isMobile) {
+      // Make the active slide take up most of the container width
+      this.slideWidth = Math.min(containerWidth * 0.7, 200);
+      this.activeSlideWidth = this.slideWidth;
+      
+      // Space slides far apart on mobile for the centered effect
+      this.slideGap = containerWidth;
+      
+      // Center the active slide exactly
+      const slidePosition = this.currentLessonIndex * (this.slideWidth + this.slideGap);
+      this.lessonTranslate = (containerWidth / 2) - slidePosition - (this.slideWidth / 2);
+    } else {
+      // For desktop, revert to standard carousel with multiple visible slides
+      this.slideWidth = Math.min(160, containerWidth * 0.4);
+      this.activeSlideWidth = Math.min(200, containerWidth * 0.5);
+      this.slideGap = 20;
+      
+      // Calculate item width including gap
+      const itemWidth = this.slideWidth + this.slideGap;
+      
+      // Center the current slide by calculating position
+      const centerPosition = (containerWidth - this.activeSlideWidth) / 2;
+      const activeSlideOffset = this.currentLessonIndex * itemWidth;
+      
+      // Calculate translation
+      this.lessonTranslate = centerPosition - activeSlideOffset;
+      
+      // Apply bounds to prevent excessive scrolling
+      const totalWidth = (this.websiteLessons.length * itemWidth);
+      const minTranslate = containerWidth - totalWidth;
+      
+      // Ensure we don't scroll beyond the content
+      this.lessonTranslate = Math.min(0, Math.max(this.lessonTranslate, minTranslate));
     }
-    
-    // Center the active slide
-    const activeSlideOffset = (activeSlideWidth - slideWidth) / 2;
-    translateX += activeSlideOffset;
-    
-    // Center in container
-    const centeringOffset = (containerWidth - activeSlideWidth) / 2;
-    translateX = -translateX + centeringOffset;
-    
-    // Ensure we don't go too far to the left or right
-    const totalWidth = (this.websiteLessons.length - 1) * (slideWidth + gap) + activeSlideWidth;
-    const minTranslate = containerWidth - totalWidth;
-    const maxTranslate = 0;
-    
-    translateX = Math.max(minTranslate, Math.min(maxTranslate, translateX));
-    
-    this.lessonTranslate = translateX;
   }
 }

@@ -21,6 +21,7 @@
                 <div
                   class="slides-wrapper d-flex"
                   [style.transform]="'translateX(' + currentTranslate + 'px)'"
+                  [style.transition]="'transform 0.3s ease-in-out'"
                   role="list"
                   aria-label="Lesson slides"
                 >
@@ -28,6 +29,9 @@
                     *ngFor="let lesson of websiteLessons; let i = index"
                     class="media-item"
                     [class.active]="isActiveSlide(i)"
+                    [class.hidden-slide]="isHiddenSlide(i)"
+                    [style.width.px]="isActiveSlide(i) ? activeSlideWidth : slideWidth"
+                    [style.margin-right.px]="slideGap"
                     (click)="selectSlide(i)"
                     role="listitem"
                     [attr.aria-label]="getTitle(lesson)"
@@ -55,6 +59,16 @@
         >
           <img src="./assets/svg/slide-right.svg" alt="Next slide" />
         </button>
+      </div>
+      
+      <!-- Pagination dots for mobile -->
+      <div class="carousel-dots d-flex justify-content-center mt-3">
+        <div 
+          *ngFor="let lesson of websiteLessons; let i = index" 
+          class="carousel-dot" 
+          [class.active]="isActiveSlide(i)"
+          (click)="selectSlide(i)">
+        </div>
       </div>
     </div>
   </div>

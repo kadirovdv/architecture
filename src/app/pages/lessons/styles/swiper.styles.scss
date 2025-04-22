@@ -49,6 +49,8 @@ $text-color: #333;
   width: 100%;
   height: auto;
   min-height: 340px;
+  position: relative;
+  overflow: hidden;
 }
 
 .carousel-slide {
@@ -84,10 +86,6 @@ $text-color: #333;
   background-color: #fff;
   border-radius: 50%;
   @include smooth-transition(transform);
-
-  // &:hover {
-  //   transform: translateY(-50%) scale(1.1);
-  // }
 
   &.prev {
     left: 10px;
@@ -132,14 +130,15 @@ $text-color: #333;
   align-items: flex-end;
   height: auto;
   min-height: 100%;
-  position: relative;
+  width: 100%;
 }
 
 .slides-wrapper {
   @include smooth-transition(transform);
   will-change: transform;
-  align-items: end;
+  align-items: center;
   height: auto;
+  display: flex;
 }
 
 .media-item {
@@ -151,6 +150,9 @@ $text-color: #333;
   padding-bottom: 20px;
   height: auto;
   opacity: 0.7;
+  transform-origin: center center;
+  border-radius: 8px;
+  overflow: hidden;
 
   .lesson-image {
     width: $slide-width;
@@ -158,7 +160,7 @@ $text-color: #333;
     border-radius: 10px;
     margin-bottom: 10px;
     @include smooth-transition(all);
-    box-shadow: 0px 16px 32px -8px rgba(12, 12, 13, 0.4);
+    box-shadow: none;
     border-radius: 10px;
     overflow: hidden;
   }
@@ -174,11 +176,13 @@ $text-color: #333;
     width: $active-slide-width;
     z-index: 2;
     opacity: 1;
+    transform: scale(1.05);
+    box-shadow: none;
 
     .lesson-image {
       width: $active-slide-width;
       height: 140px;
-      box-shadow: 0 8px 16px $active-shadow-color;
+      box-shadow: none;
     }
 
     .lesson-thumbnail {
@@ -188,6 +192,11 @@ $text-color: #333;
     }
   }
 
+  &.hidden-slide {
+    opacity: 0;
+    visibility: hidden;
+  }
+
   .lesson-title {
     font-size: 14px;
     font-weight: 500;
@@ -195,10 +204,10 @@ $text-color: #333;
     margin-top: 6px;
     @include smooth-transition(all);
     text-align: center;
+    width: 100%;
     color: $primary-color;
-    text-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
+    text-shadow: none;
     font-family: "Judson";
-    
   }
 
   &:last-child {
@@ -212,6 +221,29 @@ $text-color: #333;
     }
   }
 }
+
+// Carousel dots
+.carousel-dots {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  
+  .carousel-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #ccc;
+    margin: 0 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &.active {
+      background-color: #666;
+      transform: scale(1.2);
+    }
+  }
+}
+
 @media screen and (max-width: 1200px) {
   .carousel {
     padding: 15px;
@@ -227,11 +259,19 @@ $text-color: #333;
     padding: 0 40px;
   }
 
+  .slides-wrapper {
+    transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1.0) !important;
+  }
+
   .media-item {
     width: clamp(140px, 20vw, 180px);
 
     &.active {
       width: clamp(160px, 22vw, 200px);
+      
+      .lesson-image {
+        box-shadow: none;
+      }
     }
   }
 }
@@ -248,23 +288,6 @@ $text-color: #333;
   .carousel-btn {
     width: 30px;
     height: 30px;
-    top: 57%;
-
-    &.prev {
-      left: 5px;
-    }
-
-    &.next {
-      right: 5px;
-    }
-  }
-
-  .media-item {
-    width: clamp(120px, 18vw, 160px);
-
-    &.active {
-      width: clamp(140px, 20vw, 180px);
-    }
   }
 }
 

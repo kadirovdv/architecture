@@ -616,3 +616,130 @@
     }
   }
 }
+
+// Mobile carousel improvements
+.carousel {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  
+  .carousel-wrapper {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+  }
+  
+  .slides-container {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .slides-wrapper {
+    display: flex;
+    align-items: center;
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .media-item {
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+    transform-origin: center center;
+    border-radius: 8px;
+    overflow: hidden;
+    
+    &.active {
+      transform: scale(1.05);
+      box-shadow: none;
+      z-index: 2;
+    }
+    
+    &.hidden-slide {
+      opacity: 0;
+      visibility: hidden;
+    }
+    
+    .lesson-image {
+      width: 100%;
+      aspect-ratio: 16/9;
+      overflow: hidden;
+      border-radius: 8px;
+      box-shadow: none;
+      
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+    }
+    
+    .lesson-title {
+      padding: 8px;
+      text-align: center;
+      width: 100%;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: none;
+    }
+  }
+  
+  .carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    background: rgba(255, 255, 255, 0.8);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    &.prev {
+      left: 5px;
+    }
+    
+    &.next {
+      right: 5px;
+    }
+    
+    img {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+// Carousel dots
+.carousel-dots {
+  margin-top: 10px;
+  
+  .carousel-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #ccc;
+    margin: 0 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &.active {
+      background-color: #666;
+      transform: scale(1.2);
+    }
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .carousel {
+    .slides-wrapper {
+      transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1.0);
+    }
+  }
+}
