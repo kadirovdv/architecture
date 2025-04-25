@@ -127,7 +127,8 @@ $text-color: #333;
   display: flex;
   @include smooth-transition(transform);
   overflow-x: hidden;
-  align-items: flex-end;
+  align-items: center;
+  justify-content: center;
   height: auto;
   min-height: 100%;
   width: 100%;
@@ -137,25 +138,29 @@ $text-color: #333;
   @include smooth-transition(transform);
   will-change: transform;
   align-items: center;
+  justify-content: center;
   height: auto;
   display: flex;
+  flex-wrap: wrap;
 }
 
 .media-item {
-  width: $slide-width;
+  width: 100%;
   flex-shrink: 0;
   @include smooth-transition(all);
   cursor: pointer;
-  margin-right: $slide-gap;
+  margin-left: 10px;
+  margin-right: 10px;
   padding-bottom: 20px;
   height: auto;
   opacity: 0.7;
   transform-origin: center center;
   border-radius: 8px;
   overflow: hidden;
+  max-width: 280px;
 
   .lesson-image {
-    width: $slide-width;
+    width: 100%;
     height: 120px;
     border-radius: 10px;
     margin-bottom: 10px;
@@ -166,27 +171,27 @@ $text-color: #333;
   }
 
   .lesson-thumbnail {
-    width: $slide-width;
+    width: 100%;
     height: 120px;
     object-fit: cover;
     @include smooth-transition(all);
   }
 
   &.active {
-    width: $active-slide-width;
+    width: 100%;
     z-index: 2;
     opacity: 1;
     transform: scale(1.05);
     box-shadow: none;
 
     .lesson-image {
-      width: $active-slide-width;
+      width: 100%;
       height: 140px;
       box-shadow: none;
     }
 
     .lesson-thumbnail {
-      width: $active-slide-width;
+      width: 100%;
       height: 140px;
       object-fit: cover;
     }
@@ -261,13 +266,19 @@ $text-color: #333;
 
   .slides-wrapper {
     transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1.0) !important;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   .media-item {
-    width: clamp(140px, 20vw, 180px);
+    width: 100%;
+    margin-left: 10px;
+    margin-right: 10px;
+    max-width: 180px;
 
     &.active {
-      width: clamp(160px, 22vw, 200px);
+      width: 100%;
+      max-width: 200px;
       
       .lesson-image {
         box-shadow: none;
@@ -288,6 +299,14 @@ $text-color: #333;
   .carousel-btn {
     width: 30px;
     height: 30px;
+  }
+  
+  .media-item {
+    max-width: 140px;
+    
+    &.active {
+      max-width: 160px;
+    }
   }
 }
 

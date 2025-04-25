@@ -292,7 +292,8 @@
       display: flex;
       transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
       overflow-x: hidden;
-      align-items: flex-end;
+      align-items: center;
+      justify-content: center;
       height: auto;
       min-height: 100%;
       position: relative;
@@ -301,22 +302,27 @@
     .slides-wrapper {
       transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
       will-change: transform;
-      align-items: end;
+      align-items: center;
+      justify-content: center;
       height: auto;
+      display: flex;
+      flex-wrap: wrap;
     }
 
     .media-item {
-      width: 200px;
+      width: 100%;
       flex-shrink: 0;
       transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
       cursor: pointer;
-      margin-right: 30px;
+      margin-left: 10px;
+      margin-right: 10px;
       padding-bottom: 20px;
       height: auto;
       opacity: 0.7;
+      max-width: 280px;
 
       .lesson-image {
-        width: 200px;
+        width: 100%;
         height: 120px;
         border-radius: 10px;
         margin-bottom: 10px;
@@ -327,25 +333,25 @@
       }
 
       .lesson-thumbnail {
-        width: 200px;
+        width: 100%;
         height: 120px;
         object-fit: cover;
         transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       &.active {
-        width: 220px;
+        width: 100%;
         z-index: 2;
         opacity: 1;
 
         .lesson-image {
-          width: 220px;
+          width: 100%;
           height: 140px;
           box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
         }
 
         .lesson-thumbnail {
-          width: 220px;
+          width: 100%;
           height: 140px;
           object-fit: cover;
         }
@@ -406,28 +412,30 @@
   /* Responsive adjustments for lessons carousel */
   .d-lg-none .carousel {
     .media-item {
-      width: 180px;
+      width: 100%;
+      margin-left: 10px;
+      margin-right: 10px;
 
       .lesson-image {
-        width: 180px;
+        width: 100%;
         height: 110px;
       }
 
       .lesson-thumbnail {
-        width: 180px;
+        width: 100%;
         height: 110px;
       }
 
       &.active {
-        width: 200px;
+        width: 100%;
 
         .lesson-image {
-          width: 200px;
+          width: 100%;
           height: 130px;
         }
 
         .lesson-thumbnail {
-          width: 200px;
+          width: 100%;
           height: 130px;
         }
       }
@@ -503,29 +511,32 @@
   /* Responsive adjustments for lessons carousel */
   .d-lg-none .carousel {
     .media-item {
-      width: 160px;
-      margin-right: 20px;
+      width: 100%;
+      margin-left: 10px;
+      margin-right: 10px;
+      max-width: 160px;
 
       .lesson-image {
-        width: 160px;
+        width: 100%;
         height: 100px;
       }
 
       .lesson-thumbnail {
-        width: 160px;
+        width: 100%;
         height: 100px;
       }
 
       &.active {
-        width: 180px;
+        width: 100%;
+        max-width: 180px;
 
         .lesson-image {
-          width: 180px;
+          width: 100%;
           height: 120px;
         }
 
         .lesson-thumbnail {
-          width: 180px;
+          width: 100%;
           height: 120px;
         }
       }
@@ -583,29 +594,32 @@
   /* Responsive adjustments for lessons carousel */
   .d-lg-none .carousel {
     .media-item {
-      width: 140px;
-      margin-right: 15px;
+      width: 100%;
+      margin-left: 10px;
+      margin-right: 10px;
+      max-width: 140px;
 
       .lesson-image {
-        width: 140px;
+        width: 100%;
         height: 90px;
       }
 
       .lesson-thumbnail {
-        width: 140px;
+        width: 100%;
         height: 90px;
       }
 
       &.active {
-        width: 160px;
+        width: 100%;
+        max-width: 160px;
 
         .lesson-image {
-          width: 160px;
+          width: 100%;
           height: 110px;
         }
 
         .lesson-thumbnail {
-          width: 160px;
+          width: 100%;
           height: 110px;
         }
       }
@@ -633,12 +647,16 @@
     width: 100%;
     overflow: hidden;
     position: relative;
+    display: flex;
+    justify-content: center;
   }
   
   .slides-wrapper {
     display: flex;
     align-items: center;
+    justify-content: center;
     transition: transform 0.3s ease-in-out;
+    flex-wrap: wrap;
   }
   
   .media-item {
@@ -647,6 +665,7 @@
     transform-origin: center center;
     border-radius: 8px;
     overflow: hidden;
+    max-width: 280px;
     
     &.active {
       transform: scale(1.05);
