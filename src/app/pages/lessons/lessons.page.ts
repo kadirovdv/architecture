@@ -9,6 +9,7 @@ import {
   ViewChildren,
   QueryList,
   Renderer2,
+  inject,
 } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CrudService } from 'src/app/shared/services/crud.service';
@@ -28,6 +29,7 @@ import {
 } from 'src/app/shared/interfaces/interfaces';
 import { BehaviorSubject, forkJoin, of, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { SwiperService } from 'src/app/shared/services/swiper.service';
 
 @Component({
   selector: 'app-lessons',
@@ -36,6 +38,7 @@ import { takeUntil } from 'rxjs/operators';
 })
 export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
+  private swiperService = inject(SwiperService);
 
   @ViewChild('carousel') carousel!: ElementRef;
   @ViewChildren('pdfViewer') pdfViewers!: QueryList<ElementRef>;
@@ -128,9 +131,47 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.setupResizeObserver();
+    // Initialize Swiper for lessons carousel
+    const lessonsSwiperConfig = {
+      slidesPerView: 'auto',
+      centeredSlides: true,
+      spaceBetween: 20,
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+      },
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+      },
+      breakpoints: {
+        320: {
+          slidesPerView: 1.5,
+          spaceBetween: 10,
+        },
+        480: {
+          slidesPerView: 2.5,
+          spaceBetween: 15,
+        },
+        768: {
+          slidesPerView: 3.5,
+          spaceBetween: 20,
+        }
+      },
+      on: {
+        slideChange: (swiper: any) => {
+          if (this.websiteLessons && this.websiteLessons.length > 0) {
+            this.selectSlide(swiper.activeIndex);
+          }
+        }
+      }
+    };
     
-    // Also listen to window resize events to handle orientation changes
+    setTimeout(() => {
+      this.swiperService.initializeSwiper('.lessonsSwiper', lessonsSwiperConfig);
+    }, 100);
+    
+    // Also listen to window resize events
     window.addEventListener('resize', this.handleResize.bind(this));
   }
 
@@ -154,17 +195,6 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     this.thumbnailsLoaded
       .pipe(takeUntil(this.destroy$))
       .subscribe(this.handleThumbnailsLoaded.bind(this));
-  }
-
-  private setupResizeObserver(): void {
-    const resizeObserver = new ResizeObserver(() => {
-      this.updateSlidePosition();
-    });
-
-    const container = document.querySelector('.slides-container');
-    if (container) {
-      resizeObserver.observe(container);
-    }
   }
 
   private handleThumbnailsLoaded(count: number): void {
@@ -251,158 +281,32 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       });
   }
 
-  nextSlide(): void {
-    const maxIndex = this.websiteLessons.length - 1;
-    if (this.currentSlideIndex >= maxIndex) return;
-    this.selectSlide(this.currentSlideIndex + 1);
-  }
-
-  prevSlide(): void {
-    if (this.currentSlideIndex <= 0) return;
-    this.selectSlide(this.currentSlideIndex - 1);
-  }
-
   selectSlide(index: number): void {
     if (
-      index === this.currentSlideIndex ||
-      index < 0 ||
-      index >= this.websiteLessons.length
-    )
-      return;
-
-    this.selectedLesson = this.websiteLessons[index];
-    this.currentSlideIndex = index;
-    this.currentFileTypeSubject.next('taskExampleFiles');
-
-    // Reset and load files immediately
-    const newFiles = {
-      firstBasedFiles: {
-        taskExampleFiles: { uz: [], ru: [], en: [] },
-        taskSolutionFiles: { uz: [], ru: [], en: [] },
-      },
-      secondBasedFiles: {
-        taskTitleFiles: { uz: [], ru: [], en: [] },
-        taskPresentationFiles: { uz: [], ru: [], en: [] },
-        taskLiteratureFiles: { uz: [], ru: [], en: [] },
-        taskVideoUrls: [],
-      },
-    };
-
-    // Load files for the selected lesson
-    if (this.selectedLesson?.tasks) {
-      this.selectedLesson.tasks.forEach((task: Task) => {
-        const files = task.firstBasedFiles?.taskExampleFiles;
-        if (files) {
-          newFiles.firstBasedFiles.taskExampleFiles = files;
-        }
+      this.websiteLessons &&
+      this.websiteLessons.length > 0 &&
+      index >= 0 &&
+      index < this.websiteLessons.length
+    ) {
+      this.currentSlideIndex = index;
+      this.selectedLesson = this.websiteLessons[index];
+      
+      // Update the URL without reloading the page
+      const url = `/pages/lessons/${this.selectedLesson.id}`;
+      window.history.replaceState({}, '', url);
+      
+      // Reset the selected file type and index
+      this.currentFileTypeSubject.next('taskExampleFiles');
+      this.currentSelectedFileIndex = 0;
+      
+      // Set the appropriate files for this lesson
+      this.setLessonFiles('firstBasedFiles', 'taskExampleFiles');
+      
+      // Scroll to top of the content area
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
       });
-    }
-
-    this.selectedFilesSubject.next(newFiles);
-
-    // Call updateSlidePosition which will recalculate the position
-    this.updateSlidePosition();
-  }
-
-  private updateSlidePosition(): void {
-    requestAnimationFrame(() => {
-      const container = document.querySelector('.slides-container') as HTMLElement;
-      if (!container) return;
-      
-      const containerWidth = container.clientWidth;
-      const isMobile = window.innerWidth <= 768;
-      
-      // For mobile, only show one slide at a time (centered)
-      if (isMobile) {
-        // Make the active slide take up most of the container width
-        this.slideWidth = Math.min(containerWidth * 0.7, 200);
-        this.activeSlideWidth = this.slideWidth;
-        
-        // Space slides far apart on mobile for the centered effect
-        this.slideGap = containerWidth;
-        
-        // Center the active slide exactly
-        const slidePosition = this.currentSlideIndex * (this.slideWidth + this.slideGap);
-        this.currentTranslate = (containerWidth / 2) - slidePosition - (this.slideWidth / 2);
-      } else {
-        // For desktop, revert to standard carousel with multiple visible slides
-        this.slideWidth = Math.min(160, containerWidth * 0.4);
-        this.activeSlideWidth = Math.min(200, containerWidth * 0.5);
-        this.slideGap = 20;
-        
-        // Calculate item width including gap
-        const itemWidth = this.slideWidth + this.slideGap;
-        
-        // Center the current slide by calculating position
-        const centerPosition = (containerWidth - this.activeSlideWidth) / 2;
-        const activeSlideOffset = this.currentSlideIndex * itemWidth;
-        
-        // Calculate translation
-        this.currentTranslate = centerPosition - activeSlideOffset;
-        
-        // Apply bounds to prevent excessive scrolling
-        const totalWidth = (this.websiteLessons.length * itemWidth);
-        const minTranslate = containerWidth - totalWidth;
-        
-        // Ensure we don't scroll beyond the content
-        this.currentTranslate = Math.min(0, Math.max(this.currentTranslate, minTranslate));
-      }
-      
-      // Apply the transform
-      const slideContainer = document.querySelector('.slides-wrapper') as HTMLElement;
-      if (slideContainer) {
-        slideContainer.style.transform = `translateX(${this.currentTranslate}px)`;
-      }
-    });
-  }
-
-  @HostListener('touchstart', ['$event'])
-  onTouchStart(event: TouchEvent): void {
-    if (this.isClickableElement(event.target as HTMLElement)) return;
-    this.isDragging = true;
-    this.startX = event.touches[0].clientX;
-  }
-
-  @HostListener('touchend', ['$event'])
-  onTouchEnd(event: TouchEvent): void {
-    if (!this.isDragging) return;
-    this.isDragging = false;
-    this.endX = event.changedTouches[0].clientX;
-    this.handleSwipe();
-  }
-
-  private isClickableElement(element: HTMLElement): boolean {
-    const clickableClasses = [
-      'overflow-x-scroll',
-      'open-btn',
-      'download-btn',
-      'media-item-body',
-      'media-item',
-      'position-relative',
-      'd-flex',
-    ];
-    const clickableTags = ['I', 'IMG'];
-
-    return (
-      clickableClasses.some((className) =>
-        element.classList.contains(className)
-      ) || clickableTags.includes(element.nodeName)
-    );
-  }
-
-  private handleSwipe(): void {
-    const threshold = 50;
-    const diffX = this.startX - this.endX;
-
-    if (Math.abs(diffX) > threshold) {
-      if (
-        diffX > 0 &&
-        this.currentSlideIndex < this.websiteLessons.length - 1
-      ) {
-        this.selectSlide(this.currentSlideIndex + 1);
-      } else if (diffX < 0 && this.currentSlideIndex > 0) {
-        this.selectSlide(this.currentSlideIndex - 1);
-      }
     }
   }
 
@@ -410,12 +314,8 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     return index === this.currentSlideIndex;
   }
 
-  isMobileView(): boolean {
-    return window.innerWidth <= 768;
-  }
-
   isHiddenSlide(index: number): boolean {
-    return !this.isActiveSlide(index) && this.isMobileView();
+    return false; // No slides are hidden with Swiper
   }
 
   getTitle(lesson: Lesson): string {
@@ -1263,6 +1163,7 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private handleResize() {
-    this.updateSlidePosition();
+    // Method kept for window resize event
+    // No need to update slide positions as Swiper handles this automatically
   }
 }

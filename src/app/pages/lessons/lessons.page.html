@@ -5,70 +5,30 @@
         <h1>{{ selectedLesson ? getTitle(selectedLesson) : '' }}</h1>
         <h3>Grafik topshiriq sahifasi</h3>
       </div>
-      <div class="carousel" #carousel>
-        <button
-          class="carousel-btn prev"
-          (click)="prevSlide()"
-          [attr.aria-label]="'Previous slide'"
-        >
-          <img src="./assets/svg/slide-left.svg" alt="Previous slide" />
-        </button>
-
-        <div class="carousel-wrapper">
-          <div class="carousel-slide" [class.active]="true">
-            <div class="container">
-              <div class="slides-container">
-                <div
-                  class="slides-wrapper d-flex"
-                  [style.transform]="'translateX(' + currentTranslate + 'px)'"
-                  [style.transition]="'transform 0.3s ease-in-out'"
-                  role="list"
-                  aria-label="Lesson slides"
-                >
-                  <div
-                    *ngFor="let lesson of websiteLessons; let i = index"
-                    class="media-item"
-                    [class.active]="isActiveSlide(i)"
-                    [class.hidden-slide]="isHiddenSlide(i)"
-                    [style.width.px]="isActiveSlide(i) ? activeSlideWidth : slideWidth"
-                    [style.margin-right.px]="slideGap"
-                    (click)="selectSlide(i)"
-                    role="listitem"
-                    [attr.aria-label]="getTitle(lesson)"
-                    [attr.aria-current]="isActiveSlide(i) ? 'true' : 'false'"
-                  >
-                    <div class="lesson-image">
-                      <img
-                        [src]="lesson.thumbnail"
-                        [alt]="getTitle(lesson)"
-                        class="lesson-thumbnail"
-                        loading="lazy"
-                      />
-                    </div>
-                    <div class="lesson-title">{{ getTitle(lesson) }}</div>
-                  </div>
-                </div>
+      
+      <div class="swiper lessonsSwiper">
+        <div class="swiper-wrapper">
+          <div 
+            *ngFor="let lesson of websiteLessons; let i = index"
+            class="swiper-slide"
+            (click)="selectSlide(i)"
+          >
+            <div class="media-item">
+              <div class="lesson-image">
+                <img
+                  [src]="lesson.thumbnail"
+                  [alt]="getTitle(lesson)"
+                  class="lesson-thumbnail"
+                  loading="lazy"
+                />
               </div>
+              <div class="lesson-title">{{ getTitle(lesson) }}</div>
             </div>
           </div>
         </div>
-        <button
-          class="carousel-btn next"
-          (click)="nextSlide()"
-          [attr.aria-label]="'Next slide'"
-        >
-          <img src="./assets/svg/slide-right.svg" alt="Next slide" />
-        </button>
-      </div>
-      
-      <!-- Pagination dots for mobile -->
-      <div class="carousel-dots d-flex justify-content-center mt-3">
-        <div 
-          *ngFor="let lesson of websiteLessons; let i = index" 
-          class="carousel-dot" 
-          [class.active]="isActiveSlide(i)"
-          (click)="selectSlide(i)">
-        </div>
+        <div class="swiper-pagination"></div>
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div>
       </div>
     </div>
   </div>
