@@ -104,6 +104,9 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   filesLoaded: boolean = false;
   loadingInProgress: boolean = false;
 
+  // Add a property to store the swiper instance
+  private lessonsSwiper: any = null;
+
   constructor(
     private navService: ToggleNavVisibilityService,
     private crudService: CrudService,
@@ -134,8 +137,13 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     // Initialize Swiper for lessons carousel
     const lessonsSwiperConfig = {
       slidesPerView: 'auto',
-      centeredSlides: true,
-      spaceBetween: 20,
+      centeredSlides: window.innerWidth <= 768, // Center slides on mobile
+      spaceBetween: window.innerWidth <= 576 ? 10 : window.innerWidth <= 768 ? 20 : 30,
+      initialSlide: this.websiteLessons.length > 0 
+        ? Math.floor(this.websiteLessons.length / 2) 
+        : 0, // Start with middle slide
+      grabCursor: true,
+      speed: 600,
       pagination: {
         el: '.swiper-pagination',
         clickable: true,
@@ -146,29 +154,54 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       },
       breakpoints: {
         320: {
-          slidesPerView: 1.5,
+          slidesPerView: 'auto',
+          centeredSlides: true,
           spaceBetween: 10,
         },
-        480: {
-          slidesPerView: 2.5,
+        576: {
+          slidesPerView: 'auto',
+          centeredSlides: true,
           spaceBetween: 15,
         },
         768: {
-          slidesPerView: 3.5,
+          slidesPerView: 'auto',
+          centeredSlides: true,
           spaceBetween: 20,
+        },
+        992: {
+          slidesPerView: 'auto',
+          centeredSlides: true,
+          spaceBetween: 25,
         }
       },
       on: {
+        init: function(this: any) {
+          // Force centering on init for mobile
+          if (window.innerWidth <= 768) {
+            const centerIndex = Math.floor(document.querySelectorAll('.lessonsSwiper .swiper-slide').length / 2);
+            this.slideTo(centerIndex, 0, false);
+          }
+          
+          document.querySelector('.lessonsSwiper')?.classList.add('swiper-initialized');
+        },
         slideChange: (swiper: any) => {
+          // Setup slide selection handling
           if (this.websiteLessons && this.websiteLessons.length > 0) {
             this.selectSlide(swiper.activeIndex);
+          }
+        },
+        resize: function(this: any) {
+          // Re-center on resize for mobile
+          if (window.innerWidth <= 768) {
+            const centerIndex = Math.floor(document.querySelectorAll('.lessonsSwiper .swiper-slide').length / 2);
+            this.slideTo(centerIndex, 300, false);
           }
         }
       }
     };
     
     setTimeout(() => {
-      this.swiperService.initializeSwiper('.lessonsSwiper', lessonsSwiperConfig);
+      this.lessonsSwiper = this.swiperService.initializeSwiper('.lessonsSwiper', lessonsSwiperConfig);
     }, 100);
     
     // Also listen to window resize events
@@ -1163,7 +1196,27 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private handleResize() {
-    // Method kept for window resize event
-    // No need to update slide positions as Swiper handles this automatically
+    // Update swiper on resize to ensure proper layout
+    if (this.lessonsSwiper) {
+      this.lessonsSwiper.update();
+      
+      // Center slides on mobile devices
+      if (window.innerWidth <= 768 && this.websiteLessons.length > 0) {
+        // Ensure proper centering on resize
+        setTimeout(() => {
+          // Set centered slides mode for mobile
+          this.lessonsSwiper.params.centeredSlides = true;
+          this.lessonsSwiper.update();
+          
+          // Calculate center index and slide to it
+          const centerIndex = Math.floor(this.websiteLessons.length / 2);
+          this.lessonsSwiper.slideTo(centerIndex, 300, false);
+        }, 100);
+      } else if (window.innerWidth > 768) {
+        // Disable centered slides on larger screens if needed
+        // this.lessonsSwiper.params.centeredSlides = false;
+        // this.lessonsSwiper.update();
+      }
+    }
   }
 }

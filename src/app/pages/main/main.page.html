@@ -115,9 +115,8 @@
             <div 
               *ngFor="let item of websiteLessons; let i = index"
               class="swiper-slide"
-              [routerLink]="['/pages/lessons', item.id]"
             >
-              <div class="media-item">
+              <div class="media-item" [routerLink]="['/pages/lessons', item.id]">
                 <div class="lesson-image">
                   <img
                     [src]="item?.thumbnail"

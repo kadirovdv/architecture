@@ -3,8 +3,8 @@ $carousel-padding: 20px;
 $slide-width: 200px;
 $active-slide-width: 220px;
 $slide-gap: 30px;
-$transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
-$transition-duration: 0.5s;
+$transition-timing: cubic-bezier(0.25, 0.1, 0.25, 1.0);
+$transition-duration: 0.6s;
 $shadow-color: rgba(0, 0, 0, 0.1);
 $active-shadow-color: rgba(0, 0, 0, 0.2);
 $primary-color: #642e20;
@@ -314,8 +314,47 @@ $text-color: #333;
 .lessonsSwiper {
   width: 100%;
   padding-top: 50px;
-  padding-bottom: 50px;
+  padding-bottom: 70px;
   position: relative;
+  
+  // Improve transition smoothing
+  .swiper-wrapper {
+    transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1.0) !important;
+    transition-duration: 0.6s !important;
+    padding-bottom: 40px;
+    padding-left: 30px;
+    padding-right: 30px;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  // Ensure center alignment on initialization
+  &:not(.swiper-initialized) {
+    .swiper-wrapper {
+      display: flex;
+      justify-content: center;
+    }
+  }
+  
+  // Ensure smooth transitions when alignment changes
+  &.transition-active {
+    .swiper-wrapper {
+      transition: transform 0.6s cubic-bezier(0.25, 0.1, 0.25, 1.0) !important;
+    }
+  }
+  
+  // Force equal spacing by ensuring the transform is calculated properly
+  .swiper-slide-active {
+    transition: all 0.6s cubic-bezier(0.25, 0.1, 0.25, 1.0) !important;
+    left: 0 !important;
+    right: 0 !important;
+    
+    .media-item {
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      opacity: 1;
+      transition: all 0.6s cubic-bezier(0.25, 0.1, 0.25, 1.0);
+    }
+  }
   
   &::after {
     content: "";
@@ -332,153 +371,165 @@ $text-color: #333;
   
   .swiper-slide {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    width: auto;
-    transition: all 0.3s ease;
+    width: 260px !important;
+    height: auto;
+    transition: all 0.6s cubic-bezier(0.25, 0.1, 0.25, 1.0);
+    position: relative;
+    padding-bottom: 40px;
+    margin-left: 25px;
+    margin-right: 25px;
     
     &-active {
-      transform: scale(1.05);
+      transform: scale(1.3);
+      z-index: 5;
+      margin-left: 50px !important;
+      margin-right: 50px !important;
+      transition: all 0.6s cubic-bezier(0.25, 0.1, 0.25, 1.0) !important;
     }
     
     .media-item {
       width: 100%;
       flex-shrink: 0;
       cursor: pointer;
-      margin: 0 10px;
-      padding-bottom: 20px;
+      margin: 0;
+      padding: 0;
       height: auto;
-      opacity: 0.7;
-      max-width: 280px;
-      transition: all 0.3s ease;
+      opacity: 0.9;
+      max-width: 100%;
+      transition: all 0.6s cubic-bezier(0.25, 0.1, 0.25, 1.0);
       border-radius: 8px;
       overflow: hidden;
+      background-color: #fff;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
       
       &:hover {
         opacity: 1;
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
       }
       
       .lesson-image {
         width: 100%;
-        height: 120px;
-        border-radius: 10px;
-        margin-bottom: 10px;
-        box-shadow: none;
-        border-radius: 10px;
+        height: 180px;
+        border-radius: 8px 8px 0 0;
+        margin-bottom: 0;
         overflow: hidden;
+        transition: all 0.6s cubic-bezier(0.25, 0.1, 0.25, 1.0);
       }
       
       .lesson-thumbnail {
         width: 100%;
-        height: 120px;
+        height: 100%;
         object-fit: cover;
+        transition: all 0.6s cubic-bezier(0.25, 0.1, 0.25, 1.0);
       }
       
       .lesson-title {
         font-size: 14px;
-        font-weight: 500;
-        color: $text-color;
-        margin-top: 6px;
+        font-weight: 700;
+        color: $primary-color;
+        margin-top: 0;
+        padding: 15px 10px;
         text-align: center;
         width: 100%;
-        color: $primary-color;
-        text-shadow: none;
         font-family: "Judson";
+        transition: all 0.6s cubic-bezier(0.25, 0.1, 0.25, 1.0);
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: rgba(255, 223, 174, 0.3);
       }
     }
   }
   
   .swiper-slide-active .media-item {
     opacity: 1;
-    transform: scale(1.05);
-    
-    .lesson-image {
-      height: 140px;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    }
-    
-    .lesson-thumbnail {
-      height: 140px;
-    }
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    transition: all 0.6s cubic-bezier(0.25, 0.1, 0.25, 1.0);
   }
   
   .swiper-button-next,
   .swiper-button-prev {
-    color: #642e20;
+    color: $primary-color;
     background-color: #fff;
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    top: 45%;
     
     &::after {
-      font-size: 14px;
+      font-size: 18px;
     }
   }
   
+  .swiper-pagination {
+    bottom: 10px;
+  }
+  
   .swiper-pagination-bullet {
-    background-color: #642e20;
+    background-color: $primary-color;
   }
 }
 
 @media screen and (max-width: 768px) {
   .lessonsSwiper {
-    padding-top: 30px;
-    padding-bottom: 40px;
+    .swiper-wrapper {
+      justify-content: center !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
     
     .swiper-slide {
-      .media-item {
-        max-width: 200px;
-        
-        .lesson-image,
-        .lesson-thumbnail {
-          height: 110px;
-        }
+      width: 220px !important;
+      margin-left: 10px !important;
+      margin-right: 10px !important;
+      
+      &-active {
+        transform: scale(1.15);
+        margin-left: 20px !important;
+        margin-right: 20px !important;
       }
       
-      &-active .media-item {
-        .lesson-image,
-        .lesson-thumbnail {
-          height: 130px;
+      .media-item {
+        .lesson-image {
+          height: 150px;
         }
       }
     }
   }
 }
 
-@media screen and (max-width: 500px) {
+@media screen and (max-width: 576px) {
   .lessonsSwiper {
-    padding-top: 20px;
-    padding-bottom: 30px;
+    .swiper-wrapper {
+      justify-content: center !important;
+    }
     
     .swiper-slide {
+      width: 180px !important;
+      margin-left: 5px !important;
+      margin-right: 5px !important;
+      
+      &-active {
+        transform: scale(1.1);
+        margin-left: 10px !important;
+        margin-right: 10px !important;
+      }
+      
       .media-item {
-        max-width: 160px;
-        
-        .lesson-image,
-        .lesson-thumbnail {
-          height: 90px;
+        .lesson-image {
+          height: 120px;
         }
         
         .lesson-title {
           font-size: 12px;
+          padding: 10px 5px;
         }
-      }
-      
-      &-active .media-item {
-        .lesson-image,
-        .lesson-thumbnail {
-          height: 110px;
-        }
-      }
-    }
-    
-    .swiper-button-next,
-    .swiper-button-prev {
-      width: 25px;
-      height: 25px;
-      
-      &::after {
-        font-size: 12px;
       }
     }
   }

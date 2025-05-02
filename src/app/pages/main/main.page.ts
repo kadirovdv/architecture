@@ -51,6 +51,9 @@ export class MainPage {
 
   @ViewChild('carousel') carousel!: ElementRef;
 
+  // Add a property to store the swiper instance
+  private lessonsSwiper: any = null;
+
   constructor(
     private swiperService: SwiperService,
     private navService: ToggleNavVisibilityService,
@@ -100,11 +103,15 @@ export class MainPage {
     };
     this.swiperService.initializeSwiper('.mySwiper', swiperConfig);
     
-    // Lessons carousel swiper config
+    // Lessons carousel swiper config - starting from left
     const lessonsSwiperConfig = {
       slidesPerView: 'auto',
-      centeredSlides: true,
-      spaceBetween: 20,
+      centeredSlides: false,
+      spaceBetween: 80,
+      slidesOffsetBefore: 50,
+      slidesOffsetAfter: 50,
+      normalizeSlideIndex: true,
+      watchSlidesProgress: true,
       pagination: {
         el: '.swiper-pagination',
         clickable: true,
@@ -115,23 +122,36 @@ export class MainPage {
       },
       breakpoints: {
         320: {
-          slidesPerView: 1.5,
-          spaceBetween: 10,
+          slidesPerView: 'auto',
+          spaceBetween: 70,
         },
         480: {
-          slidesPerView: 2.5,
-          spaceBetween: 15,
+          slidesPerView: 'auto',
+          spaceBetween: 75,
         },
         768: {
-          slidesPerView: 3.5,
-          spaceBetween: 20,
+          slidesPerView: 'auto',
+          spaceBetween: 80,
+        }
+      },
+      on: {
+        slideChange: (swiper: any) => {
+          // Use the helper method to update alignment
+          this.swiperService.updateSwiperAlignment(swiper, 0.25);
+        },
+        init: (swiper: any) => {
+          // Force update layout after initialization
+          setTimeout(() => {
+            swiper.updateSize();
+            swiper.updateSlides();
+          }, 100);
         }
       }
     };
     
     // Initialize the lessons swiper after a short delay to ensure DOM is ready
     setTimeout(() => {
-      this.swiperService.initializeSwiper('.lessonsSwiper', lessonsSwiperConfig);
+      this.lessonsSwiper = this.swiperService.initializeSwiper('.lessonsSwiper', lessonsSwiperConfig);
     }, 100);
   }
 
@@ -141,7 +161,10 @@ export class MainPage {
   }
 
   private handleResize() {
-    // This method is now empty as the lessonsCarousel-related variables and methods have been removed
+    // Update swiper on resize to ensure proper layout
+    if (this.lessonsSwiper) {
+      this.lessonsSwiper.update();
+    }
   }
 
   getData() {
