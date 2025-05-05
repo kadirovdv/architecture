@@ -137,13 +137,9 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     // Initialize Swiper for lessons carousel
     const lessonsSwiperConfig = {
       slidesPerView: 'auto',
-      centeredSlides: window.innerWidth <= 768, // Center slides on mobile
-      spaceBetween: window.innerWidth <= 576 ? 10 : window.innerWidth <= 768 ? 20 : 30,
-      initialSlide: this.websiteLessons.length > 0 
-        ? Math.floor(this.websiteLessons.length / 2) 
-        : 0, // Start with middle slide
-      grabCursor: true,
-      speed: 600,
+      centeredSlides: false,
+      spaceBetween: 20,
+      slidesOffsetBefore: 20, // Add space at beginning
       pagination: {
         el: '.swiper-pagination',
         clickable: true,
@@ -155,47 +151,26 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       breakpoints: {
         320: {
           slidesPerView: 'auto',
-          centeredSlides: true,
-          spaceBetween: 10,
+          spaceBetween: 20,
         },
-        576: {
+        480: {
           slidesPerView: 'auto',
-          centeredSlides: true,
-          spaceBetween: 15,
+          spaceBetween: 20,
         },
         768: {
           slidesPerView: 'auto',
-          centeredSlides: true,
           spaceBetween: 20,
-        },
-        992: {
-          slidesPerView: 'auto',
-          centeredSlides: true,
-          spaceBetween: 25,
         }
       },
       on: {
-        init: function(this: any) {
-          // Force centering on init for mobile
-          if (window.innerWidth <= 768) {
-            const centerIndex = Math.floor(document.querySelectorAll('.lessonsSwiper .swiper-slide').length / 2);
-            this.slideTo(centerIndex, 0, false);
-          }
-          
-          document.querySelector('.lessonsSwiper')?.classList.add('swiper-initialized');
-        },
         slideChange: (swiper: any) => {
           // Setup slide selection handling
           if (this.websiteLessons && this.websiteLessons.length > 0) {
             this.selectSlide(swiper.activeIndex);
           }
-        },
-        resize: function(this: any) {
-          // Re-center on resize for mobile
-          if (window.innerWidth <= 768) {
-            const centerIndex = Math.floor(document.querySelectorAll('.lessonsSwiper .swiper-slide').length / 2);
-            this.slideTo(centerIndex, 300, false);
-          }
+          
+          // Use the helper method to update alignment
+          this.swiperService.updateSwiperAlignment(swiper, 0.25);
         }
       }
     };
@@ -1199,24 +1174,6 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     // Update swiper on resize to ensure proper layout
     if (this.lessonsSwiper) {
       this.lessonsSwiper.update();
-      
-      // Center slides on mobile devices
-      if (window.innerWidth <= 768 && this.websiteLessons.length > 0) {
-        // Ensure proper centering on resize
-        setTimeout(() => {
-          // Set centered slides mode for mobile
-          this.lessonsSwiper.params.centeredSlides = true;
-          this.lessonsSwiper.update();
-          
-          // Calculate center index and slide to it
-          const centerIndex = Math.floor(this.websiteLessons.length / 2);
-          this.lessonsSwiper.slideTo(centerIndex, 300, false);
-        }, 100);
-      } else if (window.innerWidth > 768) {
-        // Disable centered slides on larger screens if needed
-        // this.lessonsSwiper.params.centeredSlides = false;
-        // this.lessonsSwiper.update();
-      }
     }
   }
 }

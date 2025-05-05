@@ -324,16 +324,8 @@ $text-color: #333;
     padding-bottom: 40px;
     padding-left: 30px;
     padding-right: 30px;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
-  }
-  
-  // Ensure center alignment on initialization
-  &:not(.swiper-initialized) {
-    .swiper-wrapper {
-      display: flex;
-      justify-content: center;
-    }
   }
   
   // Ensure smooth transitions when alignment changes
@@ -478,22 +470,8 @@ $text-color: #333;
 
 @media screen and (max-width: 768px) {
   .lessonsSwiper {
-    .swiper-wrapper {
-      justify-content: center !important;
-      padding-left: 0 !important;
-      padding-right: 0 !important;
-    }
-    
     .swiper-slide {
       width: 220px !important;
-      margin-left: 10px !important;
-      margin-right: 10px !important;
-      
-      &-active {
-        transform: scale(1.15);
-        margin-left: 20px !important;
-        margin-right: 20px !important;
-      }
       
       .media-item {
         .lesson-image {
@@ -506,20 +484,8 @@ $text-color: #333;
 
 @media screen and (max-width: 576px) {
   .lessonsSwiper {
-    .swiper-wrapper {
-      justify-content: center !important;
-    }
-    
     .swiper-slide {
       width: 180px !important;
-      margin-left: 5px !important;
-      margin-right: 5px !important;
-      
-      &-active {
-        transform: scale(1.1);
-        margin-left: 10px !important;
-        margin-right: 10px !important;
-      }
       
       .media-item {
         .lesson-image {
