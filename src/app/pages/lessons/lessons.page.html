@@ -5,10 +5,10 @@
         <h1>{{ selectedLesson ? getTitle(selectedLesson) : '' }}</h1>
         <h3>Grafik topshiriq sahifasi</h3>
       </div>
-      
+
       <div class="swiper lessonsSwiper">
         <div class="swiper-wrapper">
-          <div 
+          <div
             *ngFor="let lesson of websiteLessons; let i = index"
             class="swiper-slide"
             (click)="selectSlide(i)"
@@ -32,27 +32,48 @@
       </div>
     </div>
   </div>
-  <div class="container">
+  <div class="container file-selection-container">
     <div class="row">
       <div class="col-md-8">
-        <div class="file-content" [ngStyle]="{'height': selectedFiles.secondBasedFiles.taskLiteratureFiles?.[lang]?.length ? 'calc(100% - 100px)' : 'calc(100% - 100px)'}">
+        <div
+          class="file-content"
+          [ngStyle]="{'height': selectedFiles.secondBasedFiles.taskLiteratureFiles?.[lang]?.length ? 'calc(100% - 100px)' : 'calc(100% - 100px)'}"
+        >
           <h3>{{ getSelectedFilesTitle() }}</h3>
-          
+
           <!-- File selection dropdown for multiple files -->
-          <div *ngIf="hasMultipleFiles()" class="file-selector-dropdown mb-3 position-relative">
-            <div class="current-file d-flex align-items-center justify-content-between p-2 border rounded" 
-                 (click)="toggleFileDropdown($event)">
+          <div
+            *ngIf="hasMultipleFiles()"
+            class="file-selector-dropdown mb-3 position-relative"
+          >
+            <div
+              class="current-file d-flex align-items-center justify-content-between p-2 border rounded"
+              (click)="toggleFileDropdown($event)"
+            >
               <span>{{ getCurrentFileName() || 'Select file' }}</span>
-              <span class="badge bg-primary rounded-pill ms-2">{{ currentSelectedFileIndex + 1 }}/{{ getFileCount() }}</span>
-              <i class="fas" [class.fa-chevron-down]="!showFileDropdown" [class.fa-chevron-up]="showFileDropdown"></i>
+              <span class="badge bg-primary rounded-pill ms-2"
+                >{{ currentSelectedFileIndex + 1 }}/{{ getFileCount() }}</span
+              >
+              <i
+                class="fas"
+                [class.fa-chevron-down]="!showFileDropdown"
+                [class.fa-chevron-up]="showFileDropdown"
+              ></i>
             </div>
-            
-            <div *ngIf="showFileDropdown" class="file-dropdown-menu position-absolute w-100 border rounded mt-1 bg-white shadow-sm">
-              <div *ngFor="let file of getAllFilesForCurrentType(); let i = index" 
-                   class="dropdown-item p-2" 
-                   [class.active]="i === currentSelectedFileIndex"
-                   (click)="selectFile($event, i)">
-                <ng-container *ngIf="currentFileType === 'taskVideoUrls'; else regularFile">
+
+            <div
+              *ngIf="showFileDropdown"
+              class="file-dropdown-menu position-absolute w-100 border rounded mt-1 bg-white shadow-sm"
+            >
+              <div
+                *ngFor="let file of getAllFilesForCurrentType(); let i = index"
+                class="dropdown-item p-2"
+                [class.active]="i === currentSelectedFileIndex"
+                (click)="selectFile($event, i)"
+              >
+                <ng-container
+                  *ngIf="currentFileType === 'taskVideoUrls'; else regularFile"
+                >
                   {{ getVideoName(file) }}
                 </ng-container>
                 <ng-template #regularFile>
@@ -61,7 +82,7 @@
               </div>
             </div>
           </div>
-          
+
           <div class="file-content-body">
             <div *ngIf="isLoadingFile" class="skeleton-loader"></div>
             <!-- First Based Files -->
@@ -396,6 +417,7 @@
                   topshiriqni tanlang....' }}
                 </h5>
               </div>
+              <div class="chevron-down"></div>
 
               <!-- Tasks Modal -->
               <div
@@ -403,6 +425,11 @@
                 class="tasks-modal"
                 (click)="$event.stopPropagation()"
               >
+                <div class="modal-header d-md-none">
+                  <h4 class="modal-title">Grafik topshiriqni tanlang</h4>
+                  <button class="close-btn" (click)="toggleTaskModal($event)"></button>
+                </div>
+                
                 <ul class="task-list">
                   <li
                     *ngFor="let task of selectedLesson?.tasks || []; let i = index"
@@ -568,6 +595,211 @@
         </div>
       </div>
     </div>
+
+    <div class="file-selection file-selection-mobile">
+      <div class="file-selection-wrapper">
+        <div>
+          <div class="file-selection-card">
+            <div
+              class="file-selection-card-item file-selection-card-item-borderfull"
+              (click)="toggleTaskModal($event)"
+              style="position: relative"
+            >
+              <div class="file-selection-card-title">
+                <h5>
+                  {{ selectedTaskId ? getSelectedTaskTitle() : 'Grafik
+                  topshiriqni tanlang....' }}
+                </h5>
+              </div>
+              <div class="chevron-down"></div>
+
+              <!-- Tasks Modal -->
+              <div
+                *ngIf="isTaskModalVisible && selectedLesson?.tasks?.length"
+                class="tasks-modal"
+                (click)="$event.stopPropagation()"
+              >
+                <!-- Modal header for mobile - will be styled to only show on mobile -->
+                <div class="modal-header d-md-none">
+                  <h4 class="modal-title">Grafik topshiriqni tanlang</h4>
+                  <button class="close-btn" (click)="toggleTaskModal($event)"></button>
+                </div>
+                
+                <ul class="task-list">
+                  <li
+                    *ngFor="let task of selectedLesson?.tasks || []; let i = index"
+                    class="task-item"
+                    [class.active]="isTaskSelected(task)"
+                    (click)="selectTask($event, task)"
+                  >
+                    <span class="task-number">{{ i + 1 }}</span>
+                    <div class="task-info">
+                      <div class="task-title">{{ getTaskTitle(task, i) }}</div>
+                      <div class="task-id" *ngIf="task.id">
+                        ID: {{ task.id }}
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="file-selection-card">
+            <div
+              class="file-selection-card-item file-selection-card-item-wrap"
+              [class.active]="selectedFiles.firstBasedFiles.taskExampleFiles && selectedFiles.firstBasedFiles.taskExampleFiles[lang]?.length"
+              (click)="setLessonFiles('firstBasedFiles', 'taskExampleFiles')"
+            >
+              <div class="file-selection-card-img">
+                <img src="/assets/img/file-selection-1.png" alt="Lesson 1" />
+              </div>
+              <div class="file-selection-card-title">
+                <h5>Grafik topshiriq variantlari</h5>
+              </div>
+            </div>
+            <div
+              class="file-selection-card-item file-selection-card-item-wrap"
+              [class.active]="selectedFiles.firstBasedFiles.taskSolutionFiles && selectedFiles.firstBasedFiles.taskSolutionFiles[lang]?.length"
+              (click)="setLessonFiles('firstBasedFiles', 'taskSolutionFiles')"
+            >
+              <div class="file-selection-card-img">
+                <img src="/assets/img/file-selection-2.png" alt="Lesson 1" />
+              </div>
+              <div class="file-selection-card-title">
+                <h5>Grafik topshiriq yechimi namunasi</h5>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="file-selection-card file-selection-card-bigger">
+            <div
+              class="file-selection-card-item"
+              (click)="setLessonFiles('secondBasedFiles', 'taskTitleFiles')"
+              [class.active]="selectedFiles.secondBasedFiles.taskTitleFiles && selectedFiles.secondBasedFiles.taskTitleFiles[lang]?.length"
+            >
+              <div class="file-selection-card-title">
+                <h5>Ma'ruza matni</h5>
+              </div>
+            </div>
+            <div
+              class="file-selection-card-item"
+              (click)="setLessonFiles('secondBasedFiles', 'taskPresentationFiles')"
+              [class.active]="selectedFiles.secondBasedFiles.taskPresentationFiles && selectedFiles.secondBasedFiles.taskPresentationFiles[lang]?.length"
+            >
+              <div class="file-selection-card-title">
+                <h5>Prezentasiya</h5>
+              </div>
+            </div>
+            <div
+              class="file-selection-card-item"
+              (click)="setLessonFiles('secondBasedFiles', 'taskVideoUrls')"
+              [class.active]="selectedFiles.secondBasedFiles.taskVideoUrls?.length"
+            >
+              <div class="file-selection-card-title">
+                <h5>Video material</h5>
+              </div>
+            </div>
+          </div>
+          <div class="file-selection-card">
+            <div
+              class="file-selection-card-item file-selection-card-item-borderfull flex-column align-items-stretch"
+              (click)="toggleLiteratureDropdown($event)"
+              style="position: relative"
+              [class.active]="isLiteratureDropdownVisible"
+              [class.clickable]="isLiteratureDropdownVisible"
+            >
+              <div class="file-selectrion-card-img">
+                <img src="/assets/img/file-selection-3.png" alt="" />
+              </div>
+              <div
+                class="d-flex mt-3 justify-content-between align-items-center"
+                (click)="toggleLiteratureDropdown($event)"
+              >
+                <div class="file-selection-card-img me-0 ms-2">
+                  <img
+                    src="./assets/svg/slide-left.svg"
+                    [class.rotate-180]="isLiteratureDropdownVisible"
+                    width="20px"
+                    alt="Toggle literature"
+                  />
+                </div>
+                <div class="file-selection-card-title w-100">
+                  <h5 class="text-center">Adabiyotlar</h5>
+                </div>
+              </div>
+
+              <!-- Literature Files Dropdown -->
+              <div
+                *ngIf="isLiteratureDropdownVisible"
+                class="literature-dropdown"
+                (click)="$event.stopPropagation()"
+              >
+                <div class="literature-list">
+                  <div
+                    *ngFor="let file of selectedFiles?.secondBasedFiles?.taskLiteratureFiles?.[lang]"
+                    class="literature-item"
+                  >
+                    <div class="d-flex align-items-center">
+                      <img
+                        src="./assets/img/pdf.png"
+                        alt="PDF"
+                        class="me-2"
+                        style="width: 20px"
+                      />
+                      <span class="file-name"
+                        >{{ file.name || 'Literature file' }}</span
+                      >
+                      <div class="ms-auto">
+                        <span class="file-size"
+                          >{{ formatFileSize(file.size) || '2.2 MB' }}</span
+                        >
+                        <button
+                          class="view-button"
+                          (click)="openInNewTab($event, file.path)"
+                          (mousedown)="$event.stopPropagation()"
+                        >
+                          <i class="fas fa-eye"></i>
+                        </button>
+                        <button
+                          class="download-button"
+                          (click)="downloadFile($event, file.path)"
+                          (mousedown)="$event.stopPropagation()"
+                        >
+                          <i class="fas fa-download"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="literature-item text-center"
+                    *ngIf="!selectedFiles?.secondBasedFiles?.taskLiteratureFiles?.[lang]?.length"
+                  >
+                    <p class="mb-0">No literature files available</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- <div class="lesson-footer-buttons d-flex d-md-none">
+      <button
+        class="download-button-wrapper"
+        (click)="downloadFile($event, getCurrentFileUrl())"
+        [disabled]="!getCurrentFileUrl()"
+        [class.disabled]="!getCurrentFileUrl()"
+      >
+        <div class="download-button">
+          Faylni yuklash olish
+        </div>
+      </button>
+      <button class="back-button" routerLink="/">
+        Bosh sahifaga qaytish
+      </button>
+    </div> -->
   </div>
 </div>
 <app-footer></app-footer>

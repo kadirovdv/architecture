@@ -27,6 +27,24 @@
         color: #ffffff;
       }
     }
+    
+    @media (max-width: 768px) {
+      background-position: center;
+      padding: 0;
+      
+      &-title {
+        width: 100%;
+        padding: 60px 15px 10px;
+        
+        h1 {
+          font-size: 22px;
+          margin-bottom: 5px;
+        }
+        h3 {
+          font-size: 16px;
+        }
+      }
+    }
   }
   min-height: 100vh;
   .file-content {
@@ -108,6 +126,9 @@
 
   .file-selection {
     width: 100%;
+    &:is(.file-selection-mobile) {
+      display: none;
+    }
     &-card {
       width: 100%;
       background-color: #ffdfae;
@@ -259,6 +280,213 @@
           }
         }
       }
+    }
+  }
+
+  // Mobile-specific styles for the carousel section
+  @media (max-width: 768px) {
+    .swiper {
+      padding: 20px 0 50px;
+      margin-top: 10px;
+      
+      .swiper-slide {
+        width: 140px !important;
+        padding-bottom: 20px;
+        
+        .media-item {
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+          
+          .lesson-image {
+            height: 100px;
+          }
+          
+          .lesson-title {
+            font-size: 12px;
+            padding: 8px 5px;
+          }
+        }
+        
+        &-active {
+          transform: scale(1.15);
+          margin-left: 20px !important;
+          margin-right: 20px !important;
+        }
+      }
+      
+      .swiper-button-next,
+      .swiper-button-prev {
+        width: 30px;
+        height: 30px;
+        
+        &::after {
+          font-size: 14px;
+        }
+      }
+    }
+    
+    .file-selection {
+      margin-top: 20px;
+      
+      &-card {
+        padding: 10px;
+        margin-bottom: 15px;
+        
+        &-item {
+          padding: 8px 15px;
+          margin-bottom: 10px;
+          
+          h5 {
+            font-size: 16px;
+            text-align: center;
+          }
+          
+          &-borderfull {
+            .file-selection-card-img {
+              margin-right: 15px;
+              
+              img {
+                max-width: 24px;
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    .file-content {
+      padding: 10px;
+      margin-bottom: 15px;
+      
+      h3 {
+        font-size: 16px;
+        margin-bottom: 10px;
+      }
+    }
+    
+    // Footer button styling
+    .lesson-footer-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+      margin-bottom: 15px;
+      
+      .btn {
+        width: 48%;
+        font-size: 14px;
+        padding: 10px;
+        background-color: #fff;
+        border: none;
+        border-radius: 5px;
+        color: #642e20;
+        font-weight: 500;
+        text-align: center;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+    }
+  }
+
+  // Additional mobile styles for category cards from the image
+  @media (max-width: 768px) {
+    .category-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin: 15px 0;
+      
+      .category-card {
+        background-color: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        
+        &-image {
+          width: 60px;
+          height: 60px;
+          margin-right: 15px;
+          flex-shrink: 0;
+          
+          img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 4px;
+          }
+        }
+        
+        &-title {
+          font-family: "Ramaraja";
+          font-size: 16px;
+          color: #642e20;
+          font-weight: normal;
+        }
+      }
+    }
+    
+    .section-title {
+      font-family: "Ramaraja";
+      font-size: 18px;
+      color: #642e20;
+      margin: 20px 0 10px;
+      text-align: center;
+    }
+    
+    .materials-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 15px 0;
+      
+      .material-btn {
+        background-color: #fff;
+        border-radius: 8px;
+        padding: 12px;
+        text-align: center;
+        font-family: "Ramaraja";
+        color: #642e20;
+        font-size: 16px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+    }
+    
+    .literature-section {
+      margin: 20px 0;
+      
+      .literature-header {
+        display: flex;
+        align-items: center;
+        background-color: #fff;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        
+        &-title {
+          font-family: "Ramaraja";
+          color: #642e20;
+          font-size: 16px;
+          margin-left: 10px;
+        }
+        
+        &-icon {
+          width: 24px;
+          height: 24px;
+        }
+      }
+    }
+    
+    .circular-diagram {
+      background-color: #fff;
+      border-radius: 8px;
+      padding: 10px;
+      margin: 15px 0;
+      min-height: 250px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
   }
 }
@@ -605,3 +833,360 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 }
+
+// Mobile layout adjustments - refined to match the image exactly
+@media (max-width: 768px) {
+  .file-selection-container {
+    display: flex;
+    flex-direction: column-reverse;
+  }
+  .file-selection:not(.file-selection-mobile) {
+    display: none;
+  }
+
+  .file-selection-mobile {
+    display: flex !important;
+    .file-selection-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      width: 100%;
+      
+      .file-selection-card {
+        width: 100%;
+        &:last-child {
+          grid-column: 1 / 3;
+        }
+        
+        &-item {
+          width: 100%;
+          min-width: 0;
+          background-color: #fff;
+          border-radius: 8px;
+          padding: 12px;
+          margin-bottom: 10px;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+          display: flex;
+          align-items: center;
+          
+          &:last-child {
+            margin-bottom: 0;
+          }
+          
+          .file-selection-card-img, .file-selectrion-card-img {
+            margin-right: 15px;
+            margin-bottom: 0px;
+            flex-shrink: 0;
+            
+            img {
+              max-width: 45px;
+              max-height: 45px;
+              object-fit: cover;
+            }
+          }
+          
+          .file-selection-card-title {
+            min-width: 0;
+            flex: 1;
+            
+            h5 {
+              font-family: "Ramaraja";
+              font-size: 16px;
+              margin: 0;
+              color: #642e20;
+              font-weight: normal;
+              word-wrap: break-word;
+              white-space: normal;
+              overflow-wrap: break-word;
+              hyphens: auto;
+            }
+          }
+          
+          &.active {
+            background-color: rgba(196, 151, 151, 0.75);
+            
+            h5 {
+              color: #fff;
+            }
+          }
+        }
+      }
+    }
+    
+    .file-selection-wrapper > div:first-child > .file-selection-card:last-child {
+      .file-selection-card-item {
+        justify-content: space-between;
+        
+        .file-selection-card-title {
+          white-space: break-spaces;
+        }
+      }
+    }
+    
+    .file-selection-card:last-child {
+      .file-selection-card-item {
+        background-color: #fff;
+        padding: 15px;
+      }
+    }
+  }
+  
+  .lessons {
+    .container {
+      padding-left: 15px;
+      padding-right: 15px;
+    }
+    
+    .row {
+      flex-direction: column;
+      
+      .col-md-8, .col-md-4 {
+        width: 100%;
+        max-width: 100%;
+        flex: 0 0 100%;
+        padding: 0;
+      }
+    }
+    
+    // File content styling
+    .file-content {
+      min-height: auto;
+      margin-top: 15px;
+      margin-bottom: 15px;
+      background-color: rgba(255, 223, 174, 0.5);
+      
+      h3 {
+        font-size: 18px;
+        margin-bottom: 15px;
+        font-family: "Ramaraja";
+      }
+    }
+    
+    // Circle diagram (ma'ruza materiali section)
+    .circular-diagram-container {
+      background-color: rgba(255, 223, 174, 0.5);
+      border-radius: 10px;
+      padding: 15px;
+      margin: 15px 0 30px;
+      
+      h3 {
+        font-size: 18px;
+        font-family: "Ramaraja";
+        color: #642e20;
+        text-align: center;
+        margin-bottom: 15px;
+      }
+      
+      .circular-diagram {
+        background-color: #fff;
+        border-radius: 8px;
+        min-height: 250px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+    }
+    
+    // Footer buttons
+    .lesson-footer-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin: 0 0 30px;
+      
+      .download-button-wrapper {
+        width: 48% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: none !important;
+        border-radius: 8px;
+        overflow: hidden;
+        
+        .download-button {
+          width: 100%;
+          padding: 15px 10px;
+          font-size: 14px;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1) !important;
+          font-family: "Ramaraja";
+          border-radius: 8px;
+        }
+      }
+      
+      .back-button {
+        width: 48%;
+        padding: 15px 10px;
+        text-align: center;
+        background-color: #fff;
+        border-radius: 8px;
+        font-family: "Ramaraja";
+        font-size: 14px;
+        color: #642e20;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        border: none;
+        outline: none;
+      }
+    }
+  }
+
+  // Add mobile-specific styles for the tasks-modal
+  .tasks-modal {
+    position: fixed;
+    right: auto;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    z-index: 1050;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.15);
+    animation: slideUp 0.3s ease-out forwards !important;
+    transform-origin: bottom center;
+    background-color: #fff;
+    padding-top: 15px;
+    
+    // Add a visual handle at the top of the modal for dragging/swiping
+    &::before {
+      content: '';
+      display: block;
+      width: 50px;
+      height: 5px;
+      background-color: #ddd;
+      border-radius: 5px;
+      margin: 0 auto 15px;
+    }
+    
+    // Add modal header for title and close button
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px 15px;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 15px;
+      
+      .modal-title {
+        font-family: "Ramaraja";
+        font-size: 18px;
+        color: #642e20;
+        margin: 0;
+      }
+      
+      .close-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-color: #f5f5f5;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        cursor: pointer;
+        
+        &::before, &::after {
+          content: '';
+          position: absolute;
+          width: 16px;
+          height: 2px;
+          background-color: #642e20;
+        }
+        
+        &::before {
+          transform: rotate(45deg);
+        }
+        
+        &::after {
+          transform: rotate(-45deg);
+        }
+        
+        &:active {
+          background-color: #eee;
+        }
+      }
+    }
+    
+    .task-list {
+      max-height: 70vh;
+      overflow-y: auto;
+      padding: 0 20px 20px;
+      margin: 0;
+      list-style-type: none;
+      
+      .task-item {
+        margin-bottom: 12px;
+        padding: 15px;
+        border-radius: 8px;
+        background-color: #f9f9f9;
+        border: 1px solid #eee;
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+        
+        &.active {
+          background-color: rgba(196, 151, 151, 0.75);
+          
+          .task-title, .task-id {
+            color: #fff;
+          }
+          
+          .task-number {
+            background-color: #fff;
+            color: #642e20;
+          }
+        }
+        
+        .task-title {
+          font-family: "Ramaraja";
+          font-size: 16px;
+          color: #642e20;
+          margin-bottom: 3px;
+        }
+        
+        .task-id {
+          font-size: 12px;
+          color: #888;
+        }
+      }
+    }
+  }
+  
+  // Create slide-up animation instead of slide-in
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+// Fixing the chevron to work with breakable text
+.chevron-down {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+  flex-shrink: 0;
+  
+  &::before {
+    content: '';
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-right: 2px solid #8a8a8a;
+    border-bottom: 2px solid #8a8a8a;
+    transform: rotate(45deg);
+    opacity: 0.7;
+    margin: 0 auto;
+  }
+}
+

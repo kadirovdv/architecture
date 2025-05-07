@@ -470,22 +470,33 @@ $text-color: #333;
 
 @media screen and (max-width: 768px) {
   .lessonsSwiper {
-    .swiper-slide {
-      width: 220px !important;
-      
-      .media-item {
-        .lesson-image {
-          height: 150px;
-        }
-      }
+    padding-top: 20px;
+    padding-bottom: 50px;
+    
+    &::after {
+      min-height: 40%;
+      bottom: 30px;
+      border-radius: 3px;
     }
-  }
-}
-
-@media screen and (max-width: 576px) {
-  .lessonsSwiper {
+    
+    .swiper-wrapper {
+      padding-bottom: 20px;
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+    
     .swiper-slide {
-      width: 180px !important;
+      width: 130px !important;
+      margin-left: 15px !important;
+      margin-right: 15px !important;
+      padding-bottom: 20px;
+      
+      &-active {
+        transform: scale(1.15);
+        margin-left: 25px !important;
+        margin-right: 25px !important;
+        z-index: 10;
+      }
       
       .media-item {
         .lesson-image {
@@ -494,7 +505,48 @@ $text-color: #333;
         
         .lesson-title {
           font-size: 12px;
-          padding: 10px 5px;
+          padding: 8px 5px;
+          position: relative;
+          background-color: rgba(255, 223, 174, 0.3);
+        }
+      }
+    }
+    
+    .swiper-button-next,
+    .swiper-button-prev {
+      width: 30px;
+      height: 30px;
+      top: 40%;
+      
+      &::after {
+        font-size: 14px;
+      }
+    }
+    
+    .swiper-pagination {
+      bottom: 5px;
+      
+      .swiper-pagination-bullet {
+        width: 6px;
+        height: 6px;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 576px) {
+  .lessonsSwiper {
+    .swiper-slide {
+      width: 110px !important;
+      
+      .media-item {
+        .lesson-image {
+          height: 100px;
+        }
+        
+        .lesson-title {
+          font-size: 11px;
+          padding: 6px 3px;
         }
       }
     }
