@@ -1,7 +1,7 @@
 .carousel {
   position: relative;
   width: 100%;
-  height: 100vh;
+  height: 945px;
   margin: auto;
   padding-top: 60px;
   overflow: hidden;
@@ -107,6 +107,9 @@
   justify-content: space-around;
   align-items: center;
   margin: auto;
+  @media screen and (max-width: 575px) {
+    justify-content: space-between;
+  }
   &::after {
     content: "";
     position: absolute;
@@ -133,6 +136,26 @@
   justify-content: center;
   align-items: center;
   position: relative;
+  &:nth-child(2) {
+    @media screen and (max-width: 575px) {
+      left: -10px;
+    }
+  }
+  &:nth-child(2) p {
+    @media screen and (max-width: 575px) {
+      left: -20px;
+    }
+  }
+  &:nth-child(3) p {
+    @media screen and (max-width: 575px) {
+      left: -35px;
+    }
+  }
+  &:nth-child(3) {
+    @media screen and (max-width: 575px) {
+      left: -15px;
+    }
+  }
   &::after {
     content: "";
     position: absolute;
@@ -144,6 +167,25 @@
     margin: auto;
   }
 
+  p.hidden {
+    display: none;
+  }
+  p.show {
+    display: block;
+  }
+
+  @media screen and (max-width: 768px) {
+    p.hidden {
+      display: block !important;
+      bottom: -60px !important;
+    }
+    p.show {
+      position: absolute;
+      display: none !important;
+      bottom: 50px !important;
+    }
+  }
+
   &-body {
     display: flex;
     justify-content: center;
@@ -152,7 +194,6 @@
     padding: 5px;
     box-shadow: 0px 16px 32px rgba(12, 12, 13, 0.4);
     border-radius: 10px;
-
     img {
       width: 50px;
     }
@@ -215,7 +256,6 @@
   }
 }
 
-/* Styles for the lessons carousel (from lessons page) */
 .d-lg-none {
   .carousel {
     position: relative;
@@ -224,7 +264,7 @@
     margin: auto;
     padding: 20px;
     min-height: 300px;
-
+    height: 945px;
     &::after {
       content: "";
       display: block;
@@ -374,7 +414,7 @@
 
 @media screen and (max-width: 991px) {
   .carousel {
-    height: 800px;
+    height: 1050px;
   }
 
   .carousel-wrapper {
@@ -409,7 +449,6 @@
     }
   }
 
-  /* Responsive adjustments for lessons carousel */
   .d-lg-none .carousel {
     .media-item {
       width: 100%;
@@ -553,7 +592,7 @@
     height: 500px;
 
     &-wrapper {
-      padding: 0px 20px 20px 20px;
+      padding: 0px 0px 20px 0px;
 
       p,
       li {
@@ -568,7 +607,7 @@
   }
 
   .carousel-indicators {
-    width: 250px;
+    width: 100%;
 
     .carousel-indicator-item {
       width: 50px;
@@ -640,7 +679,6 @@
   .carousel-wrapper {
     position: relative;
     width: 100%;
-    overflow: hidden;
   }
   
   .slides-container {
