@@ -1,108 +1,336 @@
 <div class="privacy-container">
-  <h1>Privacy Policy for GrafikTopshiriqlar</h1>
-  <p><strong>Last updated:</strong> {{ updatedDate | date:'dd.MM.yyyy' }}</p>
-
-  <p>
-    This Privacy Policy explains how <strong>GrafikTopshiriqlar</strong> (“we”,
-    “us”, “our”) collects, uses, and protects personal information when you
-    visit our website
-    <a href="https://grafiktopshiriqlar.uz">https://grafiktopshiriqlar.uz</a>
-    (the “Site”) and use the services available through it (the “Service”).
-  </p>
-
-  <p>By using the Service, you agree to this Privacy Policy.</p>
-
-  <h2>1. Data Controller</h2>
-  <p>The data controller responsible for your personal data is:</p>
-  <p>
-    <strong>GrafikTopshiriqlar</strong><br />
-    Email: <strong>nozimqodirow&#64;gmail.com</strong>
-  </p>
-
-  <h2>2. Information We Collect</h2>
-
-  <h3>2.1 Account Information (Administrators/Teachers)</h3>
-  <p>
-    If you create an administrator or teacher account, we may collect your name,
-    email address, and a securely hashed password.
-  </p>
-
-  <h3>2.2 Student Access</h3>
-  <p>
-    Students typically do not create accounts. Technical usage data may be
-    collected automatically when students access educational materials.
-  </p>
-
-  <h3>2.3 Technical and Usage Data</h3>
-  <p>
-    We may collect your IP address, browser type, device details, pages visited,
-    and timestamps for the purpose of operating, securing, and improving the
-    Service.
-  </p>
-
-  <h3>2.4 Files and Educational Content</h3>
-  <p>
-    Administrators and teachers upload graphic-task files (images, PDFs, etc.).
-    These files are stored in <strong>Dropbox</strong>. We store metadata and
-    shared links in our system to allow users to view the content.
-  </p>
-
-  <h3>2.5 Dropbox Account Information</h3>
-  <p>
-    When a Dropbox account is connected, we receive an access token and basic
-    account information necessary for verification. We do
-    <strong>not</strong> receive or store Dropbox passwords.
-  </p>
-
-  <h2>3. How We Use Your Information</h2>
-  <ul>
-    <li>To operate and maintain the Service</li>
-    <li>To upload, store, and deliver educational materials</li>
-    <li>To manage Dropbox file metadata and generate secure viewing links</li>
-    <li>To authenticate and manage user accounts</li>
-    <li>To analyze and improve Service performance</li>
-    <li>To comply with legal obligations</li>
-  </ul>
-
-  <h2>4. How We Share Information</h2>
-  <p>We only share information with:</p>
-  <ul>
-    <li>
-      <strong>Dropbox, Inc.</strong> — for file storage and shared-link
-      generation
-    </li>
-    <li>
-      <strong>Google Firebase / Google Cloud</strong> — for database and
-      authentication services (if used)
-    </li>
-    <li>Website hosting providers</li>
-    <li>Legal authorities if required by law</li>
-  </ul>
-
-  <h2>5. Security</h2>
-  <p>
-    We use industry-standard security measures such as encryption (HTTPS),
-    secure password hashing, and restricted administrative access. No system is
-    completely secure, but we take reasonable steps to protect data.
-  </p>
-
-  <h2>6. Your Rights</h2>
-  <p>
-    Depending on your location, you may have rights to access, correct, delete,
-    or limit use of your personal data. To request this, contact us at
-    <strong>nozimqodirow&#64;gmail.com</strong>.
-  </p>
-
-  <h2>7. Changes to This Policy</h2>
-  <p>
-    We may update this Privacy Policy. Changes will be posted on this page with
-    an updated “Last updated” date.
-  </p>
-
-  <h2>8. Contact Us</h2>
-  <p>
-    For any questions, contact:<br />
-    <strong>GrafikTopshiriqlar</strong><br />
-    Email: <strong>nozimqodirow&#64;gmail.com</strong>
-  </p>
-</div>
+    <h1>Privacy Policy for GrafikTopshiriqlar</h1>
+    <p><strong>Last updated:</strong> {{ updatedDate }}</p>
+  
+    <p>
+      This Privacy Policy explains how <strong>GrafikTopshiriqlar</strong> (“we”, “us”, “our”) collects,
+      uses, and protects information when you use our website and web application available at
+      <a [href]="siteUrl" target="_blank" rel="noopener noreferrer">{{ siteUrl }}</a>
+      (the “Service”).
+    </p>
+  
+    <p>
+      By accessing or using the Service, you agree to this Privacy Policy.
+      If you do not agree, please do not use the Service.
+    </p>
+  
+    <h2>1. Data Controller</h2>
+    <p>The data controller responsible for your personal data is:</p>
+    <p>
+      <strong>GrafikTopshiriqlar</strong><br>
+      Email:
+      <a [href]="'mailto:nozimqodirow@gmail.com'">
+        nozimqodirow@gmail.com
+      </a>
+    </p>
+  
+    <h2>2. What Information We Collect</h2>
+  
+    <h3>2.1 Administrator / Teacher Account Data</h3>
+    <p>
+      If you sign in as an administrator or teacher, we may process:
+    </p>
+    <ul>
+      <li>Email address</li>
+      <li>Display name or profile information provided by the authentication provider</li>
+      <li>Encrypted (hashed) password when using email/password sign-in</li>
+      <li>Authentication tokens and identifiers provided by Firebase Authentication</li>
+    </ul>
+    <p>
+      You can sign in using:
+    </p>
+    <ul>
+      <li>Email and password via Firebase Authentication</li>
+      <li>Google sign-in, where basic profile data (such as name, email, and profile photo URL)
+        may be provided by Google</li>
+    </ul>
+    <p>
+      We do not store raw passwords in our database; they are handled and secured by Firebase Authentication.
+    </p>
+  
+    <h3>2.2 Student and Visitor Data</h3>
+    <p>
+      Students and general visitors usually access graphic tasks without creating an account.
+      For such users, we primarily process technical and usage data described below
+      (for example, device and usage information).
+    </p>
+    <p>
+      We do not intentionally collect additional identifying information from students unless it is provided
+      via an authenticated administrator or teacher account or through institutional use.
+    </p>
+  
+    <h3>2.3 Technical and Usage Data</h3>
+    <p>
+      When you use the Service, we automatically collect certain technical data, such as:
+    </p>
+    <ul>
+      <li>IP address</li>
+      <li>Browser type and version</li>
+      <li>Device type and operating system</li>
+      <li>Pages visited and navigation actions</li>
+      <li>Timestamps of access</li>
+      <li>Language preference (stored in localStorage)</li>
+    </ul>
+    <p>
+      This information is used to operate, secure, and improve the Service.
+    </p>
+  
+    <h3>2.4 Educational Content and Files</h3>
+    <p>
+      The Service is designed to manage and display graphic tasks (chizmachilik topshiriqlari).
+      Administrators and teachers can upload files such as:
+    </p>
+    <ul>
+      <li>Images</li>
+      <li>PDFs</li>
+      <li>Other educational resources</li>
+    </ul>
+    <p>
+      According to the current implementation, some files are stored in
+      <strong>Dropbox</strong> via the Dropbox API and some may be stored in
+      <strong>Google Firebase Storage</strong>.
+      Metadata, references to files, and configurations (such as lessons, tasks, and ordering)
+      are stored in <strong>Google Cloud Firestore</strong>.
+    </p>
+    <p>
+      We do not inspect the content of files beyond what is necessary to store, organize,
+      and display them within the Service.
+    </p>
+  
+    <h3>2.5 Dropbox Account Information and Tokens</h3>
+    <p>
+      When you connect or use Dropbox through the Service:
+    </p>
+    <ul>
+      <li>The Service uses a Dropbox access token to communicate with the Dropbox API.</li>
+      <li>
+        The token may be stored in browser <code>sessionStorage</code> and/or configured as an environment
+        value in the application.
+      </li>
+      <li>
+        The Service may call Dropbox endpoints such as <code>users/get_current_account</code>
+        to verify the Dropbox account and file operations.
+      </li>
+    </ul>
+    <p>
+      We do not store your Dropbox password. We only use the token to perform operations required for file
+      storage and retrieval as part of the Service.
+    </p>
+  
+    <h2>3. How We Use Your Information</h2>
+    <p>We use the collected information for the following purposes:</p>
+  
+    <h3>3.1 Service Operation</h3>
+    <ul>
+      <li>Authenticate administrators and teachers using Firebase Authentication.</li>
+      <li>
+        Manage educational content (lessons, tasks, files) in Firestore, Firebase Storage, and Dropbox.
+      </li>
+      <li>Display uploaded graphic tasks to end users (students, teachers).</li>
+    </ul>
+  
+    <h3>3.2 Dropbox Integration</h3>
+    <ul>
+      <li>Upload and manage files in Dropbox through the Dropbox API.</li>
+      <li>Retrieve file lists, metadata, thumbnails, and shared links.</li>
+      <li>
+        Store Dropbox file links and metadata in Firestore so that files can be displayed via the Service.
+      </li>
+    </ul>
+  
+    <h3>3.3 Security and Abuse Prevention</h3>
+    <ul>
+      <li>Validate Dropbox tokens via <code>users/get_current_account</code>.</li>
+      <li>
+        Handle authentication errors (for example, 401/403 responses) and display error messages.
+      </li>
+      <li>Monitor and mitigate suspicious activity or misuse of the Service.</li>
+    </ul>
+  
+    <h3>3.4 User Experience and Localization</h3>
+    <ul>
+      <li>Store language preferences in <code>localStorage</code> (for example, Uzbek by default).</li>
+      <li>Remember certain navigation state (such as last visited route) in <code>sessionStorage</code>.</li>
+    </ul>
+  
+    <h3>3.5 Service Improvement</h3>
+    <ul>
+      <li>Analyze technical usage patterns to improve performance and reliability.</li>
+      <li>Fix errors and optimize user flows.</li>
+    </ul>
+  
+    <p>We do not sell or rent your personal data.</p>
+  
+    <h2>4. Technologies and Storage Mechanisms</h2>
+  
+    <h3>4.1 Firebase (Authentication, Firestore, Storage)</h3>
+    <p>The app uses Firebase services provided by Google:</p>
+    <ul>
+      <li><strong>Firebase Authentication</strong> – for email/password and Google-based login.</li>
+      <li><strong>Cloud Firestore</strong> – for storing lessons, tasks, file references, and configuration data.</li>
+      <li><strong>Firebase Storage</strong> – for storing some uploaded files where configured.</li>
+    </ul>
+    <p>
+      Data processed by Firebase may be stored on servers in different countries depending on Google’s
+      infrastructure.
+    </p>
+  
+    <h3>4.2 Dropbox</h3>
+    <p>
+      The app uses Dropbox as a primary or additional file storage for educational materials:
+    </p>
+    <ul>
+      <li>Files are uploaded to Dropbox using the Dropbox API.</li>
+      <li>File metadata and shared links are stored in Firestore.</li>
+      <li>Thumbnails and downloads are requested from Dropbox when users view materials.</li>
+    </ul>
+    <p>
+      Your use of Dropbox is governed by Dropbox’s own Terms of Service and Privacy Policy,
+      in addition to this Privacy Policy.
+    </p>
+  
+    <h3>4.3 LocalStorage and SessionStorage</h3>
+    <p>
+      The client-side code uses:
+    </p>
+    <ul>
+      <li>
+        <strong>localStorage</strong> – for storing language preference and certain UI preferences.
+      </li>
+      <li>
+        <strong>sessionStorage</strong> – for storing temporary values such as the last route or the Dropbox
+        access token, where applicable.
+      </li>
+    </ul>
+    <p>
+      This data is stored locally in your browser and is not sent to us unless used in API calls as part
+      of normal app behavior.
+    </p>
+  
+    <h2>5. Legal Basis for Processing</h2>
+    <p>
+      Depending on your jurisdiction, we may rely on one or more of the following legal bases:
+    </p>
+    <ul>
+      <li>Performance of a contract – to provide you or your institution with the Service.</li>
+      <li>
+        Legitimate interests – for securing the Service, preventing abuse, improving functionality,
+        and organizing educational content.
+      </li>
+      <li>
+        Consent – where required for certain features or third-party integrations.
+      </li>
+    </ul>
+  
+    <h2>6. Sharing of Information</h2>
+    <p>We may share information with:</p>
+    <ul>
+      <li>
+        <strong>Service providers</strong> – including Dropbox, Google (Firebase/Cloud), and hosting providers.
+      </li>
+      <li>
+        <strong>Authorities</strong> – when required by law or to protect our rights, users, or the public.
+      </li>
+    </ul>
+    <p>
+      We do not share personal data with advertisers or unrelated third parties for marketing purposes.
+    </p>
+  
+    <h2>7. Data Retention</h2>
+    <p>
+      We retain information only as long as necessary to:
+    </p>
+    <ul>
+      <li>Provide the Service and support educational use;</li>
+      <li>Satisfy legal, accounting, or reporting requirements;</li>
+      <li>Maintain security, prevent fraud, and resolve disputes.</li>
+    </ul>
+    <p>
+      User accounts and related records may be deleted or anonymized upon request, subject to legal or
+      contractual obligations.
+    </p>
+    <p>
+      Educational content is retained as long as required by the administrator or institution and may be
+      deleted via the tools provided in the Service.
+    </p>
+  
+    <h2>8. Security</h2>
+    <p>
+      We take reasonable technical and organizational measures to help protect your data, including:
+    </p>
+    <ul>
+      <li>Use of HTTPS to encrypt data in transit.</li>
+      <li>Use of Firebase Authentication to manage login securely.</li>
+      <li>Storage of passwords in hashed form (never in plain text).</li>
+      <li>Limited access to administrative functions and data.</li>
+    </ul>
+    <p>
+      No system is completely secure, but we aim to protect data against unauthorized access, misuse,
+      or loss.
+    </p>
+  
+    <h2>9. International Transfers</h2>
+    <p>
+      Firebase and Dropbox may process data on servers located in multiple countries. By using the Service,
+      you understand that your data may be transferred to and processed in jurisdictions other than your own,
+      which may have different data protection laws.
+    </p>
+  
+    <h2>10. Your Rights</h2>
+    <p>
+      Depending on your local laws, you may have the right to:
+    </p>
+    <ul>
+      <li>Access the personal data we hold about you;</li>
+      <li>Request correction of inaccurate or incomplete data;</li>
+      <li>Request deletion of your personal data in certain circumstances;</li>
+      <li>Restrict or object to certain processing activities;</li>
+      <li>Withdraw consent where processing is based on consent.</li>
+    </ul>
+    <p>
+      To exercise any of these rights, please contact us at
+      <a [href]="'mailto:nozimqodirow@gmail.com'">nozimqodirow@gmail.com</a>.
+      If your access to the Service is managed by a school or institution, some requests may need
+      to be directed through that institution.
+    </p>
+  
+    <h2>11. Children’s Privacy</h2>
+    <p>
+      The Service is primarily used in educational environments under the guidance of schools,
+      teachers, or parents. We do not knowingly collect personal data directly from children without
+      appropriate consent or authorization from an educational institution or guardian.
+    </p>
+    <p>
+      If you believe that a child has provided us with personal information without such consent,
+      please contact us and we will take appropriate steps to delete such data.
+    </p>
+  
+    <h2>12. Third-Party Links and Services</h2>
+    <p>
+      The Service may contain links to third-party websites or services (for example, Dropbox, Google,
+      or educational resources). We are not responsible for the privacy practices of these third parties.
+      We recommend reviewing their privacy policies separately.
+    </p>
+  
+    <h2>13. Changes to This Privacy Policy</h2>
+    <p>
+      We may update this Privacy Policy from time to time. When we do, we will revise the
+      “Last updated” date at the top of this page. If the changes are material, we may provide
+      additional notice (for example, in the application interface).
+    </p>
+    <p>
+      Your continued use of the Service after the updated policy becomes effective constitutes
+      your acceptance of the changes.
+    </p>
+  
+    <h2>14. Contact Us</h2>
+    <p>
+      If you have any questions or concerns about this Privacy Policy or our data practices, please contact:
+    </p>
+    <p>
+      <strong>GrafikTopshiriqlar</strong><br>
+      Email:
+      <a [href]="'mailto:nozimqodirow@gmail.com'">nozimqodirow@gmail.com</a>
+    </p>
+  </div>
+  

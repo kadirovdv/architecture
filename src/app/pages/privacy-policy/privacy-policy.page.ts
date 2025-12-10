@@ -8,6 +8,7 @@ import { ToggleNavVisibilityService } from 'src/app/shared/services/toggle.nav.v
 })
 export class PrivacyPolicyPage {
   updatedDate = new Date();
+  siteUrl = 'https://grafiktopshiriqlar.uz';
 
   constructor(private navService: ToggleNavVisibilityService) {
     this.navService.updateNavState(false);
