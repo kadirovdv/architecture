@@ -5,6 +5,7 @@ import { ThemePage } from './theme/theme.page';
 import { MainPage } from './main/main.page';
 import { AboutPage } from './about/about.page';
 import { LessonsPage } from './lessons/lessons.page';
+import { PrivacyPolicyPage } from './privacy-policy/privacy-policy.page';
 
 const routes: Routes = [
   {
@@ -23,6 +24,10 @@ const routes: Routes = [
       {
         path: 'lessons/:id',
         component: LessonsPage,
+      },
+      {
+        path: 'privacy-policy',
+        component: PrivacyPolicyPage
       }
     ],
   },

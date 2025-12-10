@@ -23,11 +23,7 @@ export class DropboxService {
     }
   }
 
-  /**
-   * Get the authentication token from session storage or environment
-   */
   private getAuthToken(): string {
-    // Always get the latest token from session storage first, then fall back to environment
     const sessionToken = sessionStorage.getItem('accessToken');
     const token = sessionToken || environment.dropboxToken;
     
@@ -38,10 +34,6 @@ export class DropboxService {
     return token;
   }
 
-  /**
-   * Verify if the current token is valid by getting the current account info
-   * @returns Observable with the user account info if valid, error if invalid
-   */
   validateToken(): Observable<any> {
     const token = this.getAuthToken();
     if (!token) {
@@ -51,7 +43,6 @@ export class DropboxService {
     const url = 'https://api.dropboxapi.com/2/users/get_current_account';
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${token}`,
-      // DON'T set Content-Type for this request
     });
   
     return this.http.post(url, null, { headers }).pipe(
@@ -62,18 +53,12 @@ export class DropboxService {
     );
   }
   
-  /**
-   * Check if a file with the same name exists in Dropbox
-   * @param fileName The name of the file to check
-   * @returns Observable with the file metadata if exists, null if it doesn't
-   */
   checkFileExists(fileName: string): Observable<any> {
     const token = this.getAuthToken();
     if (!token) {
       return throwError(() => new Error('Dropbox token not configured'));
     }
     
-    // First, search for the file by name
     const searchUrl = 'https://api.dropboxapi.com/2/files/search_v2';
     const headers = new HttpHeaders({
       'Authorization': `Bearer ${token}`,
@@ -93,7 +78,6 @@ export class DropboxService {
         console.log('Search response:', response);
         
         if (response && response.matches && response.matches.length > 0) {
-          // File with this name exists
           const matchingFiles = response.matches.filter((match: any) => 
             match.metadata.metadata.name.toLowerCase() === fileName.toLowerCase()
           );
@@ -104,21 +88,16 @@ export class DropboxService {
           }
         }
         
-        // No matching file found
         console.log(`File "${fileName}" does not exist in Dropbox`);
         return null;
       }),
       catchError(error => {
         console.error('Error checking if file exists:', error);
-        // Return null instead of throwing an error to allow upload to proceed
         return of(null);
       })
     );
   }
 
-  /**
-   * Handle errors consistently 
-   */
   private handleError(error: any): Observable<never> {
     console.error('Dropbox API error:', error);
     this.toastr.error('Error communicating with Dropbox', 'API Error');
@@ -172,7 +151,6 @@ export class DropboxService {
         .then((fileBlob) => {
           console.log('File downloaded successfully');
 
-          // Save the file (optional, for browsers)
           const fileUrl = URL.createObjectURL(fileBlob);
           const link = document.createElement('a');
           link.href = fileUrl;
@@ -270,13 +248,11 @@ export class DropboxService {
     const token = this.getAuthToken();
     if (!token) return throwError(() => new Error('Dropbox token not configured'));
     
-    // Check for valid file to upload
     if (!fileContent || !(fileContent instanceof Blob)) {
       console.error('Invalid file content provided for upload:', fileContent);
       return throwError(() => new Error('Invalid file content: must be a Blob or File object'));
     }
     
-    // Log file details for debugging
     let fileDetails = 'Unknown type';
     if (fileContent instanceof File) {
       fileDetails = `File: ${fileContent.name}, size: ${fileContent.size} bytes, type: ${fileContent.type}`;
@@ -287,16 +263,13 @@ export class DropboxService {
     
     const url = 'https://content.dropboxapi.com/2/files/upload';
     
-    // Simplify path handling - just use the filename with timestamp
     const timestamp = new Date().getTime();
     
-    // Get just the filename, regardless of any path structure
     let fileName = filePath;
     if (fileName.includes('/')) {
       fileName = fileName.split('/').pop() || '';
     }
     
-    // Add timestamp to filename to ensure uniqueness
     const fileNameParts = fileName.split('.');
     const ext = fileNameParts.length > 1 ? fileNameParts.pop() : '';
     const newFileName = ext ? 

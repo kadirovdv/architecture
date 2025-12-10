@@ -12,17 +12,26 @@ import { FormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { TooltipDirective } from '../shared/directives/tooltip.directive';
 import { NgxDocViewerModule } from 'ngx-doc-viewer';
+import { PrivacyPolicyPage } from './privacy-policy/privacy-policy.page';
 
 @NgModule({
-  declarations: [PagesPage, ThemePage, MainPage, AboutPage, LessonsPage, TooltipDirective],
+  declarations: [
+    PagesPage,
+    ThemePage,
+    MainPage,
+    AboutPage,
+    LessonsPage,
+    TooltipDirective,
+    PrivacyPolicyPage,
+  ],
   imports: [
-    PagesRoutingModule, 
-    SharedModule, 
-    CommonModule, 
-    NgSelectModule, 
-    FormsModule, 
+    PagesRoutingModule,
+    SharedModule,
+    CommonModule,
+    NgSelectModule,
+    FormsModule,
     TranslateModule,
-    NgxDocViewerModule
+    NgxDocViewerModule,
   ],
   exports: [ThemePage, PagesPage, MainPage],
 })
