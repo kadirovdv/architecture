@@ -17,7 +17,7 @@
     <div class="panel-content">
       <div *ngIf="isLoading" class="loading-container">
         <div class="spinner"></div>
-        <p class="loading-text">Checking authentication...</p>
+        <p class="loading-text">Finalizing Dropbox connection...</p>
       </div>
 
       <div *ngIf="error && !isLoading" class="error-message">
@@ -43,12 +43,12 @@
       <div *ngIf="!isAuthenticated && !isLoading" class="unauthenticated">
         <h2>Connect to Dropbox</h2>
         <p class="description">
-          This application needs access to your Dropbox account to:
+          Click the button below to open the official Dropbox consent page. The app will only continue after you approve access.
         </p>
         <ul class="features-list">
-          <li>Access and manage your files</li>
-          <li>Upload content to your Dropbox</li>
-          <li>Create shared links for content</li>
+          <li>Upload and manage lesson assets</li>
+          <li>Create and manage shared links</li>
+          <li>Verify your Dropbox account securely</li>
         </ul>
         
         <div *ngIf="processing" class="oauth-status">
@@ -57,36 +57,27 @@
         </div>
         
         <button 
-          [disabled]="isConnecting || processing" 
+          [disabled]="processing" 
           (click)="connect()" 
           class="connect-button">
-          <span *ngIf="!isConnecting">
+          <span>
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M20 12h-9.5m7.5 3l3-3-3-3"></path>
               <path d="M4 5v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"></path>
             </svg>
-            Connect to Dropbox
-            <small>(opens in new tab)</small>
+            Connect Dropbox
           </span>
-          <span *ngIf="isConnecting" class="button-spinner"></span>
         </button>
         
-        <div class="alternate-login">
-          <span>or</span>
-          <button (click)="connectDirect()" class="text-button">
-            Connect directly (redirects this page)
-          </button>
-        </div>
-        
-        <div class="refresh-auth">
-          <button (click)="refreshAuthStatus()" class="text-button">
+        <div class="refresh-auth" *ngIf="hasSavedToken">
+          <button (click)="verifyExistingConnection()" class="text-button">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 2v6h-6"></path>
               <path d="M3 12a9 9 0 0 1 15-6.7L21 8"></path>
               <path d="M3 22v-6h6"></path>
               <path d="M21 12a9 9 0 0 1-15 6.7L3 16"></path>
             </svg>
-            Already connected in another tab? Click to refresh
+            Verify saved Dropbox token
           </button>
         </div>
       </div>

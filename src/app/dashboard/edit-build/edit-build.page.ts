@@ -40,6 +40,7 @@ import { LoadingService } from 'src/app/shared/services/loading.service';
 import { ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { DropboxAuthService } from 'src/app/shared/services/dropbox.auth.service';
 @Component({
   selector: 'app-edit-build',
   templateUrl: './edit-build.page.html',
@@ -87,8 +88,19 @@ export class EditBuildPage implements OnInit {
     private location: Location,
     private loaderService: LoadingService,
     private route: ActivatedRoute,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private dropboxAuthService: DropboxAuthService
   ) {}
+
+  private ensureDropboxConnected(showToast = true): boolean {
+    if (!this.dropboxAuthService.hasAccessToken()) {
+      if (showToast) {
+        this.toastr.error('Please connect Dropbox before managing Dropbox files.');
+      }
+      return false;
+    }
+    return true;
+  }
 
   ngOnInit(): void {
     this.getLessons();
@@ -269,6 +281,10 @@ export class EditBuildPage implements OnInit {
   private updateThumbnail(file: File) {
     if (!this.lesson) {
       this.toastr.error('Fan tanlanmagan');
+      return;
+    }
+
+    if (!this.ensureDropboxConnected()) {
       return;
     }
     
@@ -846,6 +862,10 @@ export class EditBuildPage implements OnInit {
           this.errorCategories = [];
         }, 400);
       }
+      return;
+    }
+
+    if (!this.ensureDropboxConnected()) {
       return;
     }
 
@@ -1594,7 +1614,7 @@ export class EditBuildPage implements OnInit {
     }
 
     // Get and set the thumbnail if available
-    if (selectedLesson.thumbnail) {
+    if (selectedLesson.thumbnail && this.ensureDropboxConnected(false)) {
       this.dropboxService.getThumbnail(selectedLesson.thumbnail as string).pipe(
         take(1)
       ).subscribe({

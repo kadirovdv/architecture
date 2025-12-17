@@ -30,6 +30,7 @@ import {
 import { BehaviorSubject, forkJoin, of, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { SwiperService } from 'src/app/shared/services/swiper.service';
+import { DropboxAuthService } from 'src/app/shared/services/dropbox.auth.service';
 
 @Component({
   selector: 'app-lessons',
@@ -116,7 +117,8 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     private loaderService: LoaderService,
     private loadingService: LoadingService,
     private sanitizer: DomSanitizer,
-    private renderer: Renderer2
+    private renderer: Renderer2,
+    private dropboxAuthService: DropboxAuthService
   ) {
     // Subscribe to selectedFiles changes
     this.selectedFiles$.pipe(takeUntil(this.destroy$)).subscribe((files) => {
@@ -240,6 +242,13 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
             return of(null);
           }
 
+          if (!this.dropboxAuthService.hasAccessToken()) {
+            this.websiteLessons = lessons;
+            this.loaderService.hideLoader(true);
+            this.loadingService.hide();
+            return of(null);
+          }
+
           const thumbnailRequests = lessons.map((lesson, index) =>
             this.dropboxService.getThumbnail(lesson.thumbnail as string).pipe(
               tap((thumbnailRes) => {
@@ -337,7 +346,13 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     if (!filePath) return;
     this.loaderService.showLoader();
     this.loadingService.show();
-    
+
+    if (!this.dropboxAuthService.hasAccessToken()) {
+      this.loaderService.hideLoader(true);
+      this.loadingService.hide();
+      return;
+    }
+
     this.dropboxService
       .openFileInNewTab(filePath)
       .pipe(takeUntil(this.destroy$))
@@ -943,6 +958,12 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
     this.loaderService.showLoader();
     this.loadingService.show();
+
+    if (!this.dropboxAuthService.hasAccessToken()) {
+      this.loaderService.hideLoader(true);
+      this.loadingService.hide();
+      return;
+    }
 
     this.dropboxService
       .downloadFile(url)

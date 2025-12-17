@@ -37,6 +37,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { VideoUploadComponent } from './video-upload/video-upload.component';
 import { LoaderService } from 'src/app/shared/services/loader.service';
 import { LoadingService } from 'src/app/shared/services/loading.service';
+import { DropboxAuthService } from 'src/app/shared/services/dropbox.auth.service';
 
 @Component({
   selector: 'app-create-build',
@@ -74,7 +75,8 @@ export class CreateBuildPage implements OnInit {
     private dropboxService: DropboxService,
     private modalService: NgbModal,
     private location: Location,
-    private loaderService: LoadingService
+    private loaderService: LoadingService,
+    private dropboxAuthService: DropboxAuthService
   ) {}
 
   ngOnInit(): void {
@@ -698,6 +700,11 @@ export class CreateBuildPage implements OnInit {
           this.errorCategories = [];
         }, 400);
       }
+      return;
+    }
+
+    if (!this.dropboxAuthService.hasAccessToken()) {
+      this.toastr.error('Please connect Dropbox before uploading files.');
       return;
     }
 

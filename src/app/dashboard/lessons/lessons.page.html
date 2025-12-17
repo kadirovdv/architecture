@@ -1,5 +1,20 @@
 <div class="container">
   <div class="position-relative min-h-80 w-100 overflow-hidden lessons-card">
+    <div class="dropbox-connect-banner" *ngIf="!dropboxConnected">
+      <div>
+        <h4>Connect Dropbox</h4>
+        <p>Link Dropbox to upload, edit, and preview lesson files.</p>
+      </div>
+      <button class="connect-btn" (click)="connectDropbox()">Connect Dropbox</button>
+    </div>
+    <div class="dropbox-connect-banner connected" *ngIf="dropboxConnected">
+      <div>
+        <h4>Dropbox connected</h4>
+        <p>Uploads and previews use your current Dropbox session.</p>
+      </div>
+      <button class="disconnect-btn" (click)="disconnectDropbox()">Disconnect</button>
+    </div>
+
     <div class="tabs mb-4">
       <div
         class="tab"

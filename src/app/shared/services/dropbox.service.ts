@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { environment } from 'src/environments/environment';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, from, throwError, defer, of } from 'rxjs';
 import { catchError, map, shareReplay, switchMap } from 'rxjs/operators';
 import { ToastrService } from 'ngx-toastr';
+import { DropboxAuthService } from './dropbox.auth.service';
 
 declare var Dropbox: any;
 
@@ -11,25 +11,17 @@ declare var Dropbox: any;
   providedIn: 'root',
 })
 export class DropboxService {
-  private readonly token: string = sessionStorage.getItem('accessToken') || environment.dropboxToken;
-
   constructor(
     private http: HttpClient,
-    private toastr: ToastrService
-  ) {
-    console.log('Dropbox token:', this.token);
-    if (!this.token) {
-      console.error('No Dropbox token found in environment or session storage. Please add the token to your environment file or login.');
-    }
-  }
+    private toastr: ToastrService,
+    private dropboxAuth: DropboxAuthService
+  ) {}
 
-  private getAuthToken(): string {
-    const sessionToken = sessionStorage.getItem('accessToken');
-    const token = sessionToken || environment.dropboxToken;
-    
+  private getAuthToken(): string | null {
+    const token = this.dropboxAuth.getAccessToken();
     if (!token) {
-      console.error('No Dropbox token available in session storage or environment');
-      this.toastr.error('Dropbox token not configured', 'Configuration Error');
+      console.warn('Dropbox access token missing; user is not connected.');
+      return null;
     }
     return token;
   }

@@ -5,6 +5,7 @@ import { i18nService } from '../../services/i18n.service';
 import { LoaderService } from '../../services/loader.service';
 import { DropboxService } from '../../services/dropbox.service';
 import { DomSanitizer } from '@angular/platform-browser';
+import { DropboxAuthService } from '../../services/dropbox.auth.service';
 
 @Component({
   selector: 'app-section-items',
@@ -21,7 +22,8 @@ export class SectionItemsComponent implements AfterViewInit {
     private i18n: i18nService,
     private loaderService: LoaderService,
     private dropboxService: DropboxService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private dropboxAuthService: DropboxAuthService
   ) {}
 
   ngOnInit() {
@@ -54,6 +56,12 @@ export class SectionItemsComponent implements AfterViewInit {
         if (this.globalVar.length === 0) {
           this.loaderService.hideLoader(true);
         }
+
+        if (!this.dropboxAuthService.hasAccessToken()) {
+          this.loaderService.hideLoader(true);
+          return;
+        }
+
         for (let i = 0; i < this.globalVar.length; i++) {
           this.dropboxService
             .getThumbnail(this.globalVar[i].thumbnail)

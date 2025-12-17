@@ -5,6 +5,7 @@ import { CrudService } from 'src/app/shared/services/crud.service';
 import { DropboxService } from 'src/app/shared/services/dropbox.service';
 import { i18nService } from 'src/app/shared/services/i18n.service';
 import { LoaderService } from 'src/app/shared/services/loader.service';
+import { DropboxAuthService } from 'src/app/shared/services/dropbox.auth.service';
 import { SwiperService } from 'src/app/shared/services/swiper.service';
 import { BehaviorSubject, forkJoin, of } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
@@ -61,6 +62,7 @@ export class MainPage {
     private i18n: i18nService,
     private loaderService: LoadingService,
     private dropboxService: DropboxService,
+    private dropboxAuthService: DropboxAuthService,
     private sanitizer: DomSanitizer
   ) {
     window.scroll(0, 0);
@@ -195,6 +197,11 @@ export class MainPage {
           
           // Store the lessons without thumbnails
           this.websiteLessons = [...lessons];
+
+          if (!this.dropboxAuthService.hasAccessToken()) {
+            this.isLoadingThumbnails = false;
+            return of(null);
+          }
           
           const thumbnailRequests = lessons.map((lesson, index) =>
             this.dropboxService.getThumbnail(lesson.thumbnail as string).pipe(

@@ -7,6 +7,7 @@ import { Lesson } from 'src/app/shared/interfaces/interfaces';
 import { CrudService } from 'src/app/shared/services/crud.service';
 import { DropboxService } from 'src/app/shared/services/dropbox.service';
 import { LoadingService } from 'src/app/shared/services/loading.service';
+import { DropboxAuthService } from 'src/app/shared/services/dropbox.auth.service';
 
 interface LessonLangs {
   uz: string;
@@ -106,7 +107,8 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
     private crudService: CrudService,
     private loadingService: LoadingService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private dropboxAuthService: DropboxAuthService
   ) {}
 
   ngOnInit(): void {
@@ -132,13 +134,15 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
             });
             
             // Get the thumbnail URL from Dropbox
-            if (lessonToEdit.thumbnail) {
+            if (lessonToEdit.thumbnail && this.dropboxAuthService.hasAccessToken()) {
               this.dropboxService.getThumbnail(lessonToEdit.thumbnail).subscribe(
                 (response: any) => {
                   let img = new File([response], 'thumbnail.jpg', { type: 'image/jpeg' });
                   this.onFileSelected({ target: { files: [img] } });
                 }
               );
+            } else if (lessonToEdit.thumbnail) {
+              this.toastr.info('Connect Dropbox to preview the existing thumbnail.');
             }
 
           }
@@ -162,6 +166,13 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
 
   save() {
     this.loadingService.show();
+
+    if (!this.dropboxAuthService.hasAccessToken()) {
+      this.toastr.error('Please connect Dropbox before uploading lesson files.');
+      this.loadingService.hide();
+      return;
+    }
+
     if (
       this.createLessonsForm.value.uz?.trim() === '' &&
       this.createLessonsForm.value.ru?.trim() === '' &&

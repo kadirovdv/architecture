@@ -8,6 +8,7 @@ import { LoadingService } from 'src/app/shared/services/loading.service';
 import { Router } from '@angular/router';
 import { AddNewsModalComponent } from '../add-news-modal/add-news-modal.component';
 import { i18nService } from 'src/app/shared/services/i18n.service';
+import { DropboxAuthService } from 'src/app/shared/services/dropbox.auth.service';
 
 @Component({
   selector: 'app-dashboard-lessons',
@@ -60,15 +61,19 @@ export class LessonsPage implements OnInit {
     createdAt: string
   }[] = [];
 
+  dropboxConnected = false;
+
   constructor(
     private crudService: CrudService,
     private toastr: ToastrService,
     private loadingService: LoadingService,
     private router: Router,
-    public i18n: i18nService
+    public i18n: i18nService,
+    private dropboxAuthService: DropboxAuthService
   ) {}
 
   ngOnInit() {
+    this.dropboxConnected = this.dropboxAuthService.hasAccessToken();
     this.loadAllData();
     this.loadNews();
   }
@@ -419,6 +424,16 @@ export class LessonsPage implements OnInit {
           }
         });
     });
+  }
+
+  connectDropbox(): void {
+    this.dropboxAuthService.startOAuth('/dashboard/lessons');
+  }
+
+  disconnectDropbox(): void {
+    this.dropboxAuthService.clearToken();
+    this.dropboxConnected = false;
+    this.toastr.info('Dropbox connection cleared for this session.');
   }
 
   // Navigation -------------------------------------------
