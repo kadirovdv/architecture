@@ -1,6 +1,6 @@
 {
     "/api": {
-        "target": "https://d7cd8e31ad2c.ngrok-free.app",
+        "target": "https://67f12d6a2ace.ngrok-free.app",
         "changeOrigin": true,
         "secure": false,
         "logLevel": "debug"
