@@ -1,20 +1,5 @@
 <div class="container">
   <div class="position-relative min-h-80 w-100 overflow-hidden lessons-card">
-    <div class="dropbox-connect-banner" *ngIf="!dropboxConnected">
-      <div>
-        <h4>Connect Dropbox</h4>
-        <p>Link Dropbox to upload, edit, and preview lesson files.</p>
-      </div>
-      <button class="connect-btn" (click)="connectDropbox()">Connect Dropbox</button>
-    </div>
-    <div class="dropbox-connect-banner connected" *ngIf="dropboxConnected">
-      <div>
-        <h4>Dropbox connected</h4>
-        <p>Uploads and previews use your current Dropbox session.</p>
-      </div>
-      <button class="disconnect-btn" (click)="disconnectDropbox()">Disconnect</button>
-    </div>
-
     <div class="tabs mb-4">
       <div
         class="tab"
@@ -45,8 +30,8 @@
         *ngFor="let lesson of lessons; let i = index"
       >
         <div class="lesson-item d-flex">
-          <div class="px-3">{{ lesson.index }}</div>
-          <div class="px-4">{{ lesson.lessonTitle?.uz }}</div>
+          <div class="px-3">{{ i + 1 }}</div>
+          <div class="px-4">{{ lesson.title }}</div>
         </div>
         <div class="lesson-item position-relative">
           <div class="text-center">Grafik topshiriqlar</div>
@@ -66,7 +51,7 @@
               <input
                 class="form-control me-2"
                 type="text"
-                [(ngModel)]="task.title"
+                [(ngModel)]="taskTitle"
                 [placeholder]="editingTaskId ? 'Grafik topshiriqni tahrirlash' : 'Yangi grafik topshiriq'"
               />
               <img
@@ -136,8 +121,8 @@
         *ngFor="let lesson of websiteLessons; let i = index"
       >
         <div class="lesson-item d-flex">
-          <div class="px-3">{{ lesson.index }}</div>
-          <div class="px-4">{{ lesson.lessonTitle?.uz }}</div>
+          <div class="px-3">{{ i + 1 }}</div>
+          <div class="px-4">{{ lesson.title }}</div>
         </div>
         <div class="lesson-item position-relative">
           <div class="text-center">Grafik topshiriqlar</div>
@@ -166,7 +151,7 @@
               <input
                 class="form-control me-2"
                 type="text"
-                [(ngModel)]="task.title"
+                [(ngModel)]="taskTitle"
                 [placeholder]="editingTaskId ? 'Grafik topshiriqni tahrirlash' : 'Yangi grafik topshiriq'"
               />
               <img

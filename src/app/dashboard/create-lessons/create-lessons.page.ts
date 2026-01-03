@@ -2,12 +2,11 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { Router, ActivatedRoute } from '@angular/router';
-import { of, switchMap } from 'rxjs';
-import { Lesson } from 'src/app/shared/interfaces/interfaces';
-import { CrudService } from 'src/app/shared/services/crud.service';
-import { DropboxService } from 'src/app/shared/services/dropbox.service';
+import { forkJoin, of, switchMap, take, map } from 'rxjs';
 import { LoadingService } from 'src/app/shared/services/loading.service';
-import { DropboxAuthService } from 'src/app/shared/services/dropbox.auth.service';
+import { LessonsApiService } from 'src/app/shared/services/lessons-api.service';
+import { AdminLessonsApiService } from 'src/app/shared/services/admin-lessons-api.service';
+import type { LessonDetailDto, LessonListItemDto } from 'src/app/shared/models/backend.dto';
 
 interface LessonLangs {
   uz: string;
@@ -26,8 +25,9 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
   exists: boolean = false;
   loaderItem: boolean = false;
   isLessonEdit: boolean = false;
-  lessonIdToEdit: string = '';
-  lessons: any[] = [];
+  lessonSlugToEdit: string = '';
+  lessons: LessonListItemDto[] = [];
+  private existingThumbnailResourceIds: string[] = [];
   loader: boolean = false;
 
   showHelper = {
@@ -103,52 +103,70 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
 
   constructor(
     private toastr: ToastrService,
-    private dropboxService: DropboxService,
-    private crudService: CrudService,
     private loadingService: LoadingService,
     private router: Router,
     private route: ActivatedRoute,
-    private dropboxAuthService: DropboxAuthService
+    private lessonsApi: LessonsApiService,
+    private adminLessonsApi: AdminLessonsApiService
   ) {}
 
   ngOnInit(): void {
-    this.crudService.getDocuments('lessons').subscribe((res) => {
-      this.lessons = res as Lesson[];
-      this.lessons = this.lessons.sort((a: Lesson, b: Lesson) => {
-        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return dateA - dateB;
-      });
+    this.lessonsApi
+      .listLessons({ activeOnly: false })
+      .pipe(take(1))
+      .subscribe({
+        next: (res) => {
+          this.lessons = [...res].sort(
+            (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
 
-      // Check if we're in edit mode using query params
-      this.route.queryParams.subscribe(params => {
-        if (params['id']) {
-          this.isLessonEdit = true;
-          this.lessonIdToEdit = params['id'];
-          const lessonToEdit = this.lessons.find(l => l.id === params['id']);
-          if (lessonToEdit) {
-            this.createLessonsForm.patchValue({
-              uz: lessonToEdit.lessonTitle?.uz || '',
-              ru: lessonToEdit.lessonTitle?.ru || '',
-              en: lessonToEdit.lessonTitle?.en || ''
-            });
-            
-            // Get the thumbnail URL from Dropbox
-            if (lessonToEdit.thumbnail && this.dropboxAuthService.hasAccessToken()) {
-              this.dropboxService.getThumbnail(lessonToEdit.thumbnail).subscribe(
-                (response: any) => {
-                  let img = new File([response], 'thumbnail.jpg', { type: 'image/jpeg' });
-                  this.onFileSelected({ target: { files: [img] } });
-                }
-              );
-            } else if (lessonToEdit.thumbnail) {
-              this.toastr.info('Connect Dropbox to preview the existing thumbnail.');
-            }
+          // Check if we're in edit mode using query params
+          this.route.queryParams.subscribe((params) => {
+            const slug = params['slug'];
+            if (!slug) return;
 
-          }
-        }
+            this.isLessonEdit = true;
+            this.lessonSlugToEdit = slug;
+
+            this.adminLessonsApi
+              .getLessonDetail(slug)
+              .pipe(take(1))
+              .subscribe({
+                next: (detail: LessonDetailDto) => {
+                  this.createLessonsForm.patchValue({
+                    uz: detail.title || '',
+                    ru: detail.title || '',
+                    en: detail.title || '',
+                  });
+
+                  // Prefer explicit thumbnail category; fallback to any image resource
+                  const thumbnail =
+                    detail.resources?.find(
+                      (r) => r.category === 'thumbnail' && r.mimeType?.startsWith('image/')
+                    ) ||
+                    detail.resources?.find((r) => r.mimeType?.startsWith('image/'));
+
+                  if (thumbnail) {
+                    this.imgDisplay = thumbnail.publicUrl;
+                    this.existingThumbnailResourceIds = detail.resources
+                      .filter(
+                        (r) =>
+                          r.mimeType?.startsWith('image/') &&
+                          (r.category === 'thumbnail' || r.id === thumbnail.id)
+                      )
+                      .map((r) => r.id);
+                  }
+                },
+                error: () => {
+                  this.toastr.error('Fan maʼlumotlarini yuklab bo‘lmadi');
+                },
+              });
+          });
+        },
+        error: () => {
+          this.lessons = [];
+        },
       });
-    });
   }
 
   ngOnDestroy(): void {
@@ -167,12 +185,6 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
   save() {
     this.loadingService.show();
 
-    if (!this.dropboxAuthService.hasAccessToken()) {
-      this.toastr.error('Please connect Dropbox before uploading lesson files.');
-      this.loadingService.hide();
-      return;
-    }
-
     if (
       this.createLessonsForm.value.uz?.trim() === '' &&
       this.createLessonsForm.value.ru?.trim() === '' &&
@@ -182,88 +194,58 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
       return;
     }
 
-    const isLessonExists = this.lessons.some(
-      (item) =>
-        item.lessonTitle.uz === this.createLessonsForm.value.uz &&
-        item.lessonTitle.ru === this.createLessonsForm.value.ru &&
-        item.lessonTitle.en === this.createLessonsForm.value.en &&
-        item.id !== this.lessonIdToEdit // Exclude current lesson when editing
-    );
-
-    if (isLessonExists) {
-      this.toastr.warning("Fan ro'yhatda mavjud!");
-      this.exists = true;
+    const title = (this.createLessonsForm.value.uz || '').trim();
+    if (!title) {
+      this.toastr.warning('Fan nomini kiriting!');
       this.loadingService.hide();
       return;
     }
 
-    if (!this.img && !this.imgDisplay) {
-      this.toastr.warning('Rasmni tanlang!');
-      this.loadingService.hide();
-      return;
-    }
+    // Keep RU/EN inputs filled for UI consistency, but backend stores a single title.
+    if (!this.createLessonsForm.value.ru) this.createLessonsForm.get('ru')?.setValue(title);
+    if (!this.createLessonsForm.value.en) this.createLessonsForm.get('en')?.setValue(title);
 
-    let thumbnailPath = this.imgDisplay || '';
+    const slug = this.isLessonEdit ? this.lessonSlugToEdit : this.slugify(title);
 
-    const uploadFile$ = this.img
-      ? this.dropboxService.uploadFile('/' + this.img.name, this.img)
-      : null;
+    const upsert$ = this.isLessonEdit
+      ? this.adminLessonsApi.updateLesson(slug, { title })
+      : this.adminLessonsApi.createLesson({ slug, title, active: true, language: 'UZ' });
 
-    const createSharedLink$ = (path: string) =>
-      this.dropboxService.createSharedLink(path);
+    upsert$
+      .pipe(
+        switchMap(() => {
+          if (!this.img) return of(null);
 
-    const saveLesson$ = (thumbnailPath: string) => {
-      const lessonToEdit = this.lessons.find(l => l.id === this.lessonIdToEdit);
-      const lessonData = {
-        index: this.isLessonEdit ? lessonToEdit?.index : this.lessons.length + 1,
-        createdAt: this.isLessonEdit ? lessonToEdit?.createdAt : new Date().toISOString(),
-        lessonTitle: {
-          uz: this.createLessonsForm.value.uz,
-          ru: this.createLessonsForm.value.ru,
-          en: this.createLessonsForm.value.en,
+          // If editing and we have old thumbnails, remove them before uploading the new one.
+          const deletions$ =
+            this.isLessonEdit && this.existingThumbnailResourceIds.length
+              ? forkJoin(
+                  this.existingThumbnailResourceIds.map((id) =>
+                    this.adminLessonsApi.deleteResource(id),
+                  ),
+                ).pipe(map(() => null))
+              : of(null);
+
+          return deletions$.pipe(
+            switchMap(() =>
+              this.adminLessonsApi.uploadLessonResource(slug, this.img as File, {
+                category: 'thumbnail',
+              })
+            )
+          );
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.toastr.success(this.isLessonEdit ? 'Fan muvaffaqiyatli yangilandi!' : "Fan muvaffaqiyatli qo'shildi!");
+          this.loadingService.hide();
+          this.router.navigate(['/dashboard/lessons']);
         },
-        thumbnail: thumbnailPath,
-      };
-
-      if (this.isLessonEdit) {
-        return this.crudService.updateDocument(
-          'lessons',
-          this.lessonIdToEdit,
-          lessonData
-        );
-      } else {
-        return this.crudService.addDocument('lessons', lessonData);
-      }
-    };
-
-    let request$: any = of(null);
-    if (uploadFile$) {
-      request$ = uploadFile$.pipe(
-        switchMap((uploadResponse: any) => {
-          thumbnailPath = uploadResponse.path_display;
-          return createSharedLink$(uploadResponse.path_display);
-        }),
-        switchMap(() => saveLesson$(thumbnailPath))
-      );
-    } else {
-      request$ = saveLesson$(thumbnailPath);
-    }
-
-    request$.subscribe({
-      next: () => {
-        if (this.isLessonEdit) {
-          this.toastr.success('Fan muvaffaqiyatli yangilandi!');
-        } else {
-          this.toastr.success("Fan muvaffaqiyatli qo'shildi!");
-        }
-        this.loadingService.hide();
-        this.router.navigate(['/dashboard/lessons']);
-      },
-      error: (err: any) => {
-        this.toastr.error('Xatolik yuz berdi!');
-        this.loadingService.hide();
-      },
-    });
+        error: () => {
+          this.toastr.error('Xatolik yuz berdi!');
+          this.loadingService.hide();
+        },
+      });
   }
 
   findLesson(event: any, lang: 'uz' | 'ru' | 'en') {
@@ -302,5 +284,19 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
       };
       reader.readAsDataURL(file);
     }
+  }
+
+  private slugify(input: string): string {
+    const base = input
+      .toLowerCase()
+      .trim()
+      .replace(/['"]/g, '')
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+    if (base) return base;
+    return `lesson-${Date.now()}`;
   }
 }

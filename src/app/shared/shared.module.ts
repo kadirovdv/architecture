@@ -8,8 +8,6 @@ import { HighlightPipe } from './pipes/highlight.pipe';
 import { TranslateModule } from '@ngx-translate/core';
 import { LoaderComponent } from './components/loader/loader.component';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { LessonService } from './services/lesson.service';
-import { StorageService } from './services/storage.service';
 import { VideoUploadComponent } from './components/video-upload/video-upload.component';
 
 @NgModule({
@@ -39,9 +37,6 @@ import { VideoUploadComponent } from './components/video-upload/video-upload.com
     NgbModule,
     VideoUploadComponent,
   ],
-  providers: [
-    LessonService,
-    StorageService,
-  ]
+  providers: []
 })
 export class SharedModule {}

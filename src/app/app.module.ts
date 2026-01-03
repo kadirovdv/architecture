@@ -7,11 +7,6 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { SharedModule } from './shared/shared.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { AngularFireModule } from '@angular/fire/compat';
-import { AngularFirestoreModule } from '@angular/fire/compat/firestore';
-import { AngularFireAuthModule } from '@angular/fire/compat/auth';
-import { AngularFireStorageModule } from '@angular/fire/compat/storage';
-import { environment } from 'src/environments/environment';
 import {
   HTTP_INTERCEPTORS,
   HttpClient,
@@ -22,7 +17,6 @@ import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { LoaderWithLogoComponent } from './shared/components/loader/loader-with-logo.component';
 import { LoadingInterceptor } from './shared/interceptors/loading.interceptor';
-import { AuthInterceptor } from './shared/interceptors/auth.interceptor';
 import { AddNewsModalComponent } from './dashboard/add-news-modal/add-news-modal.component';
 
 export function HttpLoaderFactory(http: HttpClient) {
@@ -38,10 +32,6 @@ export function HttpLoaderFactory(http: HttpClient) {
     SharedModule,
     LoaderWithLogoComponent,
     CommonModule,
-    AngularFireModule.initializeApp(environment.firebaseConfig),
-    AngularFirestoreModule,
-    AngularFireAuthModule,
-    AngularFireStorageModule,
     HttpClientModule,
     ToastrModule.forRoot({
       preventDuplicates: true,
@@ -57,7 +47,6 @@ export function HttpLoaderFactory(http: HttpClient) {
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: LoadingInterceptor, multi: true },
-    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
   ],
   bootstrap: [AppComponent],
 })

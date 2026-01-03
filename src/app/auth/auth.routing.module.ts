@@ -2,7 +2,6 @@ import { Routes, RouterModule } from "@angular/router"
 import { AuthPage } from "./auth.page"
 import { NgModule } from "@angular/core"
 import { LoginPage } from "./login/login.page"
-import { DropboxLoginComponent } from "./dropbox-login/dropbox-login.component"
 
 const routes: Routes = [
     {
@@ -17,10 +16,6 @@ const routes: Routes = [
             {
                 path: 'login',
                 component: LoginPage
-            },
-            {
-                path: 'dropbox-login',
-                component: DropboxLoginComponent
             }
         ]
     }

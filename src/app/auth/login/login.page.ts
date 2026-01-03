@@ -1,10 +1,9 @@
 import { Location } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { TranslateService } from '@ngx-translate/core';
-import { AuthService } from 'src/app/shared/services/firebase.auth.service';
+import { BackendAuthService } from 'src/app/shared/services/backend-auth.service';
 
 @Component({
   selector: 'app-login-page',
@@ -17,8 +16,7 @@ export class LoginPage implements OnInit {
   password: string = '';
   public lang: string = 'en';
   constructor(
-    public authService: AuthService,
-    private afAuth: AngularFireAuth,
+    private backendAuth: BackendAuthService,
     private router: Router,
     private toastr: ToastrService,
     private location: Location,
@@ -32,12 +30,6 @@ export class LoginPage implements OnInit {
   }
 
   ngOnInit() {
-    this.authService.signOut();
-    this.afAuth.authState.subscribe((user) => {
-      if (user) {
-        this.location.historyGo(-1);
-      }
-    });
     this.translate.onLangChange.subscribe((lang) => {
       this.lang = lang.lang;
     });
@@ -58,13 +50,13 @@ export class LoginPage implements OnInit {
       return;
     }
 
-    this.afAuth
-      .signInWithEmailAndPassword(this.email, this.password)
-      .then(() => this.router.navigate(['/dashboard']))
-      .catch((error) => this.toastr.error('Xato malumotlar kiritildi!'));
+    this.backendAuth.login({ email: this.email, password: this.password }).subscribe({
+      next: () => this.router.navigate(['/dashboard']),
+      error: () => this.toastr.error('Xato malumotlar kiritildi!'),
+    });
   }
 
   signInWithGoogle(): void {
-    this.authService.signInWithGoogle();
+    this.toastr.info('Google login is not supported');
   }
 }

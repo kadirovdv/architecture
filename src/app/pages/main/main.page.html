@@ -92,14 +92,14 @@
         *ngIf="websiteLessons && websiteLessons.length > 0 && !isLoadingThumbnails; else skeletonLoader"
       >
         <div class="col-md-4" *ngFor="let item of websiteLessons">
-          <div class="section-card" [routerLink]="['/pages/lessons', item.id]">
+          <div class="section-card" [routerLink]="['/pages/lessons', item.slug]">
             <div class="section-content">
               <div class="section-img">
                 <img [src]="item?.thumbnail" class="w-100" alt="img-1" />
               </div>
             </div>
             <div class="section-text">
-              {{ item.lessonTitle && item.lessonTitle[lang] || 'Lesson' }}
+              {{ item.title || 'Lesson' }}
             </div>
           </div>
         </div>
@@ -116,17 +116,17 @@
               *ngFor="let item of websiteLessons; let i = index"
               class="swiper-slide"
             >
-              <div class="media-item" [routerLink]="['/pages/lessons', item.id]">
+              <div class="media-item" [routerLink]="['/pages/lessons', item.slug]">
                 <div class="lesson-image">
                   <img
                     [src]="item?.thumbnail"
-                    [alt]="item.lessonTitle && item.lessonTitle[lang] || 'Lesson'"
+                    [alt]="item.title || 'Lesson'"
                     class="lesson-thumbnail"
                     loading="lazy"
                   />
                 </div>
                 <div class="lesson-title">
-                  {{ item.lessonTitle && item.lessonTitle[lang] || 'Lesson' }}
+                  {{ item.title || 'Lesson' }}
                 </div>
               </div>
             </div>

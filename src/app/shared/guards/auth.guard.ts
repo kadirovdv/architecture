@@ -1,23 +1,22 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, Router } from '@angular/router';
-import { AngularFireAuth } from '@angular/fire/compat/auth';
-import { Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+import { BackendAuthService } from '../services/backend-auth.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthGuard implements CanActivate {
-  constructor(private afAuth: AngularFireAuth, private router: Router) {}
+  constructor(private backendAuth: BackendAuthService, private router: Router) {}
 
   canActivate(): Observable<boolean> {
-    return this.afAuth.authState.pipe(
-      map((user) => !!user),
-      tap((loggedIn) => {
-        if (!loggedIn) {
-          this.router.navigate(['/auth/login']);
-        } 
-      })
+    return this.backendAuth.me().pipe(
+      map(() => true),
+      catchError(() => {
+        this.router.navigate(['/auth/login']);
+        return of(false);
+      }),
     );
   }
 }

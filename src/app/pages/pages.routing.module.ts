@@ -22,7 +22,7 @@ const routes: Routes = [
         component: AboutPage
       },
       {
-        path: 'lessons/:id',
+        path: 'lessons/:slug',
         component: LessonsPage,
       },
       {

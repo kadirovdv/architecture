@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { ToggleNavVisibilityService } from '../shared/services/toggle.nav.visibility.service';
-import { DropboxService } from '../shared/services/dropbox.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -8,7 +7,7 @@ import { DropboxService } from '../shared/services/dropbox.service';
   styleUrls: ['./dashboard.page.scss'],
 })
 export class DashboardPage implements OnInit {
-  constructor(private navService: ToggleNavVisibilityService, private dropboxService: DropboxService) {}
+  constructor(private navService: ToggleNavVisibilityService) {}
 
   ngOnInit(): void {
     // this.navService.changeState(false);

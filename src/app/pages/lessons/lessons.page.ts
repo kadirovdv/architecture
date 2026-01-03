@@ -12,8 +12,6 @@ import {
   inject,
 } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { CrudService } from 'src/app/shared/services/crud.service';
-import { DropboxService } from 'src/app/shared/services/dropbox.service';
 import { ToggleNavVisibilityService } from 'src/app/shared/services/toggle.nav.visibility.service';
 import { switchMap, take, tap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
@@ -27,10 +25,11 @@ import {
   SecondClassFileGroups,
   Videos,
 } from 'src/app/shared/interfaces/interfaces';
-import { BehaviorSubject, forkJoin, of, Subject } from 'rxjs';
+import { BehaviorSubject, of, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { SwiperService } from 'src/app/shared/services/swiper.service';
-import { DropboxAuthService } from 'src/app/shared/services/dropbox.auth.service';
+import { LessonsApiService } from 'src/app/shared/services/lessons-api.service';
+import type { LessonDetailDto, LessonListItemDto } from 'src/app/shared/models/backend.dto';
 
 @Component({
   selector: 'app-lessons',
@@ -45,8 +44,7 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   @ViewChildren('pdfViewer') pdfViewers!: QueryList<ElementRef>;
 
   lang = '';
-  websiteLessons: Lesson[] = [];
-  private thumbnailsLoaded = new BehaviorSubject<number>(0);
+  websiteLessons: Array<LessonListItemDto & { thumbnail?: string }> = [];
   Math = Math;
   iframeErrors: { [key: string]: boolean } = {};
   loadingFiles: { [key: string]: boolean } = {}; // Track loading state for each file
@@ -110,15 +108,13 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     private navService: ToggleNavVisibilityService,
-    private crudService: CrudService,
-    public dropboxService: DropboxService,
     private activatedRoute: ActivatedRoute,
     private i18n: i18nService,
     private loaderService: LoaderService,
     private loadingService: LoadingService,
     private sanitizer: DomSanitizer,
     private renderer: Renderer2,
-    private dropboxAuthService: DropboxAuthService
+    private lessonsApi: LessonsApiService
   ) {
     // Subscribe to selectedFiles changes
     this.selectedFiles$.pipe(takeUntil(this.destroy$)).subscribe((files) => {
@@ -202,96 +198,51 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       this.updateFilesOnLanguageChange();
     });
 
-    this.thumbnailsLoaded
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(this.handleThumbnailsLoaded.bind(this));
-  }
-
-  private handleThumbnailsLoaded(count: number): void {
-    if (
-      count > 0 &&
-      this.websiteLessons.length > 0 &&
-      count === this.websiteLessons.length
-    ) {
-      this.websiteLessons = [...this.websiteLessons].sort((a, b) => {
-        const dateA = new Date(a.createdAt || '').getTime();
-        const dateB = new Date(b.createdAt || '').getTime();
-        return dateA - dateB;
-      });
-      this.loaderService.hideLoader(true);
-      this.loadingService.hide();
-    }
   }
 
   loadWebsiteLessons(): void {
     // Show both loaders
     this.loadingService.show();
-    
-    this.crudService
-      .getDocuments('website-lessons')
-      .pipe(
-        switchMap((res: unknown) => {
-          const allLessons = res as Lesson[];
-          // Filter for active lessons only
-          const lessons = allLessons.filter((lesson) => lesson.active);
 
-          if (lessons.length === 0) {
-            this.websiteLessons = lessons;
-            this.loaderService.hideLoader(true);
-            this.loadingService.hide();
-            return of(null);
-          }
-
-          if (!this.dropboxAuthService.hasAccessToken()) {
-            this.websiteLessons = lessons;
-            this.loaderService.hideLoader(true);
-            this.loadingService.hide();
-            return of(null);
-          }
-
-          const thumbnailRequests = lessons.map((lesson, index) =>
-            this.dropboxService.getThumbnail(lesson.thumbnail as string).pipe(
-              tap((thumbnailRes) => {
-                lessons[index].thumbnail =
-                  this.sanitizer.bypassSecurityTrustUrl(
-                    URL.createObjectURL(thumbnailRes)
-                  );
-                this.thumbnailsLoaded.next(this.thumbnailsLoaded.value + 1);
-              })
-            )
-          );
-
-          return forkJoin(thumbnailRequests).pipe(
-            tap(() => {
-              this.websiteLessons = [...lessons].sort((a, b) => {
-                if (a.index && b.index) return a.index - b.index;
-                const dateA = new Date(a.createdAt || '').getTime();
-                const dateB = new Date(b.createdAt || '').getTime();
-                return dateA - dateB;
-              });
-              this.activatedRoute.params.subscribe((params) => {
-                this.selectedLesson =
-                  this.websiteLessons.find(
-                    (lesson) => lesson.id === params['id']
-                  ) || null;
-                if (this.selectedLesson) {
-                  this.selectSlide(
-                    this.websiteLessons.indexOf(this.selectedLesson)
-                  );
-                  this.setLessonFiles('firstBasedFiles', this.currentFileType);
-                }
-              });
-
-              this.loaderService.hideLoader(true);
-              this.loadingService.hide();
-            })
-          );
-        }),
-        takeUntil(this.destroy$)
-      )
+    this.lessonsApi
+      .listLessons({ activeOnly: true })
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
+        next: (lessons) => {
+          this.websiteLessons = lessons
+            .filter((l) => l.active)
+            .map((l) => ({
+              ...l,
+              thumbnail:
+                l.thumbnailUrl ||
+                l.exampleResources?.find((r) => r.mimeType?.startsWith('image/'))
+                  ?.publicUrl ||
+                undefined,
+            }))
+            .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+          if (this.websiteLessons.length === 0) {
+            this.selectedLesson = null;
+            this.loaderService.hideLoader(true);
+            this.loadingService.hide();
+            return;
+          }
+
+          this.activatedRoute.params.pipe(take(1)).subscribe((params) => {
+            const slug = params['slug'] || params['id'];
+            const idx = slug
+              ? this.websiteLessons.findIndex((l) => l.slug === slug)
+              : 0;
+            this.selectSlide(idx >= 0 ? idx : 0);
+          });
+
+          this.loaderService.hideLoader(true);
+          this.loadingService.hide();
+        },
         error: (err) => {
           console.error('Error fetching lessons:', err);
+          this.websiteLessons = [];
+          this.selectedLesson = null;
           this.loaderService.hideLoader(true);
           this.loadingService.hide();
         },
@@ -306,18 +257,43 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       index < this.websiteLessons.length
     ) {
       this.currentSlideIndex = index;
-      this.selectedLesson = this.websiteLessons[index];
+      const listLesson = this.websiteLessons[index];
+      // set basic selection immediately for header rendering
+      this.selectedLesson = listLesson as any;
       
       // Update the URL without reloading the page
-      const url = `/pages/lessons/${this.selectedLesson.id}`;
+      const url = `/pages/lessons/${listLesson.slug}`;
       window.history.replaceState({}, '', url);
       
       // Reset the selected file type and index
       this.currentFileTypeSubject.next('taskExampleFiles');
       this.currentSelectedFileIndex = 0;
       
-      // Set the appropriate files for this lesson
-      this.setLessonFiles('firstBasedFiles', 'taskExampleFiles');
+      // Fetch full lesson detail (tasks + bucketed resources)
+      this.isLoadingFile = true;
+      this.loadingService.show();
+      this.lessonsApi
+        .getLesson(listLesson.slug)
+        .pipe(take(1), takeUntil(this.destroy$))
+        .subscribe({
+          next: (detail: LessonDetailDto) => {
+            this.selectedLesson = {
+              ...listLesson,
+              ...detail,
+              thumbnail: listLesson.thumbnail,
+            } as any;
+
+            this.selectedTaskId = null;
+            this.setLessonFiles('firstBasedFiles', 'taskExampleFiles');
+            this.isLoadingFile = false;
+            this.loadingService.hide();
+          },
+          error: (err) => {
+            console.error('Error fetching lesson detail:', err);
+            this.isLoadingFile = false;
+            this.loadingService.hide();
+          },
+        });
       
       // Scroll to top of the content area
       window.scrollTo({
@@ -335,38 +311,17 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     return false; // No slides are hidden with Swiper
   }
 
-  getTitle(lesson: Lesson): string {
-    if (!lesson.lessonTitle || !this.lang) return '';
-    return (
-      lesson.lessonTitle[this.lang as keyof typeof lesson.lessonTitle] || ''
-    );
+  getTitle(lesson: any): string {
+    return lesson?.title || '';
   }
 
   openFileInNewTab(filePath: string): void {
     if (!filePath) return;
     this.loaderService.showLoader();
     this.loadingService.show();
-
-    if (!this.dropboxAuthService.hasAccessToken()) {
-      this.loaderService.hideLoader(true);
-      this.loadingService.hide();
-      return;
-    }
-
-    this.dropboxService
-      .openFileInNewTab(filePath)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.loaderService.hideLoader(true);
-          this.loadingService.hide();
-        },
-        error: (err) => {
-          console.error('Error opening file in new tab:', err);
-          this.loaderService.hideLoader(true);
-          this.loadingService.hide();
-        }
-      });
+    window.open(this.sanitizeDropboxUrl(filePath), '_blank');
+    this.loaderService.hideLoader(true);
+    this.loadingService.hide();
   }
 
   sanitizeDropboxUrl(url: string): string {
@@ -933,21 +888,9 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
     this.loaderService.showLoader();
     this.loadingService.show();
-
-    this.dropboxService
-      .openFileInNewTab(url)
-      .pipe(take(1))
-      .subscribe({
-        next: () => {
-          this.loaderService.hideLoader(true);
-          this.loadingService.hide();
-        },
-        error: (err) => {
-          console.error('Error opening file in new tab:', err);
-          this.loaderService.hideLoader(true);
-          this.loadingService.hide();
-        }
-      });
+    window.open(this.sanitizeDropboxUrl(url), '_blank');
+    this.loaderService.hideLoader(true);
+    this.loadingService.hide();
   }
 
   downloadFile(event: Event, url?: string): void {
@@ -958,27 +901,9 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
 
     this.loaderService.showLoader();
     this.loadingService.show();
-
-    if (!this.dropboxAuthService.hasAccessToken()) {
-      this.loaderService.hideLoader(true);
-      this.loadingService.hide();
-      return;
-    }
-
-    this.dropboxService
-      .downloadFile(url)
-      .pipe(take(1))
-      .subscribe({
-        next: () => {
-          this.loaderService.hideLoader(true);
-          this.loadingService.hide();
-        },
-        error: (err) => {
-          console.error('Error downloading file:', err);
-          this.loaderService.hideLoader(true);
-          this.loadingService.hide();
-        }
-      });
+    window.open(this.sanitizeDropboxUrl(url), '_blank');
+    this.loaderService.hideLoader(true);
+    this.loadingService.hide();
   }
   toggleLiteratureDropdown(event: Event): void {
     event.stopPropagation();
