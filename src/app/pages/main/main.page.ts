@@ -170,17 +170,17 @@ export class MainPage {
             thumbnail: null,
           }));
 
-        this.isLoadingThumbnails = false;
-        this.loaderService.hide();
+              this.isLoadingThumbnails = false;
+              this.loaderService.hide();
       },
-      error: (err) => {
-        console.error('Error fetching lessons:', err);
+        error: (err) => {
+          console.error('Error fetching lessons:', err);
         this.websiteLessons = [];
         this.skeletonLessons = [];
-        this.isLoadingThumbnails = false;
-        this.loaderService.hide();
-      },
-    });
+          this.isLoadingThumbnails = false;
+          this.loaderService.hide();
+        },
+      });
   }
 
   nextSlide(): void {
@@ -281,7 +281,7 @@ export class MainPage {
       const parsed = raw ? (JSON.parse(raw) as News[]) : [];
       this.newsList = Array.isArray(parsed) ? parsed : [];
       this.newsList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-      this.newsList = this.newsList.slice(0, 5);
+        this.newsList = this.newsList.slice(0, 5);
     } catch (error) {
       console.error('Error loading news from localStorage:', error);
       this.newsList = [];

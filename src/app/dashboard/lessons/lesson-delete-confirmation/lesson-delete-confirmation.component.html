@@ -1,0 +1,14 @@
+<div class="modal-header">
+  <h4 class="modal-title">Fanni o'chirish</h4>
+  <button type="button" class="btn-close" aria-label="Close" (click)="dismiss()"></button>
+</div>
+<div class="modal-body">
+  <p>Bu fanni o'chirish orqali barcha topshiriqlar va resurslar ham o'chiriladi. Bu doimiy o'zgarishdir. Davom etasizmi?</p>
+  <div class="lesson-info" *ngIf="lessonTitle">
+    <span class="lesson-name">{{ lessonTitle }}</span>
+  </div>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-secondary" (click)="dismiss()">Bekor qilish</button>
+  <button type="button" class="btn btn-danger" (click)="confirm()">O'chirish</button>
+</div>

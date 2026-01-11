@@ -45,6 +45,9 @@
             <div class="action-btn cursor-pointer" (click)="editLesson(lesson)">
               <img src="/assets/img/edit.png" width="30px" alt="" />
             </div>
+            <div class="action-btn cursor-pointer" (click)="deleteLesson(lesson, $event)">
+              <img src="/assets/svg/trash.svg" width="30px" alt="" />
+            </div>
           </div>
           <div class="action-dropdown" *ngIf="dropdownVisible && selectedIndex === i">
             <div class="d-flex align-items-center">
@@ -144,6 +147,9 @@
               (click)="editCreatedLesson(lesson)"
             >
               <img src="/assets/img/edit.png" width="30px" alt="" />
+            </div>
+            <div class="action-btn cursor-pointer" (click)="deleteLesson(lesson, $event)">
+              <img src="/assets/svg/trash.svg" width="30px" alt="" />
             </div>
           </div>
           <div class="action-dropdown" *ngIf="dropdownVisible && selectedIndex === i">

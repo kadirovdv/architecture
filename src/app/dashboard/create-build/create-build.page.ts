@@ -77,7 +77,7 @@ export class CreateBuildPage implements OnInit {
           this.lessons = [];
           this.loading = false;
         },
-      });
+    });
   }
 
   compareLessonById = (a: any, b: any) => {
@@ -96,7 +96,7 @@ export class CreateBuildPage implements OnInit {
     if (!task) return '';
     const idx = typeof task.index === 'number' ? `${task.index}. ` : '';
     return `${idx}${task.title || 'Task'}`;
-  }
+    }
 
   onLessonSelect(selected: LessonListItemDto | LessonDetailDto | null): void {
     this.task = null;
@@ -147,11 +147,11 @@ export class CreateBuildPage implements OnInit {
 
   hasError(category: string): boolean {
     return this.errorCategories.includes(category);
-  }
-
+      }
+      
   onFileTypeSelect(lang: string, category: string): void {
     this.selectedLanguage = (lang as LangKey) || 'uz';
-
+      
     const input = document.querySelector(
       `input[type="file"][data-category="${category}"]`,
     ) as HTMLInputElement | null;
@@ -191,9 +191,9 @@ export class CreateBuildPage implements OnInit {
         size: f.size,
         file: f, // marker for pending upload
       } as any);
+      }
     }
-  }
-
+    
   onRemoveFile(params: { category: string; lang: string; index: number; autoSave?: boolean }): void {
     if (!this.task) return;
 
@@ -214,7 +214,7 @@ export class CreateBuildPage implements OnInit {
 
     const item = arr[index] as any;
     const resourceId = item?.id as string | undefined;
-
+      
     // Existing backend resource → delete immediately then refresh.
     if (resourceId && !item?.file) {
       this.loaderService.showLoader();
@@ -356,7 +356,7 @@ export class CreateBuildPage implements OnInit {
           this.task = detail.tasks.find((t) => t.id === currentTaskId) || null;
               } else {
           this.task = null;
-        }
+            }
       }),
       map(() => null),
     );
@@ -404,10 +404,10 @@ export class CreateBuildPage implements OnInit {
           });
         }
       });
-    }
+          }
 
     return result;
-  }
+      }
 
   private isFirstBasedCategory(category: string): boolean {
     return category === 'taskExampleFiles' || category === 'taskSolutionFiles';

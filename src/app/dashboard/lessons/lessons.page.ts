@@ -2,7 +2,9 @@ import { Component, OnInit, HostListener } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
 import { LoadingService } from 'src/app/shared/services/loading.service';
 import { Router } from '@angular/router';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { AddNewsModalComponent } from '../add-news-modal/add-news-modal.component';
+import { LessonDeleteConfirmationComponent } from './lesson-delete-confirmation/lesson-delete-confirmation.component';
 import { i18nService } from 'src/app/shared/services/i18n.service';
 import { LessonsApiService } from 'src/app/shared/services/lessons-api.service';
 import { AdminLessonsApiService } from 'src/app/shared/services/admin-lessons-api.service';
@@ -57,6 +59,7 @@ export class LessonsPage implements OnInit {
     private toastr: ToastrService,
     private loadingService: LoadingService,
     private router: Router,
+    private modalService: NgbModal,
     public i18n: i18nService,
     private lessonsApi: LessonsApiService,
     private adminLessonsApi: AdminLessonsApiService
@@ -325,6 +328,38 @@ export class LessonsPage implements OnInit {
     });
   }
 
+  deleteLesson(lesson: LessonListItemDto, event?: Event): void {
+    if (!lesson.slug) return;
+    
+    event?.preventDefault();
+    event?.stopPropagation();
+    
+    // Open confirmation modal
+    const modalRef = this.modalService.open(LessonDeleteConfirmationComponent);
+    modalRef.componentInstance.lessonTitle = lesson.title;
+    
+    // Handle the result
+    modalRef.result.then((result) => {
+      if (result === 'confirm') {
+        this.loadingService.show();
+        
+        this.adminLessonsApi.deleteLesson(lesson.slug).pipe(take(1)).subscribe({
+          next: () => {
+            this.toastr.success("Fan muvaffaqiyatli o'chirildi");
+            this.loadAllData(); // Reload the lessons list
+            this.loadingService.hide();
+          },
+          error: (error) => {
+            this.toastr.error('Error: ' + (error?.message || 'Unknown error'));
+            this.loadingService.hide();
+          },
+        });
+      }
+    }, () => {
+      // Modal dismissed - do nothing
+    });
+  }
+
   // Document click handler -------------------------------------------
 
   @HostListener('document:click')
@@ -340,7 +375,8 @@ export class LessonsPage implements OnInit {
       target.closest('img[src*="save.svg"]') ||
       target.closest('img[src*="cancel.svg"]') ||
       target.closest('img[src*="trash.svg"]') ||
-      target.closest('img[src*="edit.png"]');
+      target.closest('img[src*="edit.png"]') ||
+      target.closest('.modal');
     
     if (!isDropdownRelated) {
       this.closeDropdown();

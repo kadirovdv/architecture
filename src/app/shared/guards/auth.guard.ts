@@ -14,7 +14,7 @@ export class AuthGuard implements CanActivate {
     return this.backendAuth.me().pipe(
       map(() => true),
       catchError(() => {
-        this.router.navigate(['/auth/login']);
+          this.router.navigate(['/auth/login']);
         return of(false);
       }),
     );

@@ -203,7 +203,7 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   loadWebsiteLessons(): void {
     // Show both loaders
     this.loadingService.show();
-
+    
     this.lessonsApi
       .listLessons({ activeOnly: true })
       .pipe(takeUntil(this.destroy$))
@@ -234,10 +234,10 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
               ? this.websiteLessons.findIndex((l) => l.slug === slug)
               : 0;
             this.selectSlide(idx >= 0 ? idx : 0);
-          });
+              });
 
-          this.loaderService.hideLoader(true);
-          this.loadingService.hide();
+              this.loaderService.hideLoader(true);
+              this.loadingService.hide();
         },
         error: (err) => {
           console.error('Error fetching lessons:', err);
@@ -284,7 +284,7 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
             } as any;
 
             this.selectedTaskId = null;
-            this.setLessonFiles('firstBasedFiles', 'taskExampleFiles');
+      this.setLessonFiles('firstBasedFiles', 'taskExampleFiles');
             this.isLoadingFile = false;
             this.loadingService.hide();
           },
@@ -320,8 +320,8 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     this.loaderService.showLoader();
     this.loadingService.show();
     window.open(this.sanitizeDropboxUrl(filePath), '_blank');
-    this.loaderService.hideLoader(true);
-    this.loadingService.hide();
+      this.loaderService.hideLoader(true);
+      this.loadingService.hide();
   }
 
   sanitizeDropboxUrl(url: string): string {
@@ -889,8 +889,8 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     this.loaderService.showLoader();
     this.loadingService.show();
     window.open(this.sanitizeDropboxUrl(url), '_blank');
-    this.loaderService.hideLoader(true);
-    this.loadingService.hide();
+          this.loaderService.hideLoader(true);
+          this.loadingService.hide();
   }
 
   downloadFile(event: Event, url?: string): void {
@@ -902,8 +902,8 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     this.loaderService.showLoader();
     this.loadingService.show();
     window.open(this.sanitizeDropboxUrl(url), '_blank');
-    this.loaderService.hideLoader(true);
-    this.loadingService.hide();
+      this.loaderService.hideLoader(true);
+      this.loadingService.hide();
   }
   toggleLiteratureDropdown(event: Event): void {
     event.stopPropagation();

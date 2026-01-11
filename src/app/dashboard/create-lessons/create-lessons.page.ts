@@ -120,12 +120,12 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
             (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
           );
 
-          // Check if we're in edit mode using query params
+      // Check if we're in edit mode using query params
           this.route.queryParams.subscribe((params) => {
             const slug = params['slug'];
             if (!slug) return;
 
-            this.isLessonEdit = true;
+          this.isLessonEdit = true;
             this.lessonSlugToEdit = slug;
 
             this.adminLessonsApi
@@ -133,12 +133,12 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
               .pipe(take(1))
               .subscribe({
                 next: (detail: LessonDetailDto) => {
-                  this.createLessonsForm.patchValue({
+            this.createLessonsForm.patchValue({
                     uz: detail.title || '',
                     ru: detail.title || '',
                     en: detail.title || '',
-                  });
-
+            });
+            
                   // Prefer explicit thumbnail category; fallback to any image resource
                   const thumbnail =
                     detail.resources?.find(
@@ -166,7 +166,7 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
         error: () => {
           this.lessons = [];
         },
-      });
+    });
   }
 
   ngOnDestroy(): void {
@@ -236,16 +236,16 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
         })
       )
       .subscribe({
-        next: () => {
+      next: () => {
           this.toastr.success(this.isLessonEdit ? 'Fan muvaffaqiyatli yangilandi!' : "Fan muvaffaqiyatli qo'shildi!");
-          this.loadingService.hide();
-          this.router.navigate(['/dashboard/lessons']);
-        },
+        this.loadingService.hide();
+        this.router.navigate(['/dashboard/lessons']);
+      },
         error: () => {
-          this.toastr.error('Xatolik yuz berdi!');
-          this.loadingService.hide();
-        },
-      });
+        this.toastr.error('Xatolik yuz berdi!');
+        this.loadingService.hide();
+      },
+    });
   }
 
   findLesson(event: any, lang: 'uz' | 'ru' | 'en') {
