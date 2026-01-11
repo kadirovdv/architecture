@@ -123,6 +123,19 @@ export class AdminLessonsApiService {
       .delete<ApiDataResponse<{ id: string; message: string }>>(`/api/admin/resources/${encodeURIComponent(id)}`)
       .pipe(map((r) => r.data));
   }
+
+  addVideoUrl(
+    slug: string,
+    taskId: string,
+    payload: { url: string; title?: string },
+  ): Observable<LessonResourceDto> {
+    return this.api
+      .post<ApiDataResponse<LessonResourceDto>>(
+        `/api/admin/lessons/${encodeURIComponent(slug)}/tasks/${encodeURIComponent(taskId)}/video-urls`,
+        payload,
+      )
+      .pipe(map((r) => r.data));
+  }
 }
 
 

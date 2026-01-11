@@ -47,7 +47,7 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   websiteLessons: Array<LessonListItemDto & { thumbnail?: string }> = [];
   Math = Math;
   iframeErrors: { [key: string]: boolean } = {};
-  loadingFiles: { [key: string]: boolean } = {}; // Track loading state for each file
+  loadingFiles: { [key: string]: boolean } = {}; 
 
   currentSlideIndex = 0;
   slideWidth = 200;
@@ -88,7 +88,6 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   currentFileType$ = this.currentFileTypeSubject.asObservable();
   currentFileType = this.currentFileTypeSubject.value;
 
-  // Add property to track selected file index
   currentSelectedFileIndex: number = 0;
   showFileDropdown: boolean = false;
 
@@ -103,7 +102,6 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   filesLoaded: boolean = false;
   loadingInProgress: boolean = false;
 
-  // Add a property to store the swiper instance
   private lessonsSwiper: any = null;
 
   constructor(
@@ -116,12 +114,10 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     private renderer: Renderer2,
     private lessonsApi: LessonsApiService
   ) {
-    // Subscribe to selectedFiles changes
     this.selectedFiles$.pipe(takeUntil(this.destroy$)).subscribe((files) => {
       this.selectedFiles = files;
     });
-
-    // Subscribe to currentFileType changes
+    
     this.currentFileType$.pipe(takeUntil(this.destroy$)).subscribe((type) => {
       this.currentFileType = type;
     });
@@ -132,12 +128,11 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    // Initialize Swiper for lessons carousel
     const lessonsSwiperConfig = {
       slidesPerView: 'auto',
       centeredSlides: false,
       spaceBetween: 20,
-      slidesOffsetBefore: 20, // Add space at beginning
+      slidesOffsetBefore: 20, 
       pagination: {
         el: '.swiper-pagination',
         clickable: true,
@@ -162,12 +157,10 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       },
       on: {
         slideChange: (swiper: any) => {
-          // Setup slide selection handling
           if (this.websiteLessons && this.websiteLessons.length > 0) {
             this.selectSlide(swiper.activeIndex);
           }
           
-          // Use the helper method to update alignment
           this.swiperService.updateSwiperAlignment(swiper, 0.25);
         }
       }
@@ -177,12 +170,10 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       this.lessonsSwiper = this.swiperService.initializeSwiper('.lessonsSwiper', lessonsSwiperConfig);
     }, 100);
     
-    // Also listen to window resize events
     window.addEventListener('resize', this.handleResize.bind(this));
   }
 
   ngOnDestroy(): void {
-    // Clean up event listeners
     window.removeEventListener('resize', this.handleResize.bind(this));
     this.destroy$.next();
     this.destroy$.complete();
@@ -201,7 +192,6 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   loadWebsiteLessons(): void {
-    // Show both loaders
     this.loadingService.show();
     
     this.lessonsApi
@@ -258,18 +248,14 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     ) {
       this.currentSlideIndex = index;
       const listLesson = this.websiteLessons[index];
-      // set basic selection immediately for header rendering
       this.selectedLesson = listLesson as any;
       
-      // Update the URL without reloading the page
       const url = `/pages/lessons/${listLesson.slug}`;
       window.history.replaceState({}, '', url);
       
-      // Reset the selected file type and index
       this.currentFileTypeSubject.next('taskExampleFiles');
       this.currentSelectedFileIndex = 0;
       
-      // Fetch full lesson detail (tasks + bucketed resources)
       this.isLoadingFile = true;
       this.loadingService.show();
       this.lessonsApi
@@ -295,7 +281,6 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
           },
         });
       
-      // Scroll to top of the content area
       window.scrollTo({
         top: 0,
         behavior: 'smooth'
@@ -308,7 +293,7 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   isHiddenSlide(index: number): boolean {
-    return false; // No slides are hidden with Swiper
+    return false; 
   }
 
   getTitle(lesson: any): string {
@@ -327,13 +312,11 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   sanitizeDropboxUrl(url: string): string {
     if (!url) return '';
 
-    // Replace 'www.dropbox.com' with 'dl.dropboxusercontent.com'
     let sanitizedUrl = url.replace(
       'www.dropbox.com',
       'dl.dropboxusercontent.com'
     );
 
-    // Ensure correct query parameters
     sanitizedUrl = sanitizedUrl
       .replace(/\?dl=0/, '?raw=1')
       .replace(/&dl=0/, '&raw=1');
@@ -344,7 +327,6 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
   sanitizePdfUrl(url: string): string {
     if (!url) return '';
 
-    // Fixing Dropbox URL formatting
     let sanitizedUrl = this.sanitizeDropboxUrl(url);
     sanitizedUrl = sanitizedUrl.replace(/\?([^=]+=[^&]*)\?/g, '?$1&'); // Fix multiple '?'
 
@@ -375,14 +357,49 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
     return this.sanitizePdfUrl(url) || '';
   }
 
-  getVideoUrl(video: Videos): string {
-    if (!video?.url || !this.lang) return '';
-    return video.url[this.lang as keyof typeof video.url] || '';
+  getVideoUrl(video: any): string {
+    // Backend bucket shape: { name: string; url: string; path: string }
+    if (typeof video?.publicUrl === 'string' && video.publicUrl.trim()) {
+      return video.publicUrl.trim();
+    }
+    if (typeof video === 'string' && video.trim()) {
+      return video.trim();
+    }
+    if (typeof video?.url === 'string' && video.url.trim()) {
+      return video.url.trim();
+    }
+    if (typeof video?.path === 'string' && video.path.trim()) {
+      return video.path.trim();
+    }
+
+    // Legacy shape: { url: { uz, ru, en } }
+    if (video?.url && typeof video.url === 'object' && this.lang) {
+      return video.url[this.lang as keyof typeof video.url] || '';
+    }
+
+    return '';
   }
 
-  getVideoName(video: Videos): string {
-    if (!video?.name || !this.lang) return '';
-    return video.name[this.lang as keyof typeof video.name] || '';
+  getVideoName(video: any): string {
+    // Backend resource shape
+    if (typeof video?.originalName === 'string' && video.originalName.trim()) {
+      return video.originalName.trim();
+    }
+    if (typeof video?.fileName === 'string' && video.fileName.trim()) {
+      return video.fileName.trim();
+    }
+
+    // Backend bucket shape: { name: string; url: string; path: string }
+    if (typeof video?.name === 'string' && video.name.trim()) {
+      return video.name.trim();
+    }
+
+    // Legacy shape: { name: { uz, ru, en } }
+    if (video?.name && typeof video.name === 'object' && this.lang) {
+      return video.name[this.lang as keyof typeof video.name] || '';
+    }
+
+    return 'Video';
   }
 
   getEmbeddedVideoUrl(url: string): SafeResourceUrl {
@@ -487,8 +504,11 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
           fileType === 'taskVideoUrls' &&
           selectedTask.secondBasedFiles?.taskVideoUrls
         ) {
-          newFiles.secondBasedFiles.taskVideoUrls =
-            selectedTask.secondBasedFiles.taskVideoUrls;
+          // We only support showing YouTube links in the UI for videos
+          const rawVideos = selectedTask.secondBasedFiles.taskVideoUrls as any;
+          newFiles.secondBasedFiles.taskVideoUrls = (Array.isArray(rawVideos)
+            ? rawVideos.filter((v: any) => this.isYoutubeUrl(this.getVideoUrl(v)))
+            : []) as any;
         }
       }
 
@@ -562,7 +582,7 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
         const videos = newFiles.secondBasedFiles.taskVideoUrls;
         videos.forEach((video: any, index: number) => {
           const url = this.getVideoUrl(video);
-          if (url) {
+          if (url && this.isYoutubeUrl(url)) {
             this.filesQueue.push({
               type: 'video',
               url: url,
@@ -980,8 +1000,9 @@ export class LessonsPage implements OnInit, AfterViewInit, OnDestroy {
       if (this.currentFileType === 'taskVideoUrls') {
         const videos = this.selectedFiles.secondBasedFiles.taskVideoUrls;
         if (videos && videos.length > this.currentSelectedFileIndex) {
-          const video = videos[this.currentSelectedFileIndex];
-          return this.getVideoUrl(video);
+          const video: any = videos[this.currentSelectedFileIndex];
+          // Handle new backend structure (LessonResourceDto with publicUrl)
+          return video?.publicUrl || this.getVideoUrl(video);
         }
         return undefined;
       }

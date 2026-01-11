@@ -3,12 +3,15 @@ import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { forkJoin, from, of } from 'rxjs';
 import { catchError, concatMap, finalize, map, switchMap, take, tap } from 'rxjs/operators';
 import type { LessonDetailDto, LessonListItemDto, LangKey } from 'src/app/shared/models/backend.dto';
 import { AdminLessonsApiService } from 'src/app/shared/services/admin-lessons-api.service';
 import { LessonsApiService } from 'src/app/shared/services/lessons-api.service';
 import { LoaderService } from 'src/app/shared/services/loader.service';
+import { VideoUploadComponent } from './video-upload/video-upload.component';
+import { Videos } from 'src/app/shared/interfaces/interfaces';
 
 type UploadCategory =
   | 'taskExampleFiles'
@@ -63,6 +66,7 @@ export class EditBuildPage implements OnInit {
     private loaderService: LoaderService,
     private route: ActivatedRoute,
     private location: Location,
+    private modalService: NgbModal,
   ) {}
 
   ngOnInit(): void {
@@ -365,7 +369,67 @@ export class EditBuildPage implements OnInit {
   }
 
   addVideo(): void {
-    this.toastr.info('Video URLs are not stored in the backend yet.');
+    if (!this.lesson?.slug || !this.task?.id) {
+      this.toastr.error('Fanni va topshiriqni tanlang');
+      return;
+    }
+
+    const modalRef = this.modalService.open(VideoUploadComponent);
+    
+    modalRef.result.then((video: Videos) => {
+      if (!video) return;
+
+      this.loaderService.showLoader();
+      
+      const apiCalls: any[] = [];
+      const langKeys: LangKey[] = ['uz', 'ru', 'en'];
+      
+      langKeys.forEach((lang) => {
+        const url = video.url[lang]?.trim();
+        const title = video.name[lang]?.trim() || undefined;
+        
+        if (url) {
+          apiCalls.push(
+            this.adminLessonsApi
+              .addVideoUrl(this.lesson!.slug, this.task.id, { url, title })
+              .pipe(
+                catchError((error) => {
+                  this.toastr.error(`Error adding ${lang} video: ${error?.message || 'Unknown error'}`);
+                  return of(null);
+                })
+              )
+          );
+        }
+      });
+
+      if (apiCalls.length === 0) {
+        this.toastr.warning('Hech bo\'lmaganda bitta video URL kiriting');
+        this.loaderService.hideLoader(true);
+        return;
+      }
+
+      forkJoin(apiCalls)
+        .pipe(
+          switchMap((results) => {
+            const successCount = results.filter((r) => r !== null).length;
+            if (successCount > 0) {
+              this.toastr.success(`${successCount} ta video URL qo'shildi`);
+              return this.refreshLessonDetail();
+            }
+            return of(null);
+          }),
+          take(1),
+          finalize(() => this.loaderService.hideLoader(true)),
+        )
+        .subscribe({
+          next: () => {
+          },
+          error: (error) => {
+            this.toastr.error('Error adding videos: ' + (error?.message || 'Unknown error'));
+          },
+        });
+    }, () => {
+    });
   }
 
   uploadAllFilesAndSaveData(): void {
