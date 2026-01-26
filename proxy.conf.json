@@ -1,6 +1,6 @@
 {
     "/api": {
-        "target": "http://localhost:4000",
+        "target": "https://api.grafiktopshiriqlar.uz",
         "changeOrigin": true,
         "secure": false,
         "logLevel": "debug"

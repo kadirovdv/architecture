@@ -70,6 +70,65 @@ export class MainPage {
     });
   }
 
+  private getLessonsSwiperConfig() {
+    return {
+      // Mobile carousel: one item per swipe, always centered
+      slidesPerView: 1,
+      centeredSlides: true,
+      spaceBetween: 0,
+      normalizeSlideIndex: true,
+      observer: true,
+      observeParents: true,
+      pagination: {
+        el: '.lessons-swiper-pagination',
+        clickable: true,
+      },
+      navigation: {
+        nextEl: '.lessons-swiper-button-next',
+        prevEl: '.lessons-swiper-button-prev',
+      },
+      breakpoints: {
+        320: {
+          slidesPerView: 1,
+          spaceBetween: 0,
+        },
+        480: {
+          slidesPerView: 1,
+          spaceBetween: 0,
+        },
+        768: {
+          slidesPerView: 1,
+          spaceBetween: 0,
+        },
+      },
+      on: {
+        init: (swiper: any) => {
+          // Force update layout after initialization
+          setTimeout(() => {
+            swiper.updateSize();
+            swiper.updateSlides();
+            swiper.update();
+          }, 100);
+        },
+      },
+    };
+  }
+
+  private initLessonsSwiper(): void {
+    const container = document.querySelector('.lessonsSwiper');
+    if (!container) return;
+
+    if (this.lessonsSwiper && typeof this.lessonsSwiper.destroy === 'function') {
+      this.lessonsSwiper.destroy(true, true);
+      this.lessonsSwiper = null;
+    }
+
+    this.lessonsSwiper = this.swiperService.initializeSwiper(
+      '.lessonsSwiper',
+      this.getLessonsSwiperConfig()
+    );
+  }
+
   ngAfterViewInit(): void {
     // Main carousel swiper config
     const swiperConfig = {
@@ -79,57 +138,9 @@ export class MainPage {
       },
     };
     this.swiperService.initializeSwiper('.mySwiper', swiperConfig);
-    
-    // Lessons carousel swiper config - starting from left
-    const lessonsSwiperConfig = {
-      slidesPerView: 'auto',
-      centeredSlides: false,
-      spaceBetween: 80,
-      slidesOffsetBefore: 50,
-      slidesOffsetAfter: 50,
-      normalizeSlideIndex: true,
-      watchSlidesProgress: true,
-      pagination: {
-        el: '.swiper-pagination',
-        clickable: true,
-      },
-      navigation: {
-        nextEl: '.swiper-button-next',
-        prevEl: '.swiper-button-prev',
-      },
-      breakpoints: {
-        320: {
-          slidesPerView: 'auto',
-          spaceBetween: 70,
-        },
-        480: {
-          slidesPerView: 'auto',
-          spaceBetween: 75,
-        },
-        768: {
-          slidesPerView: 'auto',
-          spaceBetween: 80,
-        }
-      },
-      on: {
-        slideChange: (swiper: any) => {
-          // Use the helper method to update alignment
-          this.swiperService.updateSwiperAlignment(swiper, 0.25);
-        },
-        init: (swiper: any) => {
-          // Force update layout after initialization
-          setTimeout(() => {
-            swiper.updateSize();
-            swiper.updateSlides();
-          }, 100);
-        }
-      }
-    };
-    
-    // Initialize the lessons swiper after a short delay to ensure DOM is ready
-    setTimeout(() => {
-      this.lessonsSwiper = this.swiperService.initializeSwiper('.lessonsSwiper', lessonsSwiperConfig);
-    }, 100);
+
+    // Initialize (or re-initialize) lessons swiper when available
+    setTimeout(() => this.initLessonsSwiper(), 0);
   }
 
   ngOnDestroy() {
@@ -170,8 +181,11 @@ export class MainPage {
             thumbnail: null,
           }));
 
-              this.isLoadingThumbnails = false;
-              this.loaderService.hide();
+        this.isLoadingThumbnails = false;
+        this.loaderService.hide();
+
+        // Ensure swiper is initialized after lessons render
+        setTimeout(() => this.initLessonsSwiper(), 0);
       },
         error: (err) => {
           console.error('Error fetching lessons:', err);
