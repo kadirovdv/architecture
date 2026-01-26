@@ -809,7 +809,7 @@
   
   .swiper-wrapper {
     transition-timing-function: ease-out !important;
-    padding-bottom: 40px;
+    padding-bottom: 0;
     padding-left: 0;
     padding-right: 0;
     align-items: center;
@@ -823,7 +823,6 @@
   
     .swiper-slide-active {
     .media-item {
-      transform: scale(1.05);
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
       opacity: 1;
     }
@@ -848,11 +847,11 @@
     justify-content: center;
     align-items: center;
     width: 100% !important;
-    height: auto;
+    height: clamp(180px, 30vh, 240px);
     transition: all 0.3s ease-out;
     position: relative;
     box-sizing: border-box;
-    padding: 0 16px 40px;
+    padding: 0 12px;
     margin: 0;
     
     &-active {
@@ -865,9 +864,9 @@
       cursor: pointer;
       margin: 0;
       padding: 0;
-      height: auto;
+      height: 100%;
       opacity: 0.9;
-      max-width: 280px;
+      max-width: 100%;
       transition: transform 0.3s ease-out, box-shadow 0.3s ease-out, opacity 0.3s ease-out;
       transform: scale(1);
       position: relative;
@@ -884,7 +883,7 @@
       
       .lesson-image {
         width: 100%;
-        height: 180px;
+        height: 100%;
         border-radius: 8px 8px 0 0;
         margin-bottom: 0;
         overflow: hidden;
@@ -949,12 +948,8 @@
 @media screen and (max-width: 768px) {
   .lessonsSwiper {
     .swiper-slide {
-      .media-item {
-        max-width: 260px;
-        .lesson-image {
-          height: 150px;
-        }
-      }
+      height: clamp(160px, 28vh, 220px);
+      padding: 0 10px;
     }
   }
 }
@@ -962,12 +957,10 @@
 @media screen and (max-width: 576px) {
   .lessonsSwiper {
     .swiper-slide {
+      height: clamp(140px, 26vh, 200px);
+      padding: 0 8px;
+
       .media-item {
-        max-width: 240px;
-        .lesson-image {
-          height: 120px;
-        }
-        
         .lesson-title {
           font-size: 12px;
           padding: 10px 5px;
