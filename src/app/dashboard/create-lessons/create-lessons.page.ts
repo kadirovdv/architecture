@@ -112,7 +112,7 @@ export class CreateLessonsPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.lessonsApi
-      .listLessons({ activeOnly: false })
+      .listLessons({ activeOnly: true })
       .pipe(take(1))
       .subscribe({
         next: (res) => {

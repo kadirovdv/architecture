@@ -67,7 +67,7 @@ export class CreateBuildPage implements OnInit {
   fetchLessons(): void {
     this.loading = true;
     this.lessonsApi
-      .listLessons({ activeOnly: false })
+      .listLessons({ activeOnly: true })
       .pipe(take(1))
       .subscribe({
         next: (lessons) => {
